@@ -9,11 +9,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@vercel/blob": "^2.8.2",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.13",
     "next": "^15.0.0",
+    "pg": "^8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "^4.6.7"
@@ -22,8 +24,9 @@
     "@prisma/config": "^7.10.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.0",
-    "prisma": "^8.0.0-rc.27",
+    "prisma": "^7.10.1",
     "tsx": "^4.23.15",
     "typescript": "^5.6.0"
   },
