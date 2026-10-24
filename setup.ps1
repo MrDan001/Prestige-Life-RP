@@ -21,13 +21,14 @@ if (-not (Test-Path .env)) {
   $db    = Read-Host "Paste your PostgreSQL DATABASE_URL (Supabase: use the direct or session connection string)"
   $email = Read-Host "Owner (super admin) email"
   $pw    = Read-Host "Owner password (10+ characters)"
-  @"
+  $envText = @"
 DATABASE_URL="$db"
 SESSION_SECRET="$(New-Secret 48)"
 GAME_API_KEY="$(New-Secret 32)"
 OWNER_EMAIL="$email"
 OWNER_PASSWORD="$pw"
-"@ | Set-Content .env -Encoding utf8
+"@
+  [System.IO.File]::WriteAllText("$PWD\.env", $envText, (New-Object System.Text.UTF8Encoding $false))
 } else {
   Write-Host "`n[2/5] .env already exists, keeping it." -ForegroundColor Yellow
 }
