@@ -1,0 +1,183 @@
+// PATH: prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// OWNER, TECH and DEVELOPER are the "top tier": equal full rights.
+// ADMIN uses the numeric level 1-6 (6 = chief admin / deputy chief admin).
+enum StaffKind {
+  OWNER
+  TECH
+  DEVELOPER
+  ADMIN
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum Verdict {
+  COMPLAINANT
+  ACCUSED
+  INSUFFICIENT
+}
+
+enum EvidenceKind {
+  IMAGE
+  VIDEO
+  LINK
+  TEXT
+}
+
+model Admin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  title        String    @default("Admin") // display only: Curator, Senior Admin, Chief Admin...
+  passwordHash String
+  kind         StaffKind @default(ADMIN)
+  level        Int       @default(1)
+  extraRights  String[]  @default([]) // MANAGE_CATEGORIES, MANAGE_STAFF (owner grants)
+  gameId       String?   @unique // links this staff member to their in-game account
+  createdAt    DateTime  @default(now())
+
+  responses         Response[]
+  complaintsAgainst Complaint[] @relation("Accused")
+  audits            AuditLog[]
+  claimedComplaints Complaint[] @relation("Claimed")
+  notes             Note[]
+}
+
+model Category {
+  id            String      @id @default(cuid())
+  name          String      @unique
+  minReplyLevel Int         @default(3)
+  minCloseLevel Int         @default(3)
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  complaints    Complaint[]
+  templates     ResponseTemplate[]
+}
+
+model Player {
+  id         String      @id @default(cuid())
+  gameId     String      @unique
+  username   String
+  createdAt  DateTime    @default(now())
+  complaints Complaint[]
+}
+
+model Complaint {
+  id             String          @id @default(cuid())
+  playerId       String
+  player         Player          @relation(fields: [playerId], references: [id])
+  categoryId     String
+  category       Category        @relation(fields: [categoryId], references: [id])
+  accusedName    String?
+  accusedGameId  String?
+  accusedAdminId String?
+  accusedAdmin   Admin?          @relation("Accused", fields: [accusedAdminId], references: [id])
+  claimedById    String?
+  claimedBy      Admin?          @relation("Claimed", fields: [claimedById], references: [id])
+  claimedAt      DateTime?
+  verdict        Verdict?
+  message        String
+  status         ComplaintStatus @default(OPEN)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  responses      Response[]
+  notes          Note[]
+  evidence       Evidence[]
+
+  @@index([status, createdAt])
+}
+
+model Response {
+  id           String    @id @default(cuid())
+  complaintId  String
+  complaint    Complaint @relation(fields: [complaintId], references: [id])
+  adminId      String
+  admin        Admin     @relation(fields: [adminId], references: [id])
+  message      String
+  syncedToGame Boolean   @default(false)
+  templateId   String?
+  template     ResponseTemplate? @relation(fields: [templateId], references: [id])
+  createdAt    DateTime  @default(now())
+
+  @@index([syncedToGame])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     Admin    @relation(fields: [actorId], references: [id])
+  action    String
+  targetId  String?
+  detail    String
+  createdAt DateTime @default(now())
+}
+
+// Short-lived code the GAME issues for an in-game account. Staff type it on the website
+// to prove they own that game account (so nobody can claim someone else's game ID).
+model LinkCode {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  gameId    String
+  username  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([gameId])
+}
+
+// Internal staff notes on a complaint. Never sent to the game or the player.
+model Note {
+  id          String    @id @default(cuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  adminId     String
+  admin       Admin     @relation(fields: [adminId], references: [id])
+  message     String
+  createdAt   DateTime  @default(now())
+
+  @@index([complaintId])
+}
+
+// Reply template for a category. verdict = null means usable with any verdict.
+model ResponseTemplate {
+  id         String     @id @default(cuid())
+  categoryId String
+  category   Category   @relation(fields: [categoryId], references: [id])
+  name       String
+  verdict    Verdict?
+  body       String
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  responses  Response[]
+
+  @@index([categoryId, active])
+}
+
+// Evidence created in the game and attached to a complaint.
+model Evidence {
+  id          String       @id @default(cuid())
+  complaintId String
+  complaint   Complaint    @relation(fields: [complaintId], references: [id])
+  kind        EvidenceKind
+  url         String?
+  text        String?
+  caption     String?
+  createdAt   DateTime     @default(now())
+
+  @@index([complaintId])
+}
