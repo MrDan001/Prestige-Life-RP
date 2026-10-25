@@ -5,9 +5,10 @@ export default function Header() {
       <a href="#" className="logo">PRESTIGE LIFE</a>
       <nav className="nav">
         <a href="#features">Features</a>
+        <a href="#download">Download</a>
         <a href="#join">How to Join</a>
       </nav>
-      <a href="#join" className="btn btn-primary btn-sm">Play</a>
+      <a href="#download" className="btn btn-primary btn-sm">Play</a>
     </header>
   );
 }

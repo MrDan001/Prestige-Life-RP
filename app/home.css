@@ -1,0 +1,9 @@
+/* PATH: app/home.css */
+.download-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); max-width: 760px; margin: 0 auto; }
+.store-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px 20px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); transition: border-color .2s, transform .15s; }
+a.store-btn:hover { border-color: var(--pink); transform: translateY(-2px); }
+.store-btn small { color: var(--muted); font-size: .8rem; }
+.store-btn strong { font-size: 1.15rem; }
+.store-btn.disabled { opacity: .55; cursor: not-allowed; }
+.note { color: var(--muted); font-size: .9rem; text-align: center; max-width: 52ch; margin: 18px auto 0; }
+.steps a { text-decoration: underline; text-underline-offset: 3px; }

@@ -62,18 +62,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="me">
             <div className="me-top">
               <div className="avatar">{me.name.charAt(0).toUpperCase()}</div>
-              <div><strong>{me.name}</strong><br /><small>{rank}</small></div>
+              <div className="me-id"><strong>{me.name}</strong><small>{rank}</small></div>
             </div>
-            {me.gameId ? (
-              <small>Game ID {me.gameId} · <a href="#" onClick={e => { e.preventDefault(); unlink(); }}>Unlink</a></small>
-            ) : (
-              <form onSubmit={link}>
-                <input name="code" placeholder="Game link code" aria-label="Game link code" required />
-                <button>Link</button>
-              </form>
-            )}
-            {msg && <small role="status">{msg}</small>}
-            <button onClick={logout}>Sign out</button>
+            <div className="me-game">
+              <small>Game account</small>
+              {me.gameId ? (
+                <div className="me-linked"><span title={me.gameId}>{me.gameId}</span><button type="button" onClick={unlink}>Unlink</button></div>
+              ) : (
+                <form className="me-game-row" onSubmit={link}>
+                  <input name="code" placeholder="Link code" aria-label="Game link code" required />
+                  <button>Link</button>
+                </form>
+              )}
+              {msg && <small role="status" className="me-msg">{msg}</small>}
+            </div>
+            <button type="button" className="me-signout" onClick={logout}>Sign out</button>
           </div>
         )}
       </aside>

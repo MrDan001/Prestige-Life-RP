@@ -16,6 +16,7 @@ export async function POST(req: Request) {
   const ok = admin && (await bcrypt.compare(parsed.data.password, admin.passwordHash));
   if (!admin || !ok) return NextResponse.json({ error: "Wrong email or password" }, { status: 401 });
 
+  if (admin.suspended) return NextResponse.json({ error: "This account is suspended" }, { status: 403 });
   if (!canAccessSite(admin))
     return NextResponse.json({ error: "Your rank does not have website access yet" }, { status: 403 });
 

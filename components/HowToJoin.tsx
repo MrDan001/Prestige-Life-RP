@@ -1,22 +1,29 @@
 // PATH: components/HowToJoin.tsx
-const steps = ["Join our Discord", "Read the rules", "Install on your phone", "Connect & live"];
+import type { Site } from "@/lib/site";
 
-export default function HowToJoin() {
+export default function HowToJoin({ site }: { site: Site }) {
+  const steps = [
+    site.discordUrl ? (
+      <a key="d" href={site.discordUrl} target="_blank" rel="noopener noreferrer">Join our Discord</a>
+    ) : (
+      "Join our Discord"
+    ),
+    "Read the rules",
+    "Install the app",
+    "Open it and start your story",
+  ];
+
   return (
     <section id="join" className="section">
       <h2>How to Join</h2>
       <ol className="steps">
         {steps.map((s, i) => (
-          <li key={s}>
+          <li key={i}>
             <span className="step-n">{i + 1}</span>
             {s}
           </li>
         ))}
       </ol>
-      <div className="download">
-        <a href="#" className="btn btn-primary">Download APK</a>
-        <p>Direct install for Android — no store needed.</p>
-      </div>
     </section>
   );
 }

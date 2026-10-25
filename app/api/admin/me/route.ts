@@ -19,5 +19,6 @@ export async function GET() {
     canManageStaff: hasRight(actor, "MANAGE_STAFF"),
     canManageCategories: hasRight(actor, "MANAGE_CATEGORIES"),
     canManageTemplates: hasRight(actor, "MANAGE_TEMPLATES"),
+    canManageSite: hasRight(actor, "MANAGE_SITE"),
   });
 }
