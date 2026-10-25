@@ -1,7 +1,7 @@
 // PATH: lib/permissions.ts
 export const MIN_SITE_LEVEL = 3; // levels 1-2 cannot use the website
 export const MAX_LEVEL = 6; // 6 = chief admin / deputy chief admin
-export const RIGHTS = ["MANAGE_CATEGORIES", "MANAGE_STAFF", "MANAGE_TEMPLATES"] as const;
+export const RIGHTS = ["MANAGE_CATEGORIES", "MANAGE_STAFF", "MANAGE_TEMPLATES", "MANAGE_SITE"] as const;
 export type Right = (typeof RIGHTS)[number];
 export type Kind = "OWNER" | "TECH" | "DEVELOPER" | "ADMIN";
 
@@ -74,4 +74,16 @@ export function canAssignLevel(actor: Staff, target: Staff | null, newLevel: num
   if (target && !canManageTarget(actor, target)) return false;
   if (isTop(actor)) return true;
   return newLevel <= Math.min(MAX_LEVEL - 1, actor.level - 1);
+}
+
+/** Judgment templates carry a lowest level. The top tier can issue all of them. */
+export const canUseTemplate = (s: Staff, t: { minLevel: number }) => isTop(s) || s.level >= t.minLevel;
+
+export type RoleForCheck = { kind: Kind; minLevel: number; extraRights: string[] };
+
+/** Only the owner hands out top-tier roles and roles that carry extra rights. Level 6 hands out plain roles up to level 5. */
+export function canAssignRole(actor: Staff, role: RoleForCheck) {
+  if (!hasRight(actor, "MANAGE_STAFF")) return false;
+  if (role.kind !== "ADMIN" || role.extraRights.length > 0) return actor.kind === "OWNER";
+  return canAssignLevel(actor, null, role.minLevel);
 }

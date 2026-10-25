@@ -30,10 +30,12 @@ type Fail = { error: NextResponse; actor?: undefined; admin?: undefined };
 /** Loads the signed-in staff member fresh from the database, so rank changes apply immediately. */
 export async function requireAdmin(right?: Right): Promise<Ok | Fail> {
   const id = await getSessionId();
-  const admin = id ? await db.admin.findUnique({ where: { id } }) : null;
+  const admin = id ? await db.admin.findUnique({ where: { id }, include: { role: { select: { extraRights: true } } } }) : null;
   if (!admin) return { error: NextResponse.json({ error: "Not signed in" }, { status: 401 }) };
 
-  const actor: Staff = { id: admin.id, kind: admin.kind, level: admin.level, extraRights: admin.extraRights };
+  if (admin.suspended) return { error: NextResponse.json({ error: "This account is suspended" }, { status: 403 }) };
+
+  const actor: Staff = { id: admin.id, kind: admin.kind, level: admin.level, extraRights: [...new Set([...admin.extraRights, ...(admin.role?.extraRights ?? [])])] };
   if (!canAccessSite(actor))
     return { error: NextResponse.json({ error: "Your rank does not have website access" }, { status: 403 }) };
   if (right && !hasRight(actor, right))

@@ -3,14 +3,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { canAct } from "@/lib/permissions";
+import { canAct, canUseTemplate } from "@/lib/permissions";
 import { render, usesVerdict, verdictVars, type Verdict } from "@/lib/templates";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 const schema = z.object({ templateId: z.string().min(1), verdict: z.enum(["COMPLAINANT", "ACCUSED", "INSUFFICIENT"]).optional() });
 
-/** Fills a template for this complaint. Returns text the admin can edit before sending. Saves nothing. */
+/** Fills a judgment for this complaint. Returns text the admin can edit before sending. Saves nothing. */
 export async function POST(req: Request, { params }: Ctx) {
   const a = await requireAdmin();
   if (a.error) return a.error;
@@ -28,11 +28,13 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const t = await db.responseTemplate.findUnique({ where: { id: parsed.data.templateId } });
   if (!t || !t.active) return NextResponse.json({ error: "Template not found" }, { status: 404 });
+  if (t.categoryId && t.categoryId !== c.categoryId) return NextResponse.json({ error: "That template is for another category" }, { status: 400 });
+  if (!canUseTemplate(a.actor, t)) return NextResponse.json({ error: "Your level cannot issue this judgment" }, { status: 403 });
 
   const chosen = (parsed.data.verdict ?? c.verdict) as Verdict | null;
   if (t.verdict && chosen && t.verdict !== chosen) return NextResponse.json({ error: "That template is for a different verdict" }, { status: 400 });
-  const effective = chosen ?? (t.verdict as Verdict | null);
-  if (usesVerdict(t.body) && !effective) return NextResponse.json({ error: "Choose a verdict first" }, { status: 400 });
+  const effective = (t.verdict as Verdict | null) ?? chosen;
+  if (usesVerdict(t.body) && !effective) return NextResponse.json({ error: "This template needs a verdict. Ask tech to attach one." }, { status: 400 });
 
   const complainant = c.player.username;
   const accused = c.accusedAdmin?.name ?? c.accusedName ?? "the accused player";

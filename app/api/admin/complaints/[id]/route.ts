@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { canAct, claimLocked, flags } from "@/lib/permissions";
+import { canAct, canUseTemplate, claimLocked, flags } from "@/lib/permissions";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -30,7 +30,7 @@ const eventText = (action: string, detail: string) =>
 /** Full detail plus evidence and one timeline: replies, private notes, and status/claim/verdict events. */
 export async function GET(_req: Request, { params }: Ctx) {
   const a = await requireAdmin();
-  if ('error' in a) return NextResponse.json({ error: a.error }, { status: 401 });
+  if (a.error) return a.error;
   const { id } = await params;
 
   const c = await db.complaint.findUnique({ where: { id }, include });
@@ -48,24 +48,29 @@ export async function GET(_req: Request, { params }: Ctx) {
     ...events.map((e) => ({ type: "event", at: e.createdAt, by: e.actor.name, text: eventText(e.action, e.detail), delivered: false })),
   ].sort((x, y) => x.at.getTime() - y.at.getTime());
 
-  return NextResponse.json({ ...c, ...flags(a.actor, c), canNote: canAct(a.actor, c, "reply"), timeline });
+  const respondedAt = c.responses[0]?.createdAt ?? null;
+  const reviewedByName = c.responses.length ? c.responses[c.responses.length - 1].admin.name : (c.claimedBy?.name ?? null);
+
+  return NextResponse.json({ ...c, ...flags(a.actor, c), canNote: canAct(a.actor, c, "reply"), respondedAt, reviewedByName, timeline });
 }
 
 const patch = z.object({
   status: z.enum(["OPEN", "IN_REVIEW", "RESOLVED", "DISMISSED"]).optional(),
   reply: z.string().min(1).max(2000).optional(),
   verdict: z.enum(["COMPLAINANT", "ACCUSED", "INSUFFICIENT"]).optional(),
-  templateId: z.string().min(1).optional(), // which template the reply started from
+  templateId: z.string().min(1).optional(), // the judgment button the reply came from
 });
 
 /**
- * Reply / verdict / open / in-review need reply rights. Resolve / dismiss need close rights.
+ * Answering needs reply rights on the complaint (its category and who it is against).
+ * Sending a judgment also needs the judgment's own level, and applies its verdict and outcome (resolve/dismiss).
+ * Changing the status by hand to resolved/dismissed needs the category's close level.
  * If someone else claimed the complaint it is locked (409) unless you are level 6+ or top tier.
  * The first action on an unclaimed complaint claims it automatically.
  */
 export async function PATCH(req: Request, { params }: Ctx) {
   const a = await requireAdmin();
-  if ('error' in a) return NextResponse.json({ error: a.error }, { status: 401 });
+  if (a.error) return a.error;
   const { id } = await params;
 
   const parsed = patch.safeParse(await req.json().catch(() => null));
@@ -76,21 +81,29 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const c = await db.complaint.findUnique({ where: { id }, include });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const closing = status === "RESOLVED" || status === "DISMISSED";
-  if (!canAct(a.actor, c, closing ? "close" : "reply"))
-    return NextResponse.json({ error: closing ? "You cannot close this complaint" : "You cannot act on this complaint" }, { status: 403 });
+  if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
+  if ((status === "RESOLVED" || status === "DISMISSED") && !canAct(a.actor, c, "close"))
+    return NextResponse.json({ error: "You cannot close this complaint by hand" }, { status: 403 });
   if (claimLocked(a.actor, c.claimedById))
     return NextResponse.json({ error: `Claimed by ${c.claimedBy?.name ?? "another admin"}. Ask them, or a level 6, to release it.` }, { status: 409 });
-  if (templateId && reply && !(await db.responseTemplate.findUnique({ where: { id: templateId }, select: { id: true } })))
-    return NextResponse.json({ error: "Template not found" }, { status: 400 });
 
+  const tpl = templateId ? await db.responseTemplate.findUnique({ where: { id: templateId } }) : null;
+  if (templateId) {
+    if (!tpl || !tpl.active) return NextResponse.json({ error: "Template not found" }, { status: 400 });
+    if (tpl.categoryId && tpl.categoryId !== c.categoryId) return NextResponse.json({ error: "That template is for another category" }, { status: 400 });
+    if (!canUseTemplate(a.actor, tpl)) return NextResponse.json({ error: "Your level cannot issue this judgment" }, { status: 403 });
+    if (!reply) return NextResponse.json({ error: "A judgment needs its reply text" }, { status: 400 });
+  }
+
+  const newStatus = status ?? tpl?.closesAs ?? undefined;
+  const newVerdict = verdict ?? tpl?.verdict ?? undefined;
   const autoClaim = !c.claimedById;
   const [updated] = await db.$transaction([
-    db.complaint.update({ where: { id }, data: { status, verdict, ...(autoClaim ? { claimedById: a.actor.id, claimedAt: new Date() } : {}) } }),
+    db.complaint.update({ where: { id }, data: { status: newStatus, verdict: newVerdict, ...(autoClaim ? { claimedById: a.actor.id, claimedAt: new Date() } : {}) } }),
     ...(reply ? [db.response.create({ data: { complaintId: id, adminId: a.actor.id, message: reply, templateId: templateId ?? null } })] : []),
   ]);
   if (autoClaim) await audit(a.actor.id, "COMPLAINT_CLAIM", id, "claimed this complaint");
-  if (status && status !== c.status) await audit(a.actor.id, "COMPLAINT_STATUS", id, `${c.status} -> ${status}`);
-  if (verdict && verdict !== c.verdict) await audit(a.actor.id, "COMPLAINT_VERDICT", id, `${c.verdict ?? "none"} -> ${verdict}`);
+  if (newStatus && newStatus !== c.status) await audit(a.actor.id, "COMPLAINT_STATUS", id, `${c.status} -> ${newStatus}${tpl ? ` (judgment: ${tpl.name})` : ""}`);
+  if (newVerdict && newVerdict !== c.verdict) await audit(a.actor.id, "COMPLAINT_VERDICT", id, `${c.verdict ?? "none"} -> ${newVerdict}`);
   return NextResponse.json(updated);
 }

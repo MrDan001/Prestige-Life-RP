@@ -1,5 +1,6 @@
 // PATH: app/auth/page.tsx
 "use client";
+import "../admin/admin.css";
 import { useState } from "react";
 
 export default function LoginPage() {
@@ -11,27 +12,23 @@ export default function LoginPage() {
     setBusy(true);
     setError("");
     const f = new FormData(e.currentTarget);
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: f.get("email"), password: f.get("password") }),
-    });
-    if (res.ok) {
-      window.location.href = "/admin";
-      return;
-    }
-    setError((await res.json().catch(() => null))?.error ?? "Sign in failed");
+    const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: f.get("email"), password: f.get("password") }) });
+    if (res.ok) { window.location.href = "/admin"; return; }
+    setError((await res.json().catch(() => null))?.error ?? "Sign in failed. Please try again.");
     setBusy(false);
   }
 
   return (
-    <main style={{ maxWidth: 360, margin: "0 auto", padding: "96px 20px" }}>
-      <h1 style={{ fontSize: "1.6rem", marginBottom: 20 }}>Admin sign in</h1>
-      <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
-        <input name="email" type="email" placeholder="Email" required autoComplete="username" style={{ padding: 10 }} />
-        <input name="password" type="password" placeholder="Password" required autoComplete="current-password" style={{ padding: 10 }} />
-        <button disabled={busy} style={{ padding: 10, cursor: "pointer" }}>{busy ? "Signing in…" : "Sign in"}</button>
-        {error && <p role="alert" style={{ color: "#ff6b6b" }}>{error}</p>}
+    <main className="auth-wrap">
+      <form className="auth-card" onSubmit={submit}>
+        <div>
+          <div style={{ fontWeight: 700, letterSpacing: ".14em", fontSize: 15 }}>PRESTIGE <span style={{ color: "#d6197a" }}>LIFE</span></div>
+          <h1 style={{ marginTop: 8 }}>Staff sign in</h1>
+        </div>
+        <input name="email" type="email" placeholder="Email" aria-label="Email" required autoComplete="username" />
+        <input name="password" type="password" placeholder="Password" aria-label="Password" required autoComplete="current-password" />
+        <button className="primary" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
+        {error && <p role="alert" style={{ margin: 0, color: "#ff8fb4" }}>{error}</p>}
       </form>
     </main>
   );

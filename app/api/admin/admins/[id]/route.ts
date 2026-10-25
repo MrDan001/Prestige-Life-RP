@@ -1,23 +1,25 @@
 // PATH: app/api/admin/admins/[id]/route.ts
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { backfillAccused } from "@/lib/linking";
-import { RIGHTS, canAssignLevel, canManageTarget, type Staff } from "@/lib/permissions";
+import { RIGHTS, canAssignLevel, canAssignRole, canManageTarget, type Staff } from "@/lib/permissions";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 const patch = z.object({
+  roleId: z.string().min(1).optional(), // give a role (the title and, for top-tier roles, the type come with it)
   level: z.coerce.number().int().min(1).max(6).optional(),
   title: z.string().max(40).optional(),
   gameId: z.string().max(64).nullable().optional(),
   extraRights: z.array(z.enum(RIGHTS)).optional(),
-  kind: z.enum(["OWNER", "TECH", "DEVELOPER", "ADMIN"]).optional(),
+  suspended: z.boolean().optional(),
 });
 
-/** Change a staff member's level, title, game link, extra rights or kind. Every change is logged. */
+/** Change a staff member's role, level, title, game link, personal extra rights or suspension. Every change is logged. */
 export async function PATCH(req: Request, { params }: Ctx) {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
@@ -25,31 +27,50 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   const parsed = patch.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid details" }, { status: 400 });
-  const d = parsed.data;
+  const { roleId, ...rest } = parsed.data;
 
   const target = await db.admin.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const t: Staff = { id: target.id, kind: target.kind, level: target.level, extraRights: target.extraRights };
 
   if (!canManageTarget(a.actor, t)) return NextResponse.json({ error: "You cannot change this person" }, { status: 403 });
-  if (d.level !== undefined && !canAssignLevel(a.actor, t, d.level))
-    return NextResponse.json({ error: "You cannot award that level" }, { status: 403 });
-  if ((d.extraRights || d.kind) && a.actor.kind !== "OWNER")
-    return NextResponse.json({ error: "Only the owner can change extra rights or top-tier status" }, { status: 403 });
-  if (d.gameId && (await db.admin.findFirst({ where: { gameId: d.gameId, NOT: { id } } })))
+  if (rest.level !== undefined && !canAssignLevel(a.actor, t, rest.level)) return NextResponse.json({ error: "You cannot award that level" }, { status: 403 });
+  if (rest.extraRights && a.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can change personal extra rights" }, { status: 403 });
+  if (rest.gameId && (await db.admin.findFirst({ where: { gameId: rest.gameId, NOT: { id } } })))
     return NextResponse.json({ error: "That game ID is already linked to someone" }, { status: 409 });
+
+  const data: Prisma.AdminUncheckedUpdateInput = { ...rest };
+
+  if (roleId) {
+    const role = await db.role.findUnique({ where: { id: roleId } });
+    if (!role || !role.active) return NextResponse.json({ error: "Role not found" }, { status: 400 });
+    if (!canAssignRole(a.actor, role)) return NextResponse.json({ error: "You cannot give that role" }, { status: 403 });
+    if (role.kind !== "ADMIN") {
+      data.kind = role.kind;
+      data.level = 6;
+    } else {
+      const level = rest.level ?? target.level;
+      if (target.kind !== "ADMIN" && rest.level === undefined) return NextResponse.json({ error: "Pick a level for this role" }, { status: 400 });
+      if (level < role.minLevel || level > role.maxLevel)
+        return NextResponse.json({ error: `The ${role.name} role needs a level between ${role.minLevel} and ${role.maxLevel}` }, { status: 400 });
+      if (!canAssignLevel(a.actor, t, level)) return NextResponse.json({ error: "You cannot award that level" }, { status: 403 });
+      data.kind = "ADMIN";
+      data.level = level;
+    }
+    data.roleId = role.id;
+    data.title = rest.title ?? role.name;
+  } else if (rest.level !== undefined && target.roleId) {
+    const role = await db.role.findUnique({ where: { id: target.roleId } });
+    if (role && role.kind === "ADMIN" && (rest.level < role.minLevel || rest.level > role.maxLevel))
+      return NextResponse.json({ error: `Level ${rest.level} is outside the ${role.name} range (${role.minLevel}-${role.maxLevel}). Change the role first.` }, { status: 400 });
+  }
 
   const updated = await db.admin.update({
     where: { id },
-    data: d,
-    select: { id: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true },
+    data,
+    select: { id: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true, roleId: true },
   });
-  if (d.gameId) await backfillAccused(id, d.gameId);
-  await audit(
-    a.actor.id,
-    "STAFF_UPDATE",
-    id,
-    `was ${target.kind}/L${target.level}/${target.extraRights.join(",") || "no extras"}; changes ${JSON.stringify(d)}`
-  );
+  if (rest.gameId) await backfillAccused(id, rest.gameId);
+  await audit(a.actor.id, "STAFF_UPDATE", id, `was ${target.kind}/L${target.level}/${target.title}; changes ${JSON.stringify({ ...rest, roleId })}`);
   return NextResponse.json(updated);
 }

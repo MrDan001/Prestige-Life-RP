@@ -24,3 +24,5 @@ export const verdictVars = (verdict: Verdict, complainant: string, accused: stri
 });
 
 export const render = (body: string, vars: Record<string, string>) => body.replace(/\{([a-z_]+)\}/g, (m, k) => vars[k] ?? m);
+
+export const NEEDS_VERDICT_MSG = "Pick a verdict for this template, or remove {favoured} and {verdict} from the text.";

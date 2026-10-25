@@ -46,6 +46,9 @@ model Admin {
   level        Int       @default(1)
   extraRights  String[]  @default([]) // MANAGE_CATEGORIES, MANAGE_STAFF (owner grants)
   gameId       String?   @unique // links this staff member to their in-game account
+  suspended    Boolean   @default(false) // suspended staff cannot sign in or use the site
+  roleId       String?
+  role         Role?     @relation(fields: [roleId], references: [id])
   createdAt    DateTime  @default(now())
 
   responses         Response[]
@@ -154,10 +157,13 @@ model Note {
 // Reply template for a category. verdict = null means usable with any verdict.
 model ResponseTemplate {
   id         String     @id @default(cuid())
-  categoryId String
-  category   Category   @relation(fields: [categoryId], references: [id])
+  categoryId String?    // empty = usable on every category
+  category   Category?  @relation(fields: [categoryId], references: [id])
   name       String
   verdict    Verdict?
+  minLevel   Int        @default(3) // lowest admin level that may issue this judgment
+  closesAs   ComplaintStatus? // RESOLVED or DISMISSED, applied when the judgment is sent
+  sortOrder  Int        @default(0)
   body       String
   active     Boolean    @default(true)
   createdAt  DateTime   @default(now())
@@ -179,4 +185,34 @@ model Evidence {
   createdAt   DateTime     @default(now())
 
   @@index([complaintId])
+}
+
+// One row (id "main") holding the public home page settings.
+model SiteSetting {
+  id           String   @id
+  launchStatus String   @default("COMING_SOON") // COMING_SOON | LIVE | MAINTENANCE
+  playStoreUrl String?
+  appStoreUrl  String?
+  apkUrl       String?
+  apkVersion   String?
+  discordUrl   String?
+  statSlots    Int?
+  statUptime   Int?
+  statCitizens Int?
+  updatedAt    DateTime @updatedAt
+}
+
+// A role is a title with rules about which levels it can sit on. Rights still come from the level
+// (and top tier). Custom roles can also carry extra rights.
+model Role {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  kind        StaffKind @default(ADMIN) // OWNER / TECH / DEVELOPER are the top-tier roles
+  minLevel    Int       @default(1)
+  maxLevel    Int       @default(4)
+  extraRights String[]  @default([])
+  system      Boolean   @default(false) // built-in roles cannot be edited
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  admins      Admin[]
 }

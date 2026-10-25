@@ -141,9 +141,10 @@ Check "level 3 cannot create templates" (Api Post "/api/admin/templates" $s3 $tp
 Check "unknown placeholder is rejected" (Api Post "/api/admin/templates" $owner @{ categoryId = $rb.id; name = "Bad $run"; body = "Hi {nope}" }).Code 400
 $t = Api Post "/api/admin/templates" $owner $tpl
 Check "owner can create a template" $t.Code 201
-$t2 = Api Post "/api/admin/templates" $owner @{ categoryId = $rb.id; name = "Any $run"; body = "Decision favours: {favoured}" }
+Check "a template using {favoured} must have a verdict" (Api Post "/api/admin/templates" $owner @{ categoryId = $rb.id; name = "NoVerdict $run"; body = "Decision favours: {favoured}" }).Code 400
+$t2 = Api Post "/api/admin/templates" $owner @{ categoryId = $rb.id; name = "Any $run"; verdict = "ACCUSED"; body = "Decision favours: {favoured}" }
 Check "staff can list templates for the category" ((Api Get "/api/admin/templates?categoryId=$($rb.id)" $s3).Body | Where-Object { $_.id -eq $t.Body.id }).Count 1
-Check "verdict needed for a template that uses it" (Api Post "/api/admin/complaints/$eid/draft" $s3 @{ templateId = $t2.Body.id }).Code 400
+Check "a template with its own verdict needs no extra choice" (Api Post "/api/admin/complaints/$eid/draft" $s3 @{ templateId = $t2.Body.id }).Code 200
 $dr = Api Post "/api/admin/complaints/$eid/draft" $s3 @{ templateId = $t2.Body.id; verdict = "ACCUSED" }
 Check "draft names who was favoured" ($dr.Body.text -match "BadGuy") $true
 $dr1 = Api Post "/api/admin/complaints/$eid/draft" $s3 @{ templateId = $t.Body.id; verdict = "COMPLAINANT" }
@@ -153,5 +154,96 @@ Check "template for another verdict is refused" (Api Post "/api/admin/complaints
 Check "admin sends the edited reply with verdict" (Api Patch "/api/admin/complaints/$eid" $s3 @{ reply = $dr1.Body.text + " (edited)"; verdict = "COMPLAINANT"; templateId = $t.Body.id }).Code 200
 $gc = (Api Get "/api/game/complaints?gameId=p-$run" $null $null $game).Body | Where-Object { $_.id -eq $eid }
 Check "game receives the verdict" $gc.verdict "COMPLAINANT"
+
+Write-Host "`n-- Stage 5: staff management, suspension, audit log" -ForegroundColor Cyan
+$sus = NewStaff $owner "sus" 3
+$ssus = Login "sus-$run@test.local" $pw
+Check "level 5 cannot suspend staff" (Api Patch "/api/admin/admins/$($sus.Body.id)" $s5 @{ suspended = $true }).Code 403
+Check "level 6 cannot suspend a top-tier account" (Api Patch "/api/admin/admins/$($tech.Body.id)" $s6 @{ suspended = $true }).Code 403
+Check "level 6 can suspend a level 3 admin" (Api Patch "/api/admin/admins/$($sus.Body.id)" $s6 @{ suspended = $true }).Code 200
+Check "suspended admin loses access immediately" (Api Get "/api/admin/complaints" $ssus).Code 403
+Check "suspended admin cannot sign in" ([bool](Login "sus-$run@test.local" $pw)) $false
+Check "level 6 can restore them" (Api Patch "/api/admin/admins/$($sus.Body.id)" $s6 @{ suspended = $false }).Code 200
+Check "restored admin can sign in" ([bool](Login "sus-$run@test.local" $pw)) $true
+$staffList = (Api Get "/api/admin/admins" $s6).Body
+Check "staff list: level 6 can manage a level 3" (($staffList | Where-Object { $_.name -eq "sus" }).canManage) $true
+Check "staff list: level 6 cannot manage tech" (($staffList | Where-Object { $_.name -eq "tech" }).canManage) $false
+Check "level 3 cannot read the audit log" (Api Get "/api/admin/audit" $s3).Code 403
+$au = Api Get "/api/admin/audit?action=STAFF_UPDATE" $owner
+Check "owner can read the audit log" ($au.Body.items.Count -ge 1) $true
+Check "audit filter works" (@($au.Body.items | Where-Object { $_.action -ne "STAFF_UPDATE" }).Count) 0
+Check "level 6 cannot edit categories" (Api Patch "/api/admin/categories/$($rb.id)" $s6 @{ minReplyLevel = 4 }).Code 403
+Check "owner can edit categories" (Api Patch "/api/admin/categories/$($rb.id)" $owner @{ minReplyLevel = 3 }).Code 200
+
+Write-Host "`n-- Stage 6: public home page and site settings" -ForegroundColor Cyan
+$before = (Api Get "/api/admin/settings" $owner).Body
+Check "level 3 cannot read site settings" (Api Get "/api/admin/settings" $s3).Code 403
+Check "level 6 cannot change site settings" (Api Put "/api/admin/settings" $s6 @{ apkUrl = "https://example.com/app.apk" }).Code 403
+Check "non-https link is rejected" (Api Put "/api/admin/settings" $owner @{ apkUrl = "http://example.com/app.apk" }).Code 400
+Check "owner can save download links" (Api Put "/api/admin/settings" $owner @{ apkUrl = "https://example.com/test-$run.apk"; apkVersion = "9.9.9"; playStoreUrl = $null; launchStatus = "LIVE" }).Code 200
+$homePage = (Invoke-WebRequest "$base/" -UseBasicParsing).Content
+Check "home page is public and shows the APK link" ($homePage -match "test-$run\.apk") $true
+Check "home page shows Coming soon for a missing store link" ($homePage -match "Coming soon") $true
+Check "home page shows the Now Live badge" ($homePage -match "Now Live") $true
+Api Put "/api/admin/settings" $owner @{ apkUrl = $before.apkUrl; apkVersion = $before.apkVersion; playStoreUrl = $before.playStoreUrl; appStoreUrl = $before.appStoreUrl; discordUrl = $before.discordUrl; launchStatus = $before.launchStatus; statSlots = $before.statSlots; statUptime = $before.statUptime; statCitizens = $before.statCitizens } | Out-Null
+
+Write-Host "`n-- Stage 7: judgment buttons" -ForegroundColor Cyan
+$list3 = (Api Get "/api/admin/templates?categoryId=$($rb.id)" $s3).Body
+$appr = $list3 | Where-Object { $_.name -eq "Approved" } | Select-Object -First 1
+$wrong = $list3 | Where-Object { $_.name -eq "Wrong complaint" } | Select-Object -First 1
+$techJ = $list3 | Where-Object { $_.name -eq "Technical issue" } | Select-Object -First 1
+Check "level 3 may use Approved" $appr.canUse $true
+Check "level 3 may use Technical issue" $techJ.canUse $true
+Check "level 3 may not use Wrong complaint" $wrong.canUse $false
+$j1 = Complain "Rule Break" $null
+Check "level 3 can fill the Approved judgment" (Api Post "/api/admin/complaints/$j1/draft" $s3 @{ templateId = $appr.id }).Code 200
+Check "level 3 cannot fill a level 5 judgment" (Api Post "/api/admin/complaints/$j1/draft" $s3 @{ templateId = $wrong.id }).Code 403
+Check "level 3 cannot send a level 5 judgment" (Api Patch "/api/admin/complaints/$j1" $s3 @{ reply = "x"; templateId = $wrong.id }).Code 403
+Check "level 3 sends Approved" (Api Patch "/api/admin/complaints/$j1" $s3 @{ reply = "Approved text"; templateId = $appr.id }).Code 200
+$d1 = (Api Get "/api/admin/complaints/$j1" $s3).Body
+Check "the judgment closed the complaint" $d1.status "RESOLVED"
+Check "the verdict came from the judgment" $d1.verdict "COMPLAINANT"
+Check "responded date is filled in" ([bool]$d1.respondedAt) $true
+$j2 = Complain "Rule Break" $null
+Check "level 5 can send a level 5 judgment" (Api Patch "/api/admin/complaints/$j2" $s5 @{ reply = "Wrong complaint"; templateId = $wrong.id }).Code 200
+Check "that judgment dismissed the complaint" (Api Get "/api/admin/complaints/$j2" $s5).Body.status "DISMISSED"
+$hk = Complain "Hacking" $null
+Check "category rule still applies: level 5 cannot judge Hacking" (Api Patch "/api/admin/complaints/$hk" $s5 @{ reply = "x"; templateId = $appr.id }).Code 403
+Check "level 3 cannot create judgments" (Api Post "/api/admin/templates" $s3 @{ name = "X $run"; body = "Hello {complainant}" }).Code 403
+$g = Api Post "/api/admin/templates" $owner @{ name = "Global $run"; minLevel = 5; closesAs = "DISMISSED"; body = "Hello {complainant}, regarding {accused}." }
+Check "owner can add a judgment for every category" $g.Code 201
+Check "level 3 does not get that level 5 judgment" (((Api Get "/api/admin/templates?categoryId=$($rb.id)" $s3).Body | Where-Object { $_.id -eq $g.Body.id }).canUse) $false
+
+Write-Host "`n-- Stage 8: roles" -ForegroundColor Cyan
+$roles = (Api Get "/api/admin/roles" $owner).Body
+function RoleId($n) { ($roles | Where-Object { $_.name -eq $n }).id }
+Check "built-in roles exist" (@($roles | Where-Object { $_.system }).Count -ge 8) $true
+$cur = Api Post "/api/admin/admins" $owner @{ email = "cur-$run@test.local"; name = "cur"; password = $pw; roleId = (RoleId "Curator"); level = 3 }
+Check "owner can create a Curator at level 3" $cur.Code 201
+Check "Curator cannot be level 5" (Api Patch "/api/admin/admins/$($cur.Body.id)" $owner @{ level = 5 }).Code 400
+Check "Curator cannot be level 1" (Api Patch "/api/admin/admins/$($cur.Body.id)" $owner @{ level = 1 }).Code 400
+Check "Curator can move to level 4" (Api Patch "/api/admin/admins/$($cur.Body.id)" $owner @{ level = 4 }).Code 200
+$sa = NewStaff $owner "sa" 4
+Check "owner can give the Senior admin role at level 5" (Api Patch "/api/admin/admins/$($sa.Body.id)" $owner @{ roleId = (RoleId "Senior admin"); level = 5 }).Code 200
+Check "Senior admin role refuses level 4" (Api Patch "/api/admin/admins/$($sa.Body.id)" $owner @{ roleId = (RoleId "Senior admin"); level = 4 }).Code 400
+Check "level 6 can give Curator at level 3" (Api Patch "/api/admin/admins/$($sa.Body.id)" $s6 @{ roleId = (RoleId "Curator"); level = 3 }).Code 200
+Check "level 6 cannot give the Chief admin role" (Api Patch "/api/admin/admins/$($cur.Body.id)" $s6 @{ roleId = (RoleId "Chief admin"); level = 6 }).Code 403
+Check "level 6 cannot give the Tech role" (Api Patch "/api/admin/admins/$($cur.Body.id)" $s6 @{ roleId = (RoleId "Tech") }).Code 403
+Check "owner can give the Developer role" (Api Patch "/api/admin/admins/$($cur.Body.id)" $owner @{ roleId = (RoleId "Developer") }).Code 200
+$scur = Login "cur-$run@test.local" $pw
+Check "the Developer role has full rights" (Api Get "/api/admin/me" $scur).Body.canManageSite $true
+Check "owner can move them back to Curator" (Api Patch "/api/admin/admins/$($cur.Body.id)" $owner @{ roleId = (RoleId "Curator"); level = 3 }).Code 200
+Check "full rights are gone again" (Api Get "/api/admin/me" $scur).Body.canManageSite $false
+$cr = @{ name = "Appeals $run"; minLevel = 3; maxLevel = 4; extraRights = @("MANAGE_TEMPLATES") }
+Check "level 6 cannot create roles" (Api Post "/api/admin/roles" $s6 $cr).Code 403
+$crole = Api Post "/api/admin/roles" $owner $cr
+Check "owner can create a custom role" $crole.Code 201
+Check "level 6 cannot give a role with extra rights" (Api Patch "/api/admin/admins/$($sa.Body.id)" $s6 @{ roleId = $crole.Body.id; level = 3 }).Code 403
+Check "owner gives the custom role" (Api Patch "/api/admin/admins/$($sa.Body.id)" $owner @{ roleId = $crole.Body.id; level = 4 }).Code 200
+$ssa = Login "sa-$run@test.local" $pw
+Check "the role's extra right applies" (Api Get "/api/admin/me" $ssa).Body.canManageTemplates $true
+Check "a role's range cannot shrink under someone holding it" (Api Patch "/api/admin/roles/$($crole.Body.id)" $owner @{ maxLevel = 3 }).Code 409
+Check "built-in roles cannot be edited" (Api Patch "/api/admin/roles/$(RoleId 'Curator')" $owner @{ name = "Renamed" }).Code 403
+Check "level 6 sees Chief admin as not assignable" (((Api Get "/api/admin/roles" $s6).Body | Where-Object { $_.name -eq "Chief admin" }).assignable) $false
 
 Write-Host "`n$pass passed, $fail failed" -ForegroundColor $(if ($fail) { "Red" } else { "Green" })
