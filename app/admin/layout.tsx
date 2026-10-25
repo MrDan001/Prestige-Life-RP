@@ -12,7 +12,6 @@ type Me = {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [me, setMe] = useState<Me | null>(null);
-  const [msg, setMsg] = useState("");
 
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/me");
@@ -21,18 +20,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  async function link(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const code = new FormData(e.currentTarget).get("code");
-    const res = await fetch("/api/admin/link", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
-    setMsg(res.ok ? "Linked." : (await res.json().catch(() => ({}))).error ?? "Could not link");
-    if (res.ok) load();
-  }
-  async function unlink() {
-    const res = await fetch("/api/admin/link", { method: "DELETE" });
-    setMsg(res.ok ? "Unlinked." : "Could not unlink");
-    if (res.ok) load();
-  }
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
     window.location.href = "/auth";
@@ -46,6 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/templates", label: "Judgments", show: !!me?.canManageTemplates },
     { href: "/admin/settings", label: "Home page", show: !!me?.canManageSite },
     { href: "/admin/audit", label: "Audit log", show: !!me?.canManageStaff },
+    { href: "/admin/profile", label: "Profile", show: true },
   ];
   const rank = me ? (me.kind === "ADMIN" ? `Level ${me.level} admin` : me.kind.charAt(0) + me.kind.slice(1).toLowerCase() + " · full rights") : "";
 
@@ -63,18 +51,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="me-top">
               <div className="avatar">{me.name.charAt(0).toUpperCase()}</div>
               <div className="me-id"><strong>{me.name}</strong><small>{rank}</small></div>
-            </div>
-            <div className="me-game">
-              <small>Game account</small>
-              {me.gameId ? (
-                <div className="me-linked"><span title={me.gameId}>{me.gameId}</span><button type="button" onClick={unlink}>Unlink</button></div>
-              ) : (
-                <form className="me-game-row" onSubmit={link}>
-                  <input name="code" placeholder="Link code" aria-label="Game link code" required />
-                  <button>Link</button>
-                </form>
-              )}
-              {msg && <small role="status" className="me-msg">{msg}</small>}
             </div>
             <button type="button" className="me-signout" onClick={logout}>Sign out</button>
           </div>
