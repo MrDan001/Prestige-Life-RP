@@ -1,0 +1,349 @@
+diff --git a/app/admin/audit/page.tsx b/app/admin/audit/page.tsx
+index 8897519..92e974a 100644
+--- a/app/admin/audit/page.tsx
++++ b/app/admin/audit/page.tsx
+@@ -9,7 +9,7 @@ const muted = "#9a95b5";
+ const LABEL: Record<string, string> = {
+   STAFF_CREATE: "Created staff", STAFF_UPDATE: "Changed staff", STAFF_LINK: "Linked game account", STAFF_UNLINK: "Unlinked game account",
+   CATEGORY_CREATE: "Added category", CATEGORY_UPDATE: "Changed category", TEMPLATE_CREATE: "Added template", TEMPLATE_UPDATE: "Changed template",
+-  COMPLAINT_STATUS: "Changed complaint status", COMPLAINT_CLAIM: "Claimed complaint", COMPLAINT_RELEASE: "Released complaint", COMPLAINT_VERDICT: "Set verdict", SETTINGS_UPDATE: "Changed site settings", ROLE_CREATE: "Added role", ROLE_UPDATE: "Changed role",
++  COMPLAINT_STATUS: "Changed complaint status", COMPLAINT_CLAIM: "Claimed complaint", COMPLAINT_RELEASE: "Released complaint", COMPLAINT_VERDICT: "Set verdict", SETTINGS_UPDATE: "Changed site settings", ROLE_CREATE: "Added role", ROLE_UPDATE: "Changed role", DEMO_COMPLAINT_CREATE: "Created demo complaint",
+ };
+ 
+ export default function AuditPage() {
+diff --git a/app/admin/comp/page.tsx b/app/admin/comp/page.tsx
+new file mode 100644
+index 0000000..44079e5
+--- /dev/null
++++ b/app/admin/comp/page.tsx
+@@ -0,0 +1,148 @@
++// PATH: app/admin/comp/page.tsx
++"use client";
++import { useCallback, useEffect, useState } from "react";
++
++type Cat = { id: string; name: string; active: boolean };
++type Staff = { id: string; name: string; title: string };
++type Ev = { kind: "IMAGE" | "VIDEO" | "LINK" | "TEXT"; url?: string; text?: string; caption?: string };
++type Demo = { id: string; category: string; complainant: string; accused: string; status: string; minLevel: number | null; createdAt: string };
++
++const muted = "#a7a2c2";
++const panel: React.CSSProperties = { border: "1px solid #2a2540", background: "#13111f", borderRadius: 12, padding: 16 };
++const field: React.CSSProperties = { display: "grid", gap: 4 };
++const EV_LABEL: Record<Ev["kind"], string> = { IMAGE: "Screenshot link", VIDEO: "Video link", LINK: "Other link", TEXT: "Chat log text" };
++
++export default function CompPage() {
++  const [cats, setCats] = useState<Cat[]>([]);
++  const [staff, setStaff] = useState<Staff[]>([]);
++  const [recent, setRecent] = useState<Demo[]>([]);
++  const [categoryId, setCategoryId] = useState("");
++  const [complainant, setComplainant] = useState("");
++  const [accusedName, setAccusedName] = useState("");
++  const [accusedStaffId, setAccusedStaffId] = useState("");
++  const [message, setMessage] = useState("");
++  const [level, setLevel] = useState("");
++  const [evidence, setEvidence] = useState<Ev[]>([]);
++  const [evKind, setEvKind] = useState<Ev["kind"]>("IMAGE");
++  const [evValue, setEvValue] = useState("");
++  const [evCaption, setEvCaption] = useState("");
++  const [msg, setMsg] = useState("");
++
++  const load = useCallback(async () => {
++    const [c, s, r] = await Promise.all([fetch("/api/admin/categories"), fetch("/api/admin/admins"), fetch("/api/admin/demo-complaints")]);
++    if (c.ok) setCats((await c.json()).filter((x: Cat) => x.active));
++    if (s.ok) setStaff(await s.json());
++    if (r.ok) setRecent(await r.json());
++  }, []);
++
++  useEffect(() => {
++    fetch("/api/admin/me").then(async r => {
++      if (!r.ok) { window.location.href = "/auth"; return; }
++      if ((await r.json()).kind !== "OWNER") { window.location.href = "/admin"; return; }
++      load();
++    });
++  }, [load]);
++
++  function addEvidence() {
++    const v = evValue.trim();
++    if (!v) return;
++    if (evKind !== "TEXT" && !v.startsWith("https://")) { setMsg("Links must start with https://"); return; }
++    setEvidence([...evidence, evKind === "TEXT" ? { kind: evKind, text: v, caption: evCaption.trim() || undefined } : { kind: evKind, url: v, caption: evCaption.trim() || undefined }]);
++    setEvValue(""); setEvCaption(""); setMsg("");
++  }
++
++  async function create(e: React.FormEvent) {
++    e.preventDefault();
++    const res = await fetch("/api/admin/demo-complaints", {
++      method: "POST", headers: { "Content-Type": "application/json" },
++      body: JSON.stringify({
++        categoryId, complainant, message, evidence,
++        accusedName: accusedStaffId ? undefined : accusedName.trim() || undefined,
++        accusedStaffId: accusedStaffId || undefined,
++        minLevel: level ? Number(level) : null,
++      }),
++    });
++    const d = await res.json().catch(() => ({}));
++    if (res.ok) {
++      setMsg("Demo comp created. Open Complaints to see it.");
++      setComplainant(""); setAccusedName(""); setAccusedStaffId(""); setMessage(""); setLevel(""); setEvidence([]);
++      load();
++    } else setMsg(d.error ?? "Could not create the comp");
++  }
++
++  return (
++    <main style={{ maxWidth: 800, margin: "0 auto", padding: 24, display: "grid", gap: 20 }}>
++      <header>
++        <h1>Comp</h1>
++        <p style={{ color: muted, margin: "4px 0 0" }}>Write a demo comp by hand. It shows up on the Complaints screen for the admins, who can answer or close it depending on the level you set.</p>
++      </header>
++
++      <form onSubmit={create} style={{ ...panel, display: "grid", gap: 14 }}>
++        <label style={field}>Category
++          <select value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
++            <option value="">Choose a category…</option>
++            {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
++          </select>
++        </label>
++        <label style={field}>Complaint from (player name)
++          <input value={complainant} onChange={e => setComplainant(e.target.value)} placeholder="e.g. Tunde_K" required minLength={2} />
++        </label>
++        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
++          <label style={{ ...field, flex: 1, minWidth: 200 }}>Complaint about (player name)
++            <input value={accusedName} onChange={e => setAccusedName(e.target.value)} placeholder="e.g. BadGuy_01" disabled={!!accusedStaffId} />
++          </label>
++          <label style={{ ...field, flex: 1, minWidth: 200 }}>Or pick a staff member
++            <select value={accusedStaffId} onChange={e => setAccusedStaffId(e.target.value)}>
++              <option value="">Not a staff member</option>
++              {staff.map(s => <option key={s.id} value={s.id}>{s.name} · {s.title}</option>)}
++            </select>
++          </label>
++        </div>
++        <label style={field}>Description
++          <textarea value={message} onChange={e => setMessage(e.target.value)} rows={4} placeholder="What happened?" required minLength={5} />
++        </label>
++        <label style={field}>Level that can answer it
++          <select value={level} onChange={e => setLevel(e.target.value)}>
++            <option value="">Use the category&apos;s level</option>
++            {[3, 4, 5, 6].map(l => <option key={l} value={l}>Level {l} and above</option>)}
++          </select>
++          <small style={{ color: muted }}>Admins below this level can see the comp but not answer it. A comp against staff still follows the staff rules, and the owner, tech and developers can always answer.</small>
++        </label>
++
++        <div style={{ display: "grid", gap: 8 }}>
++          <strong>Evidence <span style={{ color: muted, fontWeight: 400 }}>· optional, up to 10</span></strong>
++          {evidence.map((ev, i) => (
++            <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", border: "1px solid #2a2540", borderRadius: 10, padding: "8px 12px" }}>
++              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{EV_LABEL[ev.kind]}: {ev.url ?? ev.text}</span>
++              <button type="button" onClick={() => setEvidence(evidence.filter((_, j) => j !== i))}>Remove</button>
++            </div>
++          ))}
++          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
++            <select value={evKind} onChange={e => setEvKind(e.target.value as Ev["kind"])} aria-label="Evidence type">
++              {(Object.keys(EV_LABEL) as Ev["kind"][]).map(k => <option key={k} value={k}>{EV_LABEL[k]}</option>)}
++            </select>
++            <input value={evValue} onChange={e => setEvValue(e.target.value)} placeholder={evKind === "TEXT" ? "Paste the chat log" : "https://…"} style={{ flex: 2, minWidth: 180 }} aria-label="Evidence link or text" />
++            <input value={evCaption} onChange={e => setEvCaption(e.target.value)} placeholder="Caption (optional)" style={{ flex: 1, minWidth: 120 }} aria-label="Evidence caption" />
++            <button type="button" onClick={addEvidence}>Add</button>
++          </div>
++        </div>
++
++        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
++          <button className="primary">Create comp</button>
++          {msg && <span role="status">{msg}</span>}
++        </div>
++      </form>
++
++      <section style={panel}>
++        <strong>Demo comps you created</strong>
++        {recent.length === 0 && <p style={{ color: muted, margin: "6px 0 0" }}>None yet.</p>}
++        {recent.map(r => (
++          <div key={r.id} style={{ borderTop: "1px solid #2a2540", marginTop: 10, paddingTop: 10 }}>
++            <strong>{r.category}</strong> <span style={{ color: muted }}>· {r.complainant} vs {r.accused} · {r.status.replace("_", " ").toLowerCase()} · {r.minLevel ? `level ${r.minLevel}+` : "category level"} · {new Date(r.createdAt).toLocaleString()}</span>
++          </div>
++        ))}
++        <p style={{ margin: "12px 0 0" }}><a href="/admin">Open Complaints →</a></p>
++      </section>
++    </main>
++  );
++}
+diff --git a/app/admin/layout.tsx b/app/admin/layout.tsx
+index 9d52bdd..34f604c 100644
+--- a/app/admin/layout.tsx
++++ b/app/admin/layout.tsx
+@@ -34,6 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+     { href: "/admin/settings", label: "Home page", show: !!me?.canManageSite },
+     { href: "/admin/audit", label: "Audit log", show: !!me?.canManageStaff },
+     { href: "/admin/profile", label: "Profile", show: true },
++    { href: "/admin/comp", label: "Comp", show: me?.kind === "OWNER" },
+   ];
+   const rank = me ? (me.kind === "ADMIN" ? `Level ${me.level} admin` : me.kind.charAt(0) + me.kind.slice(1).toLowerCase() + " · full rights") : "";
+ 
+diff --git a/app/admin/page.tsx b/app/admin/page.tsx
+index d285c5a..af26c85 100644
+--- a/app/admin/page.tsx
++++ b/app/admin/page.tsx
+@@ -9,7 +9,7 @@ type Row = {
+   player: { username: string }; category: { id: string; name: string };
+   claimedBy: { name: string } | null; claimedById: string | null;
+   accusedName: string | null; accusedAdmin: { name: string } | null;
+-  canReply: boolean; lockedByClaim: boolean;
++  canReply: boolean; lockedByClaim: boolean; minLevel: number | null;
+ };
+ type Detail = Row & {
+   player: { username: string; gameId: string }; canNote: boolean; canClose: boolean; verdict: string | null;
+@@ -111,7 +111,7 @@ export default function ComplaintsPage() {
+               <div style={{ marginTop: 4 }}>{r.player.username} <span className="muted">vs</span> {r.accusedAdmin?.name ?? r.accusedName ?? "unknown"}</div>
+               <div className="sub">
+                 {r.claimedBy ? (r.claimedById === meId ? "Handled by you" : `Handled by ${r.claimedBy.name}`) : "Unclaimed"}
+-                {!r.canReply && !r.lockedByClaim ? " · view only" : ""}{r.accusedAdmin ? " · against staff" : ""} · {fmt(r.createdAt)}
++                {!r.canReply && !r.lockedByClaim ? " · view only" : ""}{r.accusedAdmin ? " · against staff" : ""}{r.minLevel ? ` · level ${r.minLevel}+` : ""} · {fmt(r.createdAt)}
+               </div>
+             </button>
+           ))}
+diff --git a/app/api/admin/demo-complaints/route.ts b/app/api/admin/demo-complaints/route.ts
+new file mode 100644
+index 0000000..8cc80f3
+--- /dev/null
++++ b/app/api/admin/demo-complaints/route.ts
+@@ -0,0 +1,73 @@
++// PATH: app/api/admin/demo-complaints/route.ts
++import { NextResponse } from "next/server";
++import { z } from "zod";
++import { db } from "@/lib/db";
++import { requireAdmin } from "@/lib/auth";
++import { audit } from "@/lib/audit";
++import { evidenceItem } from "@/lib/evidence";
++
++const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
++
++/** Owner only: the demo comps created from the Comp screen, newest first. */
++export async function GET() {
++  const a = await requireAdmin();
++  if (a.error) return a.error;
++  if (a.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can use this" }, { status: 403 });
++
++  const rows = await db.complaint.findMany({
++    where: { player: { gameId: { startsWith: "demo-p-" } } },
++    orderBy: { createdAt: "desc" },
++    take: 20,
++    include: { category: { select: { name: true } }, player: { select: { username: true } }, accusedAdmin: { select: { name: true } } },
++  });
++  return NextResponse.json(
++    rows.map((r) => ({
++      id: r.id, category: r.category.name, complainant: r.player.username, accused: r.accusedAdmin?.name ?? r.accusedName ?? "none",
++      status: r.status, minLevel: r.minLevel, createdAt: r.createdAt,
++    }))
++  );
++}
++
++const schema = z.object({
++  categoryId: z.string().min(1),
++  complainant: z.string().min(2).max(64),
++  accusedName: z.string().max(64).optional(), // a normal player
++  accusedStaffId: z.string().min(1).optional(), // or one of your staff, to test the staff rules
++  message: z.string().min(5).max(2000),
++  minLevel: z.coerce.number().int().min(3).max(6).nullable().optional(), // empty = use the category's level
++  evidence: z.array(evidenceItem).max(10).default([]),
++});
++
++/** Owner only: create a demo comp by hand. It appears on the Complaints screen like a real one. */
++export async function POST(req: Request) {
++  const a = await requireAdmin();
++  if (a.error) return a.error;
++  if (a.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can create demo comps" }, { status: 403 });
++
++  const parsed = schema.safeParse(await req.json().catch(() => null));
++  if (!parsed.success) return NextResponse.json({ error: "Check the form: category, complainant and description are required", details: parsed.error.flatten() }, { status: 400 });
++  const d = parsed.data;
++
++  if (!(await db.category.findUnique({ where: { id: d.categoryId } }))) return NextResponse.json({ error: "Category not found" }, { status: 404 });
++  const staff = d.accusedStaffId ? await db.admin.findUnique({ where: { id: d.accusedStaffId }, select: { id: true, name: true, gameId: true } }) : null;
++  if (d.accusedStaffId && !staff) return NextResponse.json({ error: "That staff member was not found" }, { status: 404 });
++
++  const gameId = `demo-p-${slug(d.complainant)}`;
++  const player = await db.player.upsert({ where: { gameId }, update: { username: d.complainant }, create: { gameId, username: d.complainant } });
++  const accusedName = staff?.name ?? (d.accusedName?.trim() || undefined);
++
++  const c = await db.complaint.create({
++    data: {
++      playerId: player.id,
++      categoryId: d.categoryId,
++      message: d.message,
++      minLevel: d.minLevel ?? null,
++      accusedName,
++      accusedGameId: staff?.gameId ?? (accusedName ? `demo-t-${slug(accusedName)}` : undefined),
++      accusedAdminId: staff?.id,
++      evidence: { create: d.evidence.map((e) => ({ kind: e.kind, url: e.url, text: e.text, caption: e.caption })) },
++    },
++  });
++  await audit(a.actor.id, "DEMO_COMPLAINT_CREATE", c.id, `${d.complainant} vs ${accusedName ?? "nobody"}${d.minLevel ? `, level ${d.minLevel}+` : ""}`);
++  return NextResponse.json({ id: c.id }, { status: 201 });
++}
+diff --git a/lib/db.ts b/lib/db.ts
+index 95d8ded..e0cddd5 100644
+--- a/lib/db.ts
++++ b/lib/db.ts
+@@ -6,7 +6,7 @@ const { Pool } = pkg;
+ 
+ const connectionString = process.env.DATABASE_URL;
+ 
+-const pool = new Pool({ connectionString });
++const pool = new Pool({ connectionString, max: 3, idleTimeoutMillis: 10_000 }); // small pool: each serverless instance keeps its own
+ const adapter = new PrismaPg(pool);
+ 
+ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+diff --git a/lib/permissions.ts b/lib/permissions.ts
+index 2aafd0e..85a3a36 100644
+--- a/lib/permissions.ts
++++ b/lib/permissions.ts
+@@ -11,6 +11,7 @@ export type ComplaintForCheck = {
+   category: { minReplyLevel: number; minCloseLevel: number };
+   accusedAdmin: Accused;
+   claimedById?: string | null;
++  minLevel?: number | null; // owner-set level for a demo comp; replaces the category level
+ };
+ 
+ /** Owner, tech and developers: equal full rights. */
+@@ -40,7 +41,7 @@ export function canAct(actor: Staff, c: ComplaintForCheck, action: Action) {
+   const target = levelNeededForTarget(c.accusedAdmin);
+   if (target === "TOP") return false;
+   const { minReplyLevel, minCloseLevel } = c.category;
+-  const categoryMin = action === "close" ? Math.max(minReplyLevel, minCloseLevel) : minReplyLevel;
++  const categoryMin = c.minLevel ?? (action === "close" ? Math.max(minReplyLevel, minCloseLevel) : minReplyLevel);
+   return actor.level >= Math.max(categoryMin, target);
+ }
+ 
+diff --git a/package.json b/package.json
+index 18c8576..87275af 100644
+--- a/package.json
++++ b/package.json
+@@ -6,7 +6,8 @@
+   "scripts": {
+     "dev": "next dev",
+     "build": "next build",
+-    "start": "next start"
++    "start": "next start",
++    "postinstall": "prisma generate"
+   },
+   "dependencies": {
+     "@prisma/adapter-pg": "^7.10.1",
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 363ff07..88fe180 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -91,6 +91,7 @@ model Complaint {
+   claimedBy      Admin?          @relation("Claimed", fields: [claimedById], references: [id])
+   claimedAt      DateTime?
+   verdict        Verdict?
++  minLevel       Int?            // set by the owner on demo comps: overrides the category's level
+   message        String
+   status         ComplaintStatus @default(OPEN)
+   createdAt      DateTime        @default(now())
+diff --git a/vercel.json b/vercel.json
+new file mode 100644
+index 0000000..4fb7bbc
+--- /dev/null
++++ b/vercel.json
+@@ -0,0 +1,3 @@
++{
++  "regions": ["dub1"]
++}
