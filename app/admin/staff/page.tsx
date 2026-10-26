@@ -33,34 +33,49 @@ function StaffRow({ s, me, levels, roles, onPatch }: { s: Staff; me: Me; levels:
   }
 
   return (
-    <div style={{ borderBottom: "1px solid #2a2540", padding: "12px 0", opacity: s.suspended ? 0.6 : 1 }}>
-      <strong>{s.name}</strong> <small style={{ color: muted }}>{s.email} · {s.title} · {s.kind === "ADMIN" ? `level ${s.level}` : "top tier, full rights"}{s.suspended ? " · SUSPENDED" : ""}</small>
-      <div style={{ color: muted, fontSize: ".85rem" }}>Game account: {s.gameId ?? "not linked"}</div>
-      {s.canManage && (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 8 }}>
-          <select value={s.roleId ?? ""} onChange={e => changeRole(e.target.value)} aria-label={`Role for ${s.name}`}>
-            {!s.roleId && <option value="">No role yet</option>}
-            {roleOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
-          {s.kind === "ADMIN" && (
-            <select value={s.level} onChange={e => onPatch(s.id, { level: Number(e.target.value) })} aria-label={`Level for ${s.name}`}>
-              {lvlOpts.map(l => <option key={l} value={l}>Level {l}</option>)}
+    <details style={{ borderBottom: "1px solid #2a2540", padding: "12px 0", opacity: s.suspended ? 0.6 : 1 }}>
+      <summary style={{ cursor: "pointer", padding: "4px 0", lineHeight: 1.8 }}>
+        <strong>{s.name}</strong>{" "}
+        <small style={{ color: muted }}>
+          {s.email} · {s.title} · {s.kind === "ADMIN" ? `level ${s.level}` : "top tier, full rights"}{s.suspended ? " · SUSPENDED" : ""}
+        </small>
+        <div style={{ color: muted, fontSize: ".85rem" }}>Game account: {s.gameId ?? "not linked"}</div>
+      </summary>
+
+      <div style={{ paddingTop: 10 }}>
+        {s.canManage && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 4 }}>
+            <select value={s.roleId ?? ""} onChange={e => changeRole(e.target.value)} aria-label={`Role for ${s.name}`}>
+              {!s.roleId && <option value="">No role yet</option>}
+              {roleOptions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
-          )}
-          <button onClick={() => onPatch(s.id, { suspended: !s.suspended })}>{s.suspended ? "Restore" : "Suspend"}</button>
-          {s.gameId && <button onClick={() => onPatch(s.id, { gameId: null })}>Unlink game account</button>}
-        </div>
-      )}
-      {s.canManage && me.kind === "OWNER" && s.kind === "ADMIN" && (
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 8 }}>
-          <small style={{ color: muted }}>Personal extra rights:</small>
-          {RIGHTS.map(r => (
-            <label key={r}><input type="checkbox" checked={rights.includes(r)} onChange={e => setRights(e.target.checked ? [...rights, r] : rights.filter(x => x !== r))} /> {RIGHT_LABEL[r]}</label>
-          ))}
-          <button disabled={[...rights].sort().join() === [...s.extraRights].sort().join()} onClick={() => onPatch(s.id, { extraRights: rights })}>Save rights</button>
-        </div>
-      )}
-    </div>
+            {s.kind === "ADMIN" && (
+              <select value={s.level} onChange={e => onPatch(s.id, { level: Number(e.target.value) })} aria-label={`Level for ${s.name}`}>
+                {lvlOpts.map(l => <option key={l} value={l}>Level {l}</option>)}
+              </select>
+            )}
+            <button onClick={() => onPatch(s.id, { suspended: !s.suspended })}>{s.suspended ? "Restore" : "Suspend"}</button>
+            {s.gameId && <button onClick={() => onPatch(s.id, { gameId: null })}>Unlink game account</button>}
+          </div>
+        )}
+
+        {s.canManage && me.kind === "OWNER" && s.kind === "ADMIN" && (
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 8 }}>
+            <small style={{ color: muted }}>Personal extra rights:</small>
+            {RIGHTS.map(r => (
+              <label key={r}><input type="checkbox" checked={rights.includes(r)} onChange={e => setRights(e.target.checked ? [...rights, r] : rights.filter(x => x !== r))} /> {RIGHT_LABEL[r]}</label>
+            ))}
+            <button disabled={[...rights].sort().join() === [...s.extraRights].sort().join()} onClick={() => onPatch(s.id, { extraRights: rights })}>Save rights</button>
+          </div>
+        )}
+
+        {!s.canManage && (
+          <p style={{ color: muted, fontSize: ".9rem", margin: 0 }}>
+            You do not have permission to manage this staff account.
+          </p>
+        )}
+      </div>
+    </details>
   );
 }
 
