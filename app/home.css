@@ -7,3 +7,77 @@ a.store-btn:hover { border-color: var(--pink); transform: translateY(-2px); }
 .store-btn.disabled { opacity: .55; cursor: not-allowed; }
 .note { color: var(--muted); font-size: .9rem; text-align: center; max-width: 52ch; margin: 18px auto 0; }
 .steps a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Homepage polish: keep the existing Prestige Life RP layout and content,
+   while giving the live mobile-first hero and sections a more intentional finish. */
+.hero-bg {
+  background:
+    linear-gradient(180deg, rgba(7,6,13,.08) 0%, rgba(7,6,13,.18) 46%, #07060d 100%),
+    radial-gradient(ellipse at 14% 24%, rgba(255,46,147,.25), transparent 42%),
+    radial-gradient(ellipse at 84% 58%, rgba(41,216,255,.17), transparent 43%),
+    radial-gradient(ellipse at 50% 100%, rgba(86,40,130,.16), transparent 54%),
+    #0c0a18;
+}
+.hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .12;
+  background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 82%);
+}
+.hero-content { width: min(100%, 720px); }
+.hero h1 { max-width: 100%; overflow-wrap: anywhere; }
+.tagline { max-width: 42ch; }
+.stats { flex-wrap: wrap; align-items: flex-start; }
+.stat { min-width: 72px; }
+.section { scroll-margin-top: 84px; }
+.section h2 { letter-spacing: -.025em; }
+.card { position: relative; overflow: hidden; }
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--pink), var(--cyan));
+  opacity: 0;
+  transition: opacity .2s;
+}
+.card:hover::before, .card:focus-within::before { opacity: 1; }
+.download-grid { width: 100%; }
+.store-btn { text-align: left; min-height: 76px; justify-content: center; }
+.steps li { min-width: 0; }
+.footer { padding-bottom: max(28px, env(safe-area-inset-bottom)); }
+
+@media (max-width: 639px) {
+  .header { gap: 10px; padding: 12px 14px; }
+  .logo { font-size: .76rem; letter-spacing: .09em; white-space: nowrap; }
+  .nav { display: flex; gap: 14px; font-size: .72rem; white-space: nowrap; }
+  .header .btn-sm { padding: 7px 13px; font-size: .78rem; }
+  .hero { min-height: 100svh; padding: 116px 18px 52px; }
+  .hero-content { max-width: 520px; }
+  .badge { margin-bottom: 18px; font-size: .75rem; }
+  .hero h1 { font-size: clamp(2.35rem, 9.5vw, 3.8rem); line-height: 1.02; }
+  .tagline { font-size: .95rem; line-height: 1.65; margin: 18px auto 26px; }
+  .cta-row { gap: 10px; }
+  .btn { padding: 12px 20px; font-size: .9rem; }
+  .stats { gap: clamp(18px, 7vw, 32px); margin-top: 38px; }
+  .stat strong { font-size: 1.55rem; }
+  .stat span { font-size: .78rem; }
+  .section { padding: 64px 18px; }
+  .section h2 { margin-bottom: 28px; }
+  .grid { grid-template-columns: 1fr; gap: 12px; }
+  .card { padding: 20px; }
+  .download-grid { grid-template-columns: 1fr; }
+  .steps li { padding: 14px; }
+  .footer { padding: 24px 18px; }
+}
+@media (max-width: 360px) {
+  .nav { gap: 9px; }
+  .nav a { font-size: .68rem; }
+  .header .btn-sm { padding: 7px 10px; }
+  .stats { gap: 14px; }
+}
