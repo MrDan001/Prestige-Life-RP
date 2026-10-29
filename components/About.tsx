@@ -5,7 +5,7 @@ export default function About() {
     <div className="about-copy">
       <p className="section-eyebrow">ABOUT PRESTIGE LIVE RP</p>
       <h2>What is Prestige Live RP?</h2>
-      <p>Prestige Life RP is a living roleplay city built for players who want freedom, creativity, and memorable stories. From the streets to the boardroom, from public service to nightlife, every role matters and every story counts.</p>
+      <p>Prestige Live RP is a living roleplay city built for players who want freedom, creativity, and memorable stories. From the streets to the boardroom, from public service to nightlife, every role matters and every story counts.</p>
       <ul className="about-list">{highlights.map((item) => <li key={item}>{item}</li>)}</ul>
     </div>
   </section>;

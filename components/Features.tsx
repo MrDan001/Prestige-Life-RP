@@ -5,7 +5,7 @@ const features = [
   { icon: "∞", title: "Endless Possibilities", text: "Be who you want. Do what you want. The choice is yours." },
 ];
 export default function Features() {
-  return <section id="features" className="feature-strip" aria-label="Prestige Life RP features">
+  return <section id="features" className="feature-strip" aria-label="Prestige Live RP features">
     {features.map((feature) => <article key={feature.title} className="feature-item">
       <span className="feature-icon" aria-hidden="true">{feature.icon}</span><h2>{feature.title}</h2><p>{feature.text}</p>
     </article>)}
