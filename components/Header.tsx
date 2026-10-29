@@ -1,9 +1,11 @@
-// PATH: components/Header.tsx
 export default function Header() {
   return (
     <header className="header">
-      <a href="#" className="logo">PRESTIGE LIFE</a>
-      <nav className="nav">
+      <a href="#" className="logo" aria-label="Prestige Life RP home">
+        <span className="logo-main">♛ PRESTIGE</span>
+        <span className="logo-sub">LIVE RP</span>
+      </a>
+      <nav className="nav" aria-label="Main navigation">
         <a href="#features">Features</a>
         <a href="#download">Download</a>
         <a href="#join">How to Join</a>

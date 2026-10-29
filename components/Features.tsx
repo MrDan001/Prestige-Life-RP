@@ -1,26 +1,13 @@
-// PATH: components/Features.tsx
 const features = [
-  { title: "Real Economy", text: "Own businesses, trade, and build an empire from nothing." },
-  { title: "Whitelisted Jobs", text: "LSPD, EMS, mechanics, lawyers — careers that matter." },
-  { title: "Gangs & Crime", text: "Heists, turf and alliances with consequences." },
-  { title: "Custom Cars", text: "Hundreds of exclusive vehicles and tuning shops." },
-  { title: "Housing", text: "Penthouses, mansions and hideouts you can furnish." },
-  { title: "Active Staff", text: "24/7 moderation keeping roleplay serious and fair." },
+  { icon: "♧", title: "Active Community", text: "Meet players, make friends, build your network." },
+  { icon: "▣", title: "Realistic Economy", text: "Work, earn, invest and build your empire." },
+  { icon: "◇", title: "Serious Roleplay", text: "Respect, creativity and immersion come first." },
+  { icon: "∞", title: "Endless Possibilities", text: "Be who you want. Do what you want. The choice is yours." },
 ];
-
 export default function Features() {
-  return (
-    <section id="features" className="section">
-      <h2>The Life Awaits</h2>
-      <div className="grid">
-        {features.map((f, i) => (
-          <article key={f.title} className="card">
-            <span className="num">{String(i + 1).padStart(2, "0")}</span>
-            <h3>{f.title}</h3>
-            <p>{f.text}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
+  return <section id="features" className="feature-strip" aria-label="Prestige Life RP features">
+    {features.map((feature) => <article key={feature.title} className="feature-item">
+      <span className="feature-icon" aria-hidden="true">{feature.icon}</span><h2>{feature.title}</h2><p>{feature.text}</p>
+    </article>)}
+  </section>;
 }

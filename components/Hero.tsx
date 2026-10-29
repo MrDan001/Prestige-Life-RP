@@ -1,4 +1,3 @@
-// PATH: components/Hero.tsx
 import Counter from "./Counter";
 import type { Site } from "@/lib/site";
 
@@ -13,16 +12,17 @@ export default function Hero({ site }: { site: Site }) {
 
   return (
     <section className="hero">
-      {/* Put your own image at /public/hero.jpg and it will show behind the gradient */}
-      <div className="hero-bg" />
+      <div className="hero-bg" aria-hidden="true" />
       <div className="hero-content">
+        <p className="hero-kicker">ROLEPLAY · COMMUNITY · ENDLESS POSSIBILITIES</p>
         <p className="badge">{BADGE[site.launchStatus]}</p>
-        <h1>PRESTIGE LIFE RP</h1>
+        <h1><span>Your Story.</span><span className="accent">Our World.</span></h1>
         <p className="tagline">
-          Your city. Your story. A serious roleplay world built from the ground up for mobile — every choice leaves a mark.
+          Prestige Life RP is a next-generation roleplay community where you create your own story.
+          Build a career, grow a business, uphold the law, or make your name on the streets — the city is yours.
         </p>
         <div className="cta-row">
-          <a href="#download" className="btn btn-primary">Download the app</a>
+          <a href="#download" className="btn btn-primary">Download the app <span aria-hidden="true">→</span></a>
           {site.discordUrl && <a href={site.discordUrl} className="btn btn-ghost" target="_blank" rel="noopener noreferrer">Join Discord</a>}
         </div>
         {stats.length > 0 && <div className="stats">{stats}</div>}
