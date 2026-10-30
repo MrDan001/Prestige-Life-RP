@@ -104,3 +104,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update the seed role name so future seed runs use PRM.
 - [x] Update README and this roadmap.
 - [ ] Confirm the production Roles and Staff screens show PRM after deployment.
+
+
+## Built-in Owner role display label — 30 October 2026
+- [x] Rename the built-in role's displayed name from **Owner** to **PRM 2**.
+- [x] Preserve the underlying `StaffKind.OWNER` kind, full owner permissions, authentication, and owner-only safeguards.
+- [x] Keep the owner-account Staff directory hiding change from PR #5 intact.
+- [x] Add a database migration and update the Prisma seed role name.
+- [x] Update README and this roadmap.
+- [ ] Verify PRM 2 appears in the Roles interface after deployment and that owner-only authorization remains unchanged.
