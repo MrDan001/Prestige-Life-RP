@@ -30,6 +30,8 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
   const levelOptions = s.role ? levelsFor(s.role, levels) : levels;
   const levelChoices = levelOptions.includes(s.level) ? levelOptions : [...levelOptions, s.level].sort((a, b) => a - b);
   const initials = s.name.trim().split(/\s+/).slice(0, 2).map(part => part[0] ?? "").join("").toUpperCase();
+  const presenceClass = s.presence.toLowerCase();
+  const presenceLabel = s.presence.charAt(0) + s.presence.slice(1).toLowerCase();
 
   function changeRole(id: string) {
     const role = roles.find(item => item.id === id);
