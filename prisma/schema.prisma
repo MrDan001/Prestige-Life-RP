@@ -47,6 +47,7 @@ model Admin {
   extraRights  String[]  @default([]) // MANAGE_CATEGORIES, MANAGE_STAFF (owner grants)
   gameId       String?   @unique // links this staff member to their in-game account
   suspended    Boolean   @default(false) // suspended staff cannot sign in or use the site
+  sessionsRevokedAt DateTime? // invalidates legacy and registered sessions issued before this time
   roleId       String?
   role         Role?     @relation(fields: [roleId], references: [id])
   createdAt    DateTime  @default(now())
