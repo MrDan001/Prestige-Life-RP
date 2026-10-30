@@ -125,8 +125,8 @@ export default function ComplaintsPage() {
       <header className="topbar">
         <h1>Complaints</h1>
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
-          <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>Active</button>
-          <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>History</button>
+          <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
+          <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
         </div>
         <div className="chips">
           {(bucket === "ACTIVE" ? ACTIVE_CHIPS : HISTORY_CHIPS).map(([k, l]) => <button key={k} className={`chip${chip === k ? " on" : ""}`} onClick={() => setChip(k)}>{l}</button>)}
