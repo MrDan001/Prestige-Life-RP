@@ -7,9 +7,10 @@ type RoleInfo = { name: string; kind: string; minLevel: number; maxLevel: number
 type Staff = {
   id: string; email: string; name: string; title: string; kind: string; level: number; extraRights: string[];
   gameId: string | null; suspended: boolean; canManage: boolean; roleId: string | null; role: RoleInfo | null;
+  presence: "ACTIVE" | "PENDING" | "SUSPENDED" | "INACTIVE"; lastActivityAt: string | null; lastSeenAt: string | null; lastClosedAt: string | null;
 };
 type Role = { id: string; name: string; kind: string; minLevel: number; maxLevel: number; active: boolean; assignable: boolean };
-type Filter = "ALL" | "ADMINS" | "TOP_TIER" | "SUSPENDED";
+type Filter = "ALL" | "ADMINS" | "TOP_TIER" | "ACTIVE" | "PENDING" | "SUSPENDED" | "INACTIVE";
 type InviteInfo = { id: string; url: string; expiresAt: string };
 
 const RIGHTS_LABEL: Record<string, string> = {
@@ -43,7 +44,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
       <summary className="staff-summary">
         <span className="staff-avatar" aria-hidden="true">{initials || "?"}</span>
         <span className="staff-summary-copy">
-          <span className="staff-name-line"><strong>{s.name}</strong><i className={`staff-dot ${s.suspended ? "off" : "on"}`} /></span>
+          <span className="staff-name-line"><strong>{s.name}</strong><span className={`staff-presence ${presenceClass}`}><i className={`staff-dot ${presenceClass}`} />{presenceLabel}</span></span>
           <span className="staff-subtitle">{s.title || s.kind} · {s.kind === "ADMIN" ? `Level ${s.level}` : "Top tier"}{s.suspended ? " · Suspended" : ""}</span>
         </span>
         <svg className="staff-chevron" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m4 7 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
@@ -89,7 +90,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
           </section>}
           {me.kind === "OWNER" && <section className="staff-section"><h3 className="staff-label">Active sessions</h3><button type="button" className="staff-invite-button" onClick={() => onRevokeSessions(s.id)}>Sign out all devices</button></section>}
           <section className="staff-section staff-status-section">
-            <div><h3 className="staff-label">Status</h3><div className={`staff-status-text ${s.suspended ? "off" : "on"}`}><i className={`staff-dot ${s.suspended ? "off" : "on"}`}/>{s.suspended ? "Suspended" : "Active"}</div></div>
+            <div><h3 className="staff-label">Status</h3><div className={`staff-status-text ${presenceClass}`}><i className={`staff-dot ${presenceClass}`}/>{presenceLabel}</div><small className="staff-last-activity">{s.lastActivityAt ? `Last activity: ${new Date(s.lastActivityAt).toLocaleString()}` : "No website visit or complaint closure recorded in the last 24 hours."}</small></div>
             <div className="staff-status-actions">
               <button type="button" className={s.suspended ? "staff-restore" : "staff-suspend"} onClick={() => onPatch(s.id, { suspended: !s.suspended })}>{s.suspended ? "Restore" : "Suspend"}</button>
               {me.kind === "OWNER" && <button type="button" className="staff-delete" onClick={() => onDelete(s)}>Delete staff</button>}
@@ -127,8 +128,17 @@ const staffStyles = `
 .staff-page .staff-name-line strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
 .staff-page .staff-subtitle{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
 .staff-page .staff-dot{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;font-style:normal}
-.staff-page .staff-dot.on{background:#6ee7a8;box-shadow:0 0 0 3px rgb(110 231 168 / 8%)}
-.staff-page .staff-dot.off{background:#ff8fb4;box-shadow:0 0 0 3px rgb(255 143 180 / 8%)}
+.staff-page .staff-presence{display:inline-flex;align-items:center;gap:7px;flex:none;font-size:11px;font-weight:600;white-space:nowrap}
+.staff-page .staff-dot{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;font-style:normal}
+.staff-page .staff-dot.active{background:#39d98a;box-shadow:0 0 0 3px rgb(57 217 138 / 12%)}
+.staff-page .staff-dot.pending{background:#e7b84b;box-shadow:0 0 0 3px rgb(231 184 75 / 12%)}
+.staff-page .staff-dot.suspended{background:#f05265;box-shadow:0 0 0 3px rgb(240 82 101 / 12%)}
+.staff-page .staff-dot.inactive{background:#9295a1;box-shadow:0 0 0 3px rgb(146 149 161 / 12%)}
+.staff-page .staff-presence.active,.staff-page .staff-status-text.active{color:#39d98a}
+.staff-page .staff-presence.pending,.staff-page .staff-status-text.pending{color:#e7b84b}
+.staff-page .staff-presence.suspended,.staff-page .staff-status-text.suspended{color:#f05265}
+.staff-page .staff-presence.inactive,.staff-page .staff-status-text.inactive{color:#a1a4ae}
+.staff-page .staff-last-activity{display:block;margin-top:5px;color:var(--muted);font-size:11px}
 .staff-page .staff-chevron{flex:none;color:var(--muted);transition:transform .18s ease}
 .staff-page .staff-card[open] .staff-chevron{transform:rotate(180deg);color:var(--text)}
 .staff-page .is-suspended .staff-avatar{opacity:.72}
@@ -259,8 +269,11 @@ export default function StaffPage() {
     const matchQuery = !query || [person.name, person.email, person.title, person.gameId ?? ""].some(value => value.toLowerCase().includes(query));
     const matchFilter = filter === "ALL" ||
       (filter === "ADMINS" && person.kind === "ADMIN" && !person.suspended) ||
-      (filter === "TOP_TIER" && person.kind !== "ADMIN" && !person.suspended) ||
-      (filter === "SUSPENDED" && person.suspended);
+      (filter === "TOP_TIER" && person.kind !== "ADMIN") ||
+      (filter === "ACTIVE" && person.presence === "ACTIVE") ||
+      (filter === "PENDING" && person.presence === "PENDING") ||
+      (filter === "SUSPENDED" && person.presence === "SUSPENDED") ||
+      (filter === "INACTIVE" && person.presence === "INACTIVE");
     return matchQuery && matchFilter;
   });
 
@@ -296,7 +309,9 @@ export default function StaffPage() {
 
   const filters: { id: Filter; label: string }[] = [
     { id: "ALL", label: "All" }, { id: "ADMINS", label: "Admins" },
-    { id: "TOP_TIER", label: "Top tier" }, { id: "SUSPENDED", label: "Suspended" },
+    { id: "TOP_TIER", label: "Top tier" }, { id: "ACTIVE", label: "Active" },
+    { id: "PENDING", label: "Pending" }, { id: "SUSPENDED", label: "Suspended" },
+    { id: "INACTIVE", label: "Inactive" },
   ];
 
   return (
