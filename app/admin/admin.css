@@ -101,3 +101,8 @@ html:has(.shell), body:has(.shell) { overflow-x: auto; }
 .infocards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .judg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .evgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Queue switcher: active work and closed case history are distinct destinations. */
+.queue-tabs { display: flex; align-items: center; gap: 8px; }
+.shell button.queue-tab { border-radius: 999px; padding: 7px 18px; border-color: var(--line2); color: var(--muted); }
+.shell button.queue-tab.on { background: var(--raise); border-color: var(--accent); color: var(--text); font-weight: 700; }
