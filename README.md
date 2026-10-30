@@ -12,6 +12,9 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 
 ## Visual quality
 
+- The header and footer share the custom vector Prestige crown wordmark in `public/prestige-logo.svg`.
+- The feature strip uses hand-drawn inline SVG line icons rather than Unicode symbol characters, with consistent stroke weight and icon sizing.
+
 The public homepage uses a consistent cinematic image system:
 - A wide city hero image with responsive focal-point adjustments.
 - A separate city image for the About panel.
