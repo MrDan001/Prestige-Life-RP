@@ -75,8 +75,6 @@ const schema = z.object({
 export async function POST(req: Request) {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
-  if (a.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can invite new staff" }, { status: 403 });
-
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid details", details: parsed.error.flatten() }, { status: 400 });
   const d = parsed.data;
@@ -89,6 +87,10 @@ export async function POST(req: Request) {
   const level = kind === "ADMIN" ? (d.level ?? role.minLevel) : 6;
   if (kind === "ADMIN" && (level < role.minLevel || level > role.maxLevel))
     return NextResponse.json({ error: `The ${role.name} role needs a level between ${role.minLevel} and ${role.maxLevel}` }, { status: 400 });
+  // A role's allowed range is not the actor's authority. Enforce the selected
+  // level separately so a broad role cannot be used to promote above the inviter.
+  if (kind === "ADMIN" && !canAssignLevel(a.actor, null, level))
+    return NextResponse.json({ error: "You cannot invite staff at that level" }, { status: 403 });
 
   const email = d.email.toLowerCase().trim();
   if (await db.admin.findUnique({ where: { email } }))
