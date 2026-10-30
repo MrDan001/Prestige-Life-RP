@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { RIGHTS, canAssignRole } from "@/lib/permissions";
+import { ROLE_RIGHTS, canAssignRole } from "@/lib/permissions";
 
 /** Roles, for the Staff screen and the Roles screen. assignable = whether you may give that role. */
 export async function GET() {
@@ -39,7 +39,7 @@ const schema = z
     name: z.string().min(2).max(40),
     minLevel: z.coerce.number().int().min(1).max(6),
     maxLevel: z.coerce.number().int().min(1).max(6),
-    extraRights: z.array(z.enum(RIGHTS)).default([]),
+    extraRights: z.array(z.enum(ROLE_RIGHTS)).default([]),
   })
   .refine((r) => r.minLevel <= r.maxLevel, "The lowest level cannot be above the highest");
 
