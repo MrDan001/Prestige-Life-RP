@@ -17,10 +17,11 @@ Bring the homepage photography closer to the supplied desktop reference: crisp c
 
 ## Brand mark and icon pass — completed 30 October 2026
 - [x] Replaced the improvised crown text glyph with a dedicated vector crown + PRESTIGE + LIVE RP logo matching the supplied reference composition.
-- [x] Used the same logo asset in the site header and footer so the brand mark stays consistent.
+- [x] Use the official logo asset in the site header; the footer intentionally has no logo.
+- [x] Removed the footer logo while preserving its existing copyright and admin-access content.
 - [x] Replaced the four Unicode feature symbols with custom SVG outline icons for community, economy, roleplay, and possibilities.
 - [x] Standardised the feature icon box, stroke thickness, headings, and description spacing for a more deliberate aligned row.
-- [x] Updated README documentation for the official wordmark and icon system.
+- [x] Updated README documentation for the official wordmark and icon system and the footer layout.
 
 ## Verification still required
 - [ ] Run `npm run build` and resolve any build errors.
