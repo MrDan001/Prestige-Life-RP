@@ -10,6 +10,7 @@ type Staff = {
 };
 type Role = { id: string; name: string; kind: string; minLevel: number; maxLevel: number; active: boolean; assignable: boolean };
 type Filter = "ALL" | "ADMINS" | "TOP_TIER" | "SUSPENDED";
+type InviteInfo = { id: string; url: string; expiresAt: string };
 
 const RIGHTS_LABEL: Record<string, string> = {
   MANAGE_CATEGORIES: "Edit categories", MANAGE_STAFF: "Manage staff",
@@ -20,8 +21,8 @@ const levelsFor = (role: { kind: string; minLevel: number; maxLevel: number }, l
 const nearest = (allowed: number[], level: number) =>
   allowed.reduce((best, item) => Math.abs(item - level) < Math.abs(best - level) ? item : best, allowed[0]);
 
-function StaffRow({ s, me, levels, roles, onPatch }: {
-  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void;
+function StaffRow({ s, me, levels, roles, onPatch, onInvite }: {
+  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void;
 }) {
   const [rights, setRights] = useState<string[]>(s.extraRights);
   const roleOptions = roles.filter(role => (role.active && role.assignable) || role.id === s.roleId);
@@ -48,6 +49,7 @@ function StaffRow({ s, me, levels, roles, onPatch }: {
         <svg className="staff-chevron" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m4 7 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
       </summary>
       <div className="staff-body">
+        {me.kind === "OWNER" && s.canManage && <section className="staff-section" style={{ borderTop: 0, paddingTop: 0 }}><button type="button" className="staff-invite-button" onClick={() => onInvite(s.id)}>Issue / replace private invitation</button></section>}
         <div className="staff-email">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="1.8" y="3.3" width="14.4" height="11.4" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5"/><path d="m3 5 6 4.6L15 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           <span>{s.email}</span>
@@ -149,7 +151,7 @@ const staffStyles = `
 .staff-page .staff-status-text{display:flex;align-items:center;gap:9px;margin-top:7px}
 .staff-page .staff-status-text.on{color:#6ee7a8}.staff-page .staff-status-text.off{color:#ffb3cf}
 .staff-page .staff-suspend{border-color:#e0568f;color:#ffb3cf}.staff-page .staff-restore{border-color:#2fbf86;color:#6ee7a8}
-.staff-page .staff-no-permission{margin:0;color:var(--muted);font-size:13px}
+.staff-page .staff-no-permission{margin:0;color:var(--muted);font-size:13px}\n.staff-page .staff-invite-button{width:100%;min-height:42px;border:1px solid var(--accent);border-radius:10px;color:var(--text);background:transparent}\n.staff-page .staff-invite-panel{display:grid;gap:10px;padding:14px;border:1px solid var(--accent);border-radius:12px;background:var(--panel)}\n.staff-page .staff-invite-url{overflow-wrap:anywhere;font-size:12px;color:var(--muted)}\n.staff-page .staff-invite-actions{display:flex;gap:8px;flex-wrap:wrap}\n.staff-page .staff-invite-actions button{flex:1;min-height:40px}
 .staff-page .staff-empty{padding:22px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--muted);text-align:center}
 .staff-page .staff-help{margin:0;color:var(--muted);font-size:12px}
 .staff-page .staff-add-panel{padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
@@ -173,7 +175,7 @@ export default function StaffPage() {
   const [adding, setAdding] = useState(false);
   const [nRole, setNRole] = useState("");
   const [nLevel, setNLevel] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);\n  const [invite, setInvite] = useState<InviteInfo | null>(null);
 
   const load = useCallback(async () => {
     const [staffRes, rolesRes] = await Promise.all([fetch("/api/admin/admins"), fetch("/api/admin/roles")]);
@@ -192,7 +194,7 @@ export default function StaffPage() {
     }).catch(() => { setMsg("Could not load your admin session. Please refresh and try again."); setLoading(false); });
   }, [load]);
 
-  async function patch(id: string, body: object) {
+  async function issueInvite(id: string) {\n    const response = await fetch(`/api/admin/admins/${id}/invite`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    if (!response.ok) { setMsg(data.error ?? "Could not issue invitation."); return; }\n    setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });\n    setMsg("Private invitation created. Copy it and share it directly with the staff member.");\n  }\n\n  async function revokeInvite() {\n    if (!invite) return;\n    const response = await fetch(`/api/admin/invitations/${invite.id}/revoke`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    setMsg(response.ok ? "Invitation revoked." : data.error ?? "Could not revoke invitation.");\n    if (response.ok) setInvite(null);\n  }\n\n  async function patch(id: string, body: object) {
     const response = await fetch(`/api/admin/admins/${id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
@@ -229,7 +231,7 @@ export default function StaffPage() {
     const fields = Object.fromEntries(new FormData(form));
     const response = await fetch("/api/admin/admins", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: fields.name, email: fields.email, password: fields.password, roleId: nRole,
+      body: JSON.stringify({ name: fields.name, email: fields.email, roleId: nRole,
         level: chosen?.kind === "ADMIN" ? Number(nLevel) : undefined }),
     });
     const data = await response.json().catch(() => ({}));
@@ -248,7 +250,7 @@ export default function StaffPage() {
       <header className="staff-header"><div><h1>Staff</h1><p className="staff-count">{staff.length} {staff.length === 1 ? "person" : "people"}</p></div>
         <button type="button" className="primary staff-add" onClick={() => setAdding(value => !value)}>{adding ? "Cancel" : "+ Add staff"}</button>
       </header>
-      {msg && <p role="status" aria-live="polite" className="staff-message">{msg}</p>}
+      {msg && <p role="status" aria-live="polite" className="staff-message">{msg}</p>}\n      {invite && <section className="staff-invite-panel"><strong>Private staff invitation</strong><div className="staff-invite-url">{invite.url}</div><small>Expires {new Date(invite.expiresAt).toLocaleString()}</small><div className="staff-invite-actions"><button type="button" className="primary" onClick={() => navigator.clipboard.writeText(invite.url).then(() => setMsg("Invitation link copied."))}>Copy invitation link</button><button type="button" onClick={revokeInvite}>Revoke link</button></div><small>Anyone with this link can activate the assigned staff account once. Share it privately.</small></section>}
       {adding && <section className="staff-add-panel">
         <h2>Add staff</h2>
         <form onSubmit={add} className="staff-add-form">
@@ -275,7 +277,7 @@ export default function StaffPage() {
       <section className="staff-list" aria-label="Staff accounts">
         {loading ? <div className="staff-empty">Loading staff accounts…</div> : visibleStaff.length ? visibleStaff.map(person =>
           <StaffRow key={[person.id, person.roleId, person.level, person.suspended, person.gameId, person.extraRights.join()].join("|")}
-            s={person} me={me} levels={levels} roles={roles} onPatch={patch} />
+            s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} />
         ) : <div className="staff-empty">No staff match this search or filter.</div>}
       </section>
       <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you.</p>
