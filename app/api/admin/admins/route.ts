@@ -45,7 +45,7 @@ export async function GET() {
     const hasAcceptedInvite = r.invitations.some(invitation => !!invitation.usedAt);
     const pending = !!latestInvite && !latestInvite.usedAt && (!latestInvite.revokedAt || !hasAcceptedInvite);
     const closedAt = closedAtByAdmin.get(r.id) ?? null;
-    const lastActivityAt = [r.lastSeenAt, closedAt].filter(Boolean).sort((x, y) => y!.getTime() - x!.getTime())[0] ?? null;
+    const lastActivityAt = !r.lastSeenAt ? closedAt : !closedAt ? r.lastSeenAt : r.lastSeenAt > closedAt ? r.lastSeenAt : closedAt;
     const recentActivity = !!lastActivityAt && now - lastActivityAt.getTime() <= activeWindow;
     const presence = r.suspended ? "SUSPENDED" : pending ? "PENDING" : recentActivity ? "ACTIVE" : "INACTIVE";
     const { invitations: _invitations, ...staff } = r;
