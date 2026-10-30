@@ -1,0 +1,1 @@
+ALTER TABLE "Admin" ADD COLUMN "sessionsRevokedAt" TIMESTAMP(3);
