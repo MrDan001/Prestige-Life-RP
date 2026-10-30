@@ -24,6 +24,7 @@ export async function POST(req: Request, { params }: Ctx) {
     include: { player: true, category: true, accusedAdmin: { select: { id: true, name: true, kind: true, level: true } } },
   });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "This complaint is closed. A top-tier administrator must reopen it before a judgment can be prepared." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
 
   const t = await db.responseTemplate.findUnique({ where: { id: parsed.data.templateId } });
