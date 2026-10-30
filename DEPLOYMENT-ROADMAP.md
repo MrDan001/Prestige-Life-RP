@@ -113,3 +113,11 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Add a database migration and update the Prisma seed role name.
 - [x] Update README and this roadmap.
 - [ ] Verify PRM 2 appears in the Roles interface after deployment and that owner-only authorization remains unchanged.
+
+
+## Owner roster privacy correction — 30 October 2026
+- [x] Reapply the `kind != OWNER` filter directly in the staff-directory GET query on current main.
+- [x] Ensure no OWNER account row or email is included in the staff roster response for any viewer.
+- [x] Preserve `/api/admin/me` so the signed-in user can still see their own session identity in the top account panel; that is not a roster disclosure to other staff.
+- [x] Update README and this roadmap.
+- [ ] Confirm preview and production roster API responses contain no OWNER records.
