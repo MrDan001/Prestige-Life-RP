@@ -133,19 +133,22 @@ export async function PATCH(req: Request, { params }: Ctx) {
     return NextResponse.json({ error: "You do not have permission to close this complaint." }, { status: 403 });
   }
   const autoClaim = !c.claimedById;
-  const changed = await db.complaint.updateMany({
-    where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
-    data: {
-      ...(newStatus ? { status: newStatus } : {}),
-      ...(newVerdict ? { verdict: newVerdict } : {}),
-      ...(autoClaim ? { claimedById: a.actor.id, claimedAt: new Date() } : {}),
-    },
+  const updated = await db.$transaction(async tx => {
+    const changed = await tx.complaint.updateMany({
+      where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
+      data: {
+        ...(newStatus ? { status: newStatus } : {}),
+        ...(newVerdict ? { verdict: newVerdict } : {}),
+        ...(autoClaim ? { claimedById: a.actor.id, claimedAt: new Date() } : {}),
+      },
+    });
+    if (changed.count !== 1) return null;
+    if (reply) await tx.response.create({ data: { complaintId: id, adminId: a.actor.id, message: reply, templateId: templateId ?? null } });
+    return tx.complaint.findUnique({ where: { id } });
   });
-  if (changed.count !== 1) {
+  if (!updated) {
     return NextResponse.json({ error: "This complaint was closed or changed by another administrator. Refresh the page." }, { status: 409 });
   }
-  if (reply) await db.response.create({ data: { complaintId: id, adminId: a.actor.id, message: reply, templateId: templateId ?? null } });
-  const updated = await db.complaint.findUnique({ where: { id } });
   if (autoClaim) await audit(a.actor.id, "COMPLAINT_CLAIM", id, "claimed this complaint");
   if (newStatus && newStatus !== c.status) await audit(a.actor.id, "COMPLAINT_STATUS", id, `${c.status} -> ${newStatus}${tpl ? ` (judgment: ${tpl.name})` : ""}`);
   if (newVerdict && newVerdict !== c.verdict) await audit(a.actor.id, "COMPLAINT_VERDICT", id, `${c.verdict ?? "none"} -> ${newVerdict}`);
