@@ -72,3 +72,9 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 
 ## Built-in FOUNDER role
 The built-in top-tier role is displayed as **FOUNDER**. It retains the existing OWNER kind and owner-level permissions and safeguards; only the displayed role name has changed. The additive migration `20261030050000_rename_prm2_to_founder` updates the existing role row and matching staff display titles. No staff accounts or permissions are recreated or changed.
+
+
+## Admin interaction design
+- Staff role assignment uses a branded, accessible in-app role picker with role descriptions and level badges instead of the native Android/browser select sheet.
+- Destructive and session-sensitive confirmations use a branded Prestige Life dialog rather than browser-owned prompts that display the site hostname.
+- The built-in FOUNDER role uses the OWNER authorization kind and is separate from the PRM (Project Management) role. PRM remains as its own role; FOUNDER replaces the former second owner-role label.
