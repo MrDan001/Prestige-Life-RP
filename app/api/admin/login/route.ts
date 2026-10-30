@@ -13,8 +13,14 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Email and password required" }, { status: 400 });
 
   const admin = await db.admin.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
-  const ok = admin && (await bcrypt.compare(parsed.data.password, admin.passwordHash));
-  if (!admin || !ok) return NextResponse.json({ error: "Wrong email or password" }, { status: 401 });
+
+  // passwordHash can be null during a future auth migration; never pass null to bcrypt.
+  if (!admin || !admin.passwordHash) {
+    return NextResponse.json({ error: "Wrong email or password" }, { status: 401 });
+  }
+
+  const ok = await bcrypt.compare(parsed.data.password, admin.passwordHash);
+  if (!ok) return NextResponse.json({ error: "Wrong email or password" }, { status: 401 });
 
   if (admin.suspended) return NextResponse.json({ error: "This account is suspended" }, { status: 403 });
   if (!canAccessSite(admin))

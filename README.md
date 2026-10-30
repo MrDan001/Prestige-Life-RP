@@ -24,4 +24,11 @@ The public homepage uses a consistent cinematic image system:
 
 Image sizing, alignment, crop positions, and the next visual checks are tracked in [IMAGE-QUALITY-ROADMAP.md](./IMAGE-QUALITY-ROADMAP.md).
 
+## Build and deployment
+
+- The production app is connected to the `prestige-life-rp` Vercel project and deploys from `main`.
+- The build command is `prisma generate && next build`; Prisma schema changes must remain in sync with API routes, seed scripts, dependencies, and the database.
+- Deployment incident findings and follow-up checks are tracked in [DEPLOYMENT-ROADMAP.md](./DEPLOYMENT-ROADMAP.md).
+- Keep database and session secrets in Vercel environment variables; never commit their values.
+
 Every file starts with a PATH line showing where it belongs in the project.
