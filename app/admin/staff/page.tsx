@@ -21,8 +21,8 @@ const levelsFor = (role: { kind: string; minLevel: number; maxLevel: number }, l
 const nearest = (allowed: number[], level: number) =>
   allowed.reduce((best, item) => Math.abs(item - level) < Math.abs(best - level) ? item : best, allowed[0]);
 
-function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevokeSessions }: {
-  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void; onRecover: (id: string) => void; onRevokeSessions: (id: string) => void;
+function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevokeSessions, onDelete }: {
+  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void; onRecover: (id: string) => void; onRevokeSessions: (id: string) => void; onDelete: (staff: Staff) => void;
 }) {
   const [rights, setRights] = useState<string[]>(s.extraRights);
   const roleOptions = roles.filter(role => (role.active && role.assignable) || role.id === s.roleId);
@@ -90,7 +90,10 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
           {me.kind === "OWNER" && <section className="staff-section"><h3 className="staff-label">Active sessions</h3><button type="button" className="staff-invite-button" onClick={() => onRevokeSessions(s.id)}>Sign out all devices</button></section>}
           <section className="staff-section staff-status-section">
             <div><h3 className="staff-label">Status</h3><div className={`staff-status-text ${s.suspended ? "off" : "on"}`}><i className={`staff-dot ${s.suspended ? "off" : "on"}`}/>{s.suspended ? "Suspended" : "Active"}</div></div>
-            <button type="button" className={s.suspended ? "staff-restore" : "staff-suspend"} onClick={() => onPatch(s.id, { suspended: !s.suspended })}>{s.suspended ? "Restore" : "Suspend"}</button>
+            <div className="staff-status-actions">
+              <button type="button" className={s.suspended ? "staff-restore" : "staff-suspend"} onClick={() => onPatch(s.id, { suspended: !s.suspended })}>{s.suspended ? "Restore" : "Suspend"}</button>
+              {me.kind === "OWNER" && <button type="button" className="staff-delete" onClick={() => onDelete(s)}>Delete staff</button>}
+            </div>
           </section>
         </> : <p className="staff-no-permission">You do not have permission to manage this staff account.</p>}
       </div>
@@ -149,6 +152,8 @@ const staffStyles = `
 .staff-page .staff-right:has(input:checked){border-color:var(--accent);background:rgb(214 25 122 / 9%)}
 .staff-page .staff-right span{overflow-wrap:anywhere}.staff-page .staff-save{width:100%;min-height:44px;margin-top:2px}
 .staff-page .staff-status-section{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.staff-page .staff-status-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.staff-page .staff-delete{border-color:#d33b55;color:#ff9aa8;background:transparent}
 .staff-page .staff-status-text{display:flex;align-items:center;gap:9px;margin-top:7px}
 .staff-page .staff-status-text.on{color:#6ee7a8}.staff-page .staff-status-text.off{color:#ffb3cf}
 .staff-page .staff-suspend{border-color:#e0568f;color:#ffb3cf}.staff-page .staff-restore{border-color:#2fbf86;color:#6ee7a8}
@@ -231,6 +236,15 @@ export default function StaffPage() {
     const response = await fetch(`/api/admin/admins/${id}/sessions/revoke`, { method: "POST" });
     const data = await response.json().catch(() => ({}));
     setMsg(response.ok ? `Revoked ${data.revoked} active session(s).` : data.error ?? "Could not revoke sessions.");
+  }
+
+  async function deleteStaff(person: Staff) {
+    const confirmed = window.confirm(`Permanently delete ${person.name} (${person.email})? This removes their staff account, passkeys, invitations, sessions, complaint responses, internal notes, and audit entries. This cannot be undone.`);
+    if (!confirmed) return;
+    const response = await fetch(`/api/admin/admins/${person.id}`, { method: "DELETE" });
+    const data = await response.json().catch(() => ({}));
+    setMsg(response.ok ? `${person.name} was permanently deleted.` : data.error ?? "Could not delete staff account.");
+    if (response.ok) await load();
   }
 
   async function patch(id: string, body: object) {
@@ -320,7 +334,7 @@ export default function StaffPage() {
       <section className="staff-list" aria-label="Staff accounts">
         {loading ? <div className="staff-empty">Loading staff accounts…</div> : visibleStaff.length ? visibleStaff.map(person =>
           <StaffRow key={[person.id, person.roleId, person.level, person.suspended, person.gameId, person.extraRights.join()].join("|")}
-            s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} onRecover={recoverPasskeys} onRevokeSessions={revokeSessions} />
+            s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} onRecover={recoverPasskeys} onRevokeSessions={revokeSessions} onDelete={deleteStaff} />
         ) : <div className="staff-empty">No staff match this search or filter.</div>}
       </section>
       <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you.</p>
