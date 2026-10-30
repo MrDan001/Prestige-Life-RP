@@ -23,6 +23,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - If a staff member loses all passkeys, the owner can use **Reset passkeys & issue recovery invitation** in Staff management. This signs them out everywhere, removes their old passkeys, and issues a fresh one-use invitation so they can register a replacement.
 - Invitation links are shown once in the Owner-only Staff interface and are not automatically emailed. Share them privately.
 - Passkeys are stored as public-key credentials; private key material remains with the staff member's device or passkey provider.
+- The former Tech role is displayed as **PRM (Project Management)**. Its underlying `TECH` permission kind is intentionally unchanged, so access rights and behavior stay the same.
 - The owner can permanently delete a staff account from its Staff card. Deletion removes that account's invitations, sessions, passkeys, complaint responses, internal notes, and audit entries; complaint records themselves remain and staff references are cleared by the database. Owner accounts and the currently signed-in owner cannot be deleted.
 - The owner must accept the separately issued one-use owner invitation to enter the new passwordless flow.
 - When a replacement custom domain is ready, add and verify it in Vercel before changing player-facing links or redirects.

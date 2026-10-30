@@ -95,3 +95,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Complaint records are retained; accused/claimed staff references are cleared by the schema's SET NULL relations.
 - [x] README and this roadmap updated.
 - [ ] Run a production build and test owner delete, non-owner denial, owner protection, and retained complaint behavior before merging.
+
+
+## Role label update — 30 October 2026
+- [x] Rename the displayed built-in **Tech** role to **PRM (Project Management)**.
+- [x] Keep the underlying `StaffKind.TECH` enum value unchanged; all permissions, authorization checks, role level, and behavior remain unchanged.
+- [x] Add an idempotent database migration to rename the existing role record and any staff display titles from Tech to PRM.
+- [x] Update the seed role name so future seed runs use PRM.
+- [x] Update README and this roadmap.
+- [ ] Confirm the production Roles and Staff screens show PRM after deployment.
