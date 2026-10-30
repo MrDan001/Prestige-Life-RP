@@ -99,3 +99,49 @@ The Supabase migration-history endpoint currently returns no recorded migrations
 - Production domain: https://prestige-life-rp.vercel.app (configured public under Standard Protection)
 - Admin authentication: current email/password flow remains in place; passwordless invitation system is not implemented.
 - Supabase project: Prestige RP Project (eu-west-1)
+
+
+## Stage 2 — Passwordless staff invitations (feature branch)
+
+Updated: 30 October 2026
+
+### Scope and preserved access rules
+
+- [x] Inspected the production Prisma schema, staff APIs, login flow, session middleware, and permission helpers.
+- [x] Confirmed the existing staff types are OWNER, TECH, DEVELOPER, and ADMIN; ADMIN levels 1–6, role assignments, role extra rights, personal extra rights, and game-account links remain part of the model.
+- [x] Implemented owner-only staff creation by email, name, and assigned role; no password is requested or stored for invited staff.
+- [x] Implemented cryptographically random one-use invitation tokens; only SHA-256 hashes are stored.
+- [x] Set invitation expiry to 48 hours and added owner-only reissue/revocation endpoints.
+- [x] Added a passwordless invitation acceptance screen and endpoint.
+- [x] Added server-registered 30-day sessions with database revocation checks on every protected API request.
+- [x] Added owner controls to revoke all sessions for a staff account.
+- [x] Suspension now revokes that staff member's active sessions and pending invitations.
+- [x] Replaced the password sign-in form with invitation-only access instructions; the old password login endpoint now returns HTTP 410.
+- [x] Added the migration SQL and Prisma models without deleting existing staff rows, roles, levels, or permission records.
+- [x] Updated this roadmap and README.
+
+### Database migration
+
+The additive migration was applied successfully to the connected Supabase project on 30 October 2026:
+
+- [x] `Admin.passwordHash` is nullable for passwordless accounts; existing hashes were not deleted.
+- [x] Added `AdminInvitation` with token hash, expiry, use and revocation timestamps.
+- [x] Added `AdminSession` with 30-day expiry and revocation timestamp.
+- [x] Existing Admin, Role, Complaint and related data was not dropped or rewritten.
+- [ ] Verify the final database schema against Prisma Client after preview build.
+- [ ] Confirm migration history records the migration and perform read-only checks of existing staff counts and role assignments.
+
+### Deployment safety gates
+
+- [ ] Run `npm run build` on this exact feature branch.
+- [ ] Review preview deployment logs and test invitation acceptance, one-use enforcement, 48-hour expiry, revocation, 30-day cookie expiry, logout, suspension, session revocation, and role/permission preservation.
+- [ ] Issue a fresh owner bootstrap invitation immediately before production cutover so the owner can enter the new passwordless flow. Do not invalidate the existing owner access until this recovery link is ready.
+- [ ] Deploy only after the owner bootstrap path and production migration are verified.
+- [ ] Confirm the public player website remains public and `/admin` remains protected by application sessions.
+- [ ] Test with a non-owner account to confirm it cannot create staff, issue invitations, revoke sessions, or change owner-only controls.
+
+### Known limitations and security follow-up
+
+- Invitation URLs are returned once to the Owner-only Staff interface. No email delivery provider is configured in this implementation; the owner must share the link privately.
+- The Supabase security advisor reports RLS disabled on 12 public tables. This is a separate critical exposure. Do not enable RLS without a reviewed least-privilege policy plan; this authentication change does not modify RLS.
+- The feature branch is not yet the production deployment. Do not treat the implementation as live until all deployment gates above pass.
