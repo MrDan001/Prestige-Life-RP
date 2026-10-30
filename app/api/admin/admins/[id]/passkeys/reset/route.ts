@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { canManageTarget, type Staff } from "@/lib/permissions";
+import { isPrimaryOwnerAccount } from "@/lib/owner-privacy";
 
 type Ctx = { params: Promise<{ id: string }> };
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
@@ -13,6 +14,7 @@ export async function POST(req: Request, { params }: Ctx) {
   if (actor.error) return actor.error;
   if (actor.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can reset staff passkeys" }, { status: 403 });
   const { id } = await params;
+  if (isPrimaryOwnerAccount(id)) return NextResponse.json({ error: "Staff account not found" }, { status: 404 });
   const target = await db.admin.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "Staff account not found" }, { status: 404 });
   const staff: Staff = { id: target.id, kind: target.kind, level: target.level, extraRights: target.extraRights };
