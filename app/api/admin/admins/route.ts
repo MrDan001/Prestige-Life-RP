@@ -26,7 +26,7 @@ export async function GET() {
     orderBy: [{ kind: "asc" }, { level: "desc" }],
     select: {
       id: true, email: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true,
-      roleId: true, role: { select: { name: true, kind: true, minLevel: true, maxLevel: true } },
+      roleId: true, role: { select: { name: true, kind: true, minLevel: true, maxLevel: true, extraRights: true } },
       lastSeenAt: true,
       invitations: { orderBy: { createdAt: "desc" }, select: { usedAt: true, revokedAt: true, expiresAt: true } },
     },
