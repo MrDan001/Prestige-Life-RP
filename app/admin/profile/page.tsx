@@ -67,7 +67,6 @@ export default function ProfilePage() {
 
   if (!me) return <p className="muted" style={{ padding: "24px" }}>Loading profile...</p>;
   const rank = me.kind === "ADMIN" ? `Level ${me.level} admin` : me.kind.charAt(0) + me.kind.slice(1).toLowerCase() + " · full rights";
-  const setup = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("setupPasskey") === "1";
 
   return (
     <div style={{ padding: "24px 32px" }}>
@@ -80,7 +79,7 @@ export default function ProfilePage() {
           <div><small className="muted">Role / Rank</small><p style={{ margin: "2px 0 0" }}>{rank}</p></div>
         </div>
 
-        <div className="panel" style={{ display: "grid", gap: "12px", borderColor: setup ? "var(--accent)" : undefined }}>
+        <div className="panel" style={{ display: "grid", gap: "12px", borderColor: "var(--line)" }}>
           <strong>Passkey security</strong>
           <p className="muted" style={{ margin: 0 }}>Use your phone fingerprint, face unlock, device PIN, or a compatible security key to sign in. No password or email service is involved.</p>
           {!passkeys.length && <p style={{ margin: 0, color: "#ffb3cf" }}>You have not registered a passkey yet. Set one up before signing out.</p>}
