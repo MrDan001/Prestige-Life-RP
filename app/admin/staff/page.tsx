@@ -214,6 +214,11 @@ export default function StaffPage() {
     }).catch(() => { setMsg("Could not load your admin session. Please refresh and try again."); setLoading(false); });
   }, [load]);
 
+  useEffect(() => {
+    const refresh = window.setInterval(() => { if (document.visibilityState === "visible") load(); }, 30_000);
+    return () => window.clearInterval(refresh);
+  }, [load]);
+
   async function issueInvite(id: string) {
     const response = await fetch(`/api/admin/admins/${id}/invite`, { method: "POST" });
     const data = await response.json().catch(() => ({}));
