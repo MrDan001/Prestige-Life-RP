@@ -1,7 +1,9 @@
 // PATH: lib/permissions.ts
 export const MIN_SITE_LEVEL = 3; // levels 1-2 cannot use the website
 export const MAX_LEVEL = 6; // 6 = chief admin / deputy chief admin
-export const RIGHTS = ["MANAGE_CATEGORIES", "MANAGE_STAFF", "MANAGE_TEMPLATES", "MANAGE_SITE"] as const;
+export const RIGHTS = ["MANAGE_CATEGORIES", "MANAGE_STAFF", "GRANT_STAFF_PERMISSIONS", "MANAGE_TEMPLATES", "MANAGE_SITE"] as const;
+// Staff-management powers are per-person grants, never inherited from reusable roles.
+export const ROLE_RIGHTS = ["MANAGE_CATEGORIES", "MANAGE_TEMPLATES", "MANAGE_SITE"] as const;
 export type Right = (typeof RIGHTS)[number];
 export type Kind = "OWNER" | "TECH" | "DEVELOPER" | "ADMIN";
 
@@ -22,11 +24,18 @@ export const canAccessSite = (s: Staff) => isTop(s) || s.level >= MIN_SITE_LEVEL
 export const canManageRules = (s: Staff) => isTop(s) || (s.kind === "ADMIN" && s.level >= 6);
 
 export function hasRight(s: Staff, right: Right) {
+  // Staff management and permission delegation are never implied by rank or
+  // reusable roles. The Owner always retains both controls; everyone else
+  // must receive the corresponding direct staff-card permission.
+  if (right === "MANAGE_STAFF" || right === "GRANT_STAFF_PERMISSIONS")
+    return s.kind === "OWNER" || s.extraRights.includes(right);
   if (isTop(s)) return true;
-  // Staff recruitment is an explicit, owner-granted permission. Rank alone
-  // does not grant MANAGE_STAFF, even to level 6 admins.
   return s.extraRights.includes(right);
 }
+
+/** The Owner is the permanent authority; this separate grant delegates permission administration. */
+export const canGrantStaffPermissions = (s: Staff) =>
+  s.kind === "OWNER" || s.extraRights.includes("GRANT_STAFF_PERMISSIONS");
 
 /** Level needed because of WHO is accused. "TOP" = only owner/tech/developers. */
 function levelNeededForTarget(t: Accused): number | "TOP" {
