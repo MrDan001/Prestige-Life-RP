@@ -137,6 +137,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const changed = await tx.complaint.updateMany({
       where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
       data: {
+        updatedAt: new Date(),
         ...(newStatus ? { status: newStatus } : {}),
         ...(newVerdict ? { verdict: newVerdict } : {}),
         ...(autoClaim ? { claimedById: a.actor.id, claimedAt: new Date() } : {}),
