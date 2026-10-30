@@ -41,7 +41,7 @@ model Admin {
   email        String    @unique
   name         String
   title        String    @default("Admin") // display only: Curator, Senior Admin, Chief Admin...
-  passwordHash String
+  passwordHash String?
   kind         StaffKind @default(ADMIN)
   level        Int       @default(1)
   extraRights  String[]  @default([]) // MANAGE_CATEGORIES, MANAGE_STAFF (owner grants)
@@ -56,6 +56,8 @@ model Admin {
   audits            AuditLog[]
   claimedComplaints Complaint[] @relation("Claimed")
   notes             Note[]
+  invitations       AdminInvitation[]
+  sessions          AdminSession[]
 }
 
 model Category {
@@ -215,4 +217,34 @@ model Role {
   active      Boolean   @default(true)
   createdAt   DateTime  @default(now())
   admins      Admin[]
+}
+
+
+/// One-time, owner-issued invitation. Only a SHA-256 token hash is stored.
+model AdminInvitation {
+  id          String   @id @default(cuid())
+  adminId     String
+  admin       Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  revokedAt   DateTime?
+  createdById String
+  createdAt   DateTime @default(now())
+
+  @@index([adminId, expiresAt])
+  @@index([expiresAt])
+}
+
+/// Server-side session registry allows immediate revocation of already-issued cookies.
+model AdminSession {
+  id        String   @id
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([adminId, revokedAt])
+  @@index([expiresAt])
 }
