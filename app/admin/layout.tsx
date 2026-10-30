@@ -22,6 +22,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [path]);
   useEffect(() => { load(); }, [load]);
 
+  // Request a desktop-width layout only while inside the admin workspace.
+  // Restore the site's normal responsive viewport when the visitor leaves admin.
+  useEffect(() => {
+    let viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+    const created = !viewport;
+    if (!viewport) {
+      viewport = document.createElement("meta");
+      viewport.name = "viewport";
+      document.head.appendChild(viewport);
+    }
+    const previous = viewport.content;
+    viewport.content = "width=1200, initial-scale=1, viewport-fit=cover";
+    return () => {
+      if (created) viewport?.remove();
+      else if (viewport) viewport.content = previous;
+    };
+  }, []);
+
   const items = [
     { href: "/admin", label: "Complaints", show: true },
     { href: "/admin/staff", label: "Staff", show: !!me?.canManageStaff },
