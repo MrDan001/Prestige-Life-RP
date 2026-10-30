@@ -72,7 +72,7 @@ export async function requireAdmin(right?: Right): Promise<Ok | Fail> {
   });
   if (!admin) return { error: NextResponse.json({ error: "Not signed in" }, { status: 401 }) };
   if (admin.suspended) return { error: NextResponse.json({ error: "This account is suspended" }, { status: 403 }) };
-  if (admin.sessionsRevokedAt && (!identity.issuedAt || identity.issuedAt <= admin.sessionsRevokedAt)) {
+  if (admin.sessionsRevokedAt && (!identity.issuedAt || identity.issuedAt.getTime() < Math.floor(admin.sessionsRevokedAt.getTime() / 1000) * 1000)) {
     return { error: NextResponse.json({ error: "This session has been revoked. Accept a fresh staff invitation." }, { status: 401 }) };
   }
 
