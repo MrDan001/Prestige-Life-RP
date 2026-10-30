@@ -26,6 +26,14 @@ export async function POST(req: Request, { params }: Ctx) {
   if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "This complaint is closed. Reopen it before adding a note." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot add notes to this complaint" }, { status: 403 });
 
-  const note = await db.note.create({ data: { complaintId: id, adminId: a.actor.id, message: parsed.data.message } });
+  const note = await db.$transaction(async tx => {
+    const stillActive = await tx.complaint.updateMany({
+      where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
+      data: { updatedAt: new Date() },
+    });
+    if (stillActive.count !== 1) return null;
+    return tx.note.create({ data: { complaintId: id, adminId: a.actor.id, message: parsed.data.message } });
+  });
+  if (!note) return NextResponse.json({ error: "This complaint is closed. Reopen it before adding a note." }, { status: 409 });
   return NextResponse.json(note, { status: 201 });
 }
