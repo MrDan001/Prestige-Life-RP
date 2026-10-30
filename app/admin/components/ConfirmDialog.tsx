@@ -15,6 +15,9 @@ type ConfirmDialogProps = {
 export default function ConfirmDialog({ open, title, message, confirmLabel = "Confirm", tone = "accent", onConfirm, onClose }: ConfirmDialogProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const busyRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -23,7 +26,7 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = "Co
     const previousFocus = document.activeElement as HTMLElement | null;
     const timer = window.setTimeout(() => confirmRef.current?.focus(), 30);
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !busy) onClose();
+      if (event.key === "Escape" && !busyRef.current) onCloseRef.current();
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
@@ -31,19 +34,21 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = "Co
       document.removeEventListener("keydown", onKeyDown);
       previousFocus?.focus?.();
     };
-  }, [open, busy, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
   async function confirm() {
     if (busy) return;
     setBusy(true);
+    busyRef.current = true;
     try {
       await onConfirm();
       onClose();
     } catch {
       setError("The action could not be completed. Check your connection and try again.");
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   }
