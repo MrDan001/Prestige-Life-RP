@@ -51,6 +51,7 @@ model Admin {
   roleId       String?
   role         Role?     @relation(fields: [roleId], references: [id])
   createdAt    DateTime  @default(now())
+  lastSeenAt   DateTime?
 
   responses         Response[]
   complaintsAgainst Complaint[] @relation("Accused")
