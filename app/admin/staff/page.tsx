@@ -87,7 +87,8 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRevokeSessions }:
             )}</div>
             <button type="button" className="primary staff-save" disabled={[...rights].sort().join() === [...s.extraRights].sort().join()} onClick={() => onPatch(s.id, { extraRights: rights })}>Save rights</button>
           </section>}
-          {me.kind === "OWNER" && <section className="staff-section"><h3 className="staff-label">Active sessions</h3><button type="button" className="staff-invite-button" onClick={() => onRevokeSessions(s.id)}>Sign out all devices</button></section>}\n          <section className="staff-section staff-status-section">
+          {me.kind === "OWNER" && <section className="staff-section"><h3 className="staff-label">Active sessions</h3><button type="button" className="staff-invite-button" onClick={() => onRevokeSessions(s.id)}>Sign out all devices</button></section>}
+          <section className="staff-section staff-status-section">
             <div><h3 className="staff-label">Status</h3><div className={`staff-status-text ${s.suspended ? "off" : "on"}`}><i className={`staff-dot ${s.suspended ? "off" : "on"}`}/>{s.suspended ? "Suspended" : "Active"}</div></div>
             <button type="button" className={s.suspended ? "staff-restore" : "staff-suspend"} onClick={() => onPatch(s.id, { suspended: !s.suspended })}>{s.suspended ? "Restore" : "Suspend"}</button>
           </section>
@@ -151,7 +152,12 @@ const staffStyles = `
 .staff-page .staff-status-text{display:flex;align-items:center;gap:9px;margin-top:7px}
 .staff-page .staff-status-text.on{color:#6ee7a8}.staff-page .staff-status-text.off{color:#ffb3cf}
 .staff-page .staff-suspend{border-color:#e0568f;color:#ffb3cf}.staff-page .staff-restore{border-color:#2fbf86;color:#6ee7a8}
-.staff-page .staff-no-permission{margin:0;color:var(--muted);font-size:13px}\n.staff-page .staff-invite-button{width:100%;min-height:42px;border:1px solid var(--accent);border-radius:10px;color:var(--text);background:transparent}\n.staff-page .staff-invite-panel{display:grid;gap:10px;padding:14px;border:1px solid var(--accent);border-radius:12px;background:var(--panel)}\n.staff-page .staff-invite-url{overflow-wrap:anywhere;font-size:12px;color:var(--muted)}\n.staff-page .staff-invite-actions{display:flex;gap:8px;flex-wrap:wrap}\n.staff-page .staff-invite-actions button{flex:1;min-height:40px}
+.staff-page .staff-no-permission{margin:0;color:var(--muted);font-size:13px}
+.staff-page .staff-invite-button{width:100%;min-height:42px;border:1px solid var(--accent);border-radius:10px;color:var(--text);background:transparent}
+.staff-page .staff-invite-panel{display:grid;gap:10px;padding:14px;border:1px solid var(--accent);border-radius:12px;background:var(--panel)}
+.staff-page .staff-invite-url{overflow-wrap:anywhere;font-size:12px;color:var(--muted)}
+.staff-page .staff-invite-actions{display:flex;gap:8px;flex-wrap:wrap}
+.staff-page .staff-invite-actions button{flex:1;min-height:40px}
 .staff-page .staff-empty{padding:22px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--muted);text-align:center}
 .staff-page .staff-help{margin:0;color:var(--muted);font-size:12px}
 .staff-page .staff-add-panel{padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
@@ -175,7 +181,8 @@ export default function StaffPage() {
   const [adding, setAdding] = useState(false);
   const [nRole, setNRole] = useState("");
   const [nLevel, setNLevel] = useState("");
-  const [loading, setLoading] = useState(true);\n  const [invite, setInvite] = useState<InviteInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [invite, setInvite] = useState<InviteInfo | null>(null);
 
   const load = useCallback(async () => {
     const [staffRes, rolesRes] = await Promise.all([fetch("/api/admin/admins"), fetch("/api/admin/roles")]);
@@ -194,7 +201,29 @@ export default function StaffPage() {
     }).catch(() => { setMsg("Could not load your admin session. Please refresh and try again."); setLoading(false); });
   }, [load]);
 
-  async function issueInvite(id: string) {\n    const response = await fetch(`/api/admin/admins/${id}/invite`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    if (!response.ok) { setMsg(data.error ?? "Could not issue invitation."); return; }\n    setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });\n    setMsg("Private invitation created. Copy it and share it directly with the staff member.");\n  }\n\n  async function revokeInvite() {\n    if (!invite) return;\n    const response = await fetch(`/api/admin/invitations/${invite.id}/revoke`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    setMsg(response.ok ? "Invitation revoked." : data.error ?? "Could not revoke invitation.");\n    if (response.ok) setInvite(null);\n  }\n\n  async function revokeSessions(id: string) {\n    const response = await fetch(`/api/admin/admins/${id}/sessions/revoke`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    setMsg(response.ok ? `Revoked ${data.revoked} active session(s).` : data.error ?? "Could not revoke sessions.");\n  }\n\n  async function patch(id: string, body: object) {
+  async function issueInvite(id: string) {
+    const response = await fetch(`/api/admin/admins/${id}/invite`, { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { setMsg(data.error ?? "Could not issue invitation."); return; }
+    setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });
+    setMsg("Private invitation created. Copy it and share it directly with the staff member.");
+  }
+
+  async function revokeInvite() {
+    if (!invite) return;
+    const response = await fetch(`/api/admin/invitations/${invite.id}/revoke`, { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    setMsg(response.ok ? "Invitation revoked." : data.error ?? "Could not revoke invitation.");
+    if (response.ok) setInvite(null);
+  }
+
+  async function revokeSessions(id: string) {
+    const response = await fetch(`/api/admin/admins/${id}/sessions/revoke`, { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    setMsg(response.ok ? `Revoked ${data.revoked} active session(s).` : data.error ?? "Could not revoke sessions.");
+  }
+
+  async function patch(id: string, body: object) {
     const response = await fetch(`/api/admin/admins/${id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
@@ -250,7 +279,8 @@ export default function StaffPage() {
       <header className="staff-header"><div><h1>Staff</h1><p className="staff-count">{staff.length} {staff.length === 1 ? "person" : "people"}</p></div>
         <button type="button" className="primary staff-add" onClick={() => setAdding(value => !value)}>{adding ? "Cancel" : "+ Add staff"}</button>
       </header>
-      {msg && <p role="status" aria-live="polite" className="staff-message">{msg}</p>}\n      {invite && <section className="staff-invite-panel"><strong>Private staff invitation</strong><div className="staff-invite-url">{invite.url}</div><small>Expires {new Date(invite.expiresAt).toLocaleString()}</small><div className="staff-invite-actions"><button type="button" className="primary" onClick={() => navigator.clipboard.writeText(invite.url).then(() => setMsg("Invitation link copied."))}>Copy invitation link</button><button type="button" onClick={revokeInvite}>Revoke link</button></div><small>Anyone with this link can activate the assigned staff account once. Share it privately.</small></section>}
+      {msg && <p role="status" aria-live="polite" className="staff-message">{msg}</p>}
+      {invite && <section className="staff-invite-panel"><strong>Private staff invitation</strong><div className="staff-invite-url">{invite.url}</div><small>Expires {new Date(invite.expiresAt).toLocaleString()}</small><div className="staff-invite-actions"><button type="button" className="primary" onClick={() => navigator.clipboard.writeText(invite.url).then(() => setMsg("Invitation link copied."))}>Copy invitation link</button><button type="button" onClick={revokeInvite}>Revoke link</button></div><small>Anyone with this link can activate the assigned staff account once. Share it privately.</small></section>}
       {adding && <section className="staff-add-panel">
         <h2>Add staff</h2>
         <form onSubmit={add} className="staff-add-form">
