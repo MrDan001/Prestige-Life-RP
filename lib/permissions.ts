@@ -23,7 +23,8 @@ export const canManageRules = (s: Staff) => isTop(s) || (s.kind === "ADMIN" && s
 
 export function hasRight(s: Staff, right: Right) {
   if (isTop(s)) return true;
-  if (right === "MANAGE_STAFF" && s.level >= 6) return true; // deputy chief and above award levels
+  // Staff recruitment is an explicit, owner-granted permission. Rank alone
+  // does not grant MANAGE_STAFF, even to level 6 admins.
   return s.extraRights.includes(right);
 }
 
