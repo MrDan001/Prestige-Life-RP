@@ -85,7 +85,7 @@ export const canUseTemplate = (s: Staff, t: { minLevel: number }) => isTop(s) ||
 
 export type RoleForCheck = { kind: Kind; minLevel: number; extraRights: string[] };
 
-/** Only the owner hands out top-tier roles and roles that carry extra rights. Level 6 hands out plain roles up to level 5. */
+/** Only the owner hands out top-tier roles and roles that carry extra rights. Staff managers may assign plain admin roles only below their own level (and never level 6). */
 export function canAssignRole(actor: Staff, role: RoleForCheck) {
   if (!hasRight(actor, "MANAGE_STAFF")) return false;
   if (role.kind !== "ADMIN" || role.extraRights.length > 0) return actor.kind === "OWNER";
