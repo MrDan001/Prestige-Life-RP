@@ -51,7 +51,7 @@ async function main() {
     create: { email: email.toLowerCase(), name: "Owner", title: "Owner", passwordHash: await bcrypt.hash(password, 12), kind: "OWNER", level: 6 },
   });
 
-  // Starting examples only. Owner, tech and developers can edit these later.
+  // Starting examples only. Owner, PRM and developers can edit these later.
   const defaults = [
     { name: "Rule Break", minReplyLevel: 3, minCloseLevel: 4 },
     { name: "Staff Abuse", minReplyLevel: 5, minCloseLevel: 5 },
@@ -79,7 +79,7 @@ async function main() {
     { name: "Senior admin", kind: "ADMIN" as const, minLevel: 5, maxLevel: 5 },
     { name: "Chief admin", kind: "ADMIN" as const, minLevel: 6, maxLevel: 6 },
     { name: "Deputy chief admin", kind: "ADMIN" as const, minLevel: 6, maxLevel: 6 },
-    { name: "Tech", kind: "TECH" as const, minLevel: 6, maxLevel: 6 },
+    { name: "PRM", kind: "TECH" as const, minLevel: 6, maxLevel: 6 },
     { name: "Developer", kind: "DEVELOPER" as const, minLevel: 6, maxLevel: 6 },
     { name: "Owner", kind: "OWNER" as const, minLevel: 6, maxLevel: 6 },
   ];
