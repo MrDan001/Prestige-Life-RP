@@ -148,3 +148,17 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Run Vercel preview build; verify TypeScript and production build before promotion.
 - [ ] Test Active/History queue routing, close by status, close by judgment, non-top-tier reopen denial, top-tier reopen, and reply-after-reopen behavior.
 - [ ] Test that sign out appears only on My Profile and desktop navigation remains intact on Android and desktop browsers.
+
+
+## Staff presence and invitation tracking — 30 October 2026
+- [x] Add Admin.lastSeenAt and the 20261030040000_staff_activity_presence SQL migration.
+- [x] Record authenticated website visits through /api/admin/me; refresh presence every 60 seconds while the admin tab is visible.
+- [x] Include latest invitation acceptance state in the staff roster. Unaccepted invitations display **Pending**, including revoked invitations where the person has never accepted an invitation.
+- [x] Derive complaint activity from audit records for transitions to RESOLVED or DISMISSED.
+- [x] Show **Active** (green) when a visit or complaint closure/dismissal occurred in the last 24 hours; **Inactive** (gray) when neither occurred in 24 hours.
+- [x] Show **Suspended** (red) regardless of activity; show **Pending** (gold) for staff who have not accepted their invitation.
+- [x] Add staff-directory filters for Active, Pending, Suspended and Inactive.
+- [x] Update README and this roadmap.
+- [ ] Run npx prisma migrate deploy against the local test database, then npx prisma generate.
+- [ ] Run npm run build and verify the four status colors, invitation acceptance transition, heartbeat refresh, and 24-hour boundary locally.
+- [ ] Confirm existing owner identity privacy and staff permissions remain unchanged.
