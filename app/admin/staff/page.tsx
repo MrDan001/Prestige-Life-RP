@@ -73,9 +73,9 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
           <section className="staff-section">
             <h3 className="staff-label">Role and level</h3>
             <div className="staff-control-grid">
-              <label className="staff-field"><span>Role</span>
+              <div className="staff-field"><span>Role</span>
                 <RoleSelect value={s.roleId ?? ""} options={roleSelectOptions(roleOptions)} onChange={changeRole} placeholder="No role assigned" ariaLabel={`Role for ${s.name}`} />
-              </label>
+              </div>
               {s.kind === "ADMIN" && <label className="staff-field"><span>Level</span>
                 <select value={s.level} onChange={e => onPatch(s.id, { level: Number(e.target.value) })} aria-label={`Level for ${s.name}`}>
                   {levelChoices.map(level => <option key={level} value={level}>Level {level}</option>)}
@@ -210,7 +210,7 @@ export default function StaffPage() {
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const load = useCallback(async () => {
-    const [staffRes, rolesRes] = await Promise.all([fetch("/api/admin/admins"), fetch("/api/admin/roles")]);
+    const [staffRes, rolesRes] = await Promise.all([fetch("/api/admin/admins", { cache: "no-store" }), fetch("/api/admin/roles", { cache: "no-store" })]);
     if (staffRes.ok) setStaff(await staffRes.json());
     if (rolesRes.ok) setRoles(await rolesRes.json());
     setLoading(false);
