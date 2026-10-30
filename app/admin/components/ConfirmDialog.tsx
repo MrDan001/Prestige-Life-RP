@@ -14,10 +14,12 @@ type ConfirmDialogProps = {
 
 export default function ConfirmDialog({ open, title, message, confirmLabel = "Confirm", tone = "accent", onConfirm, onClose }: ConfirmDialogProps) {
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    setError("");
     const previousFocus = document.activeElement as HTMLElement | null;
     const timer = window.setTimeout(() => confirmRef.current?.focus(), 30);
     const onKeyDown = (event: KeyboardEvent) => {
@@ -39,6 +41,8 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = "Co
     try {
       await onConfirm();
       onClose();
+    } catch {
+      setError("The action could not be completed. Check your connection and try again.");
     } finally {
       setBusy(false);
     }
@@ -55,6 +59,7 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = "Co
           <h2 id="app-dialog-title">{title}</h2>
           <p id="app-dialog-message">{message}</p>
         </div>
+        {error && <p className="app-dialog-error" role="alert">{error}</p>}
         <div className="app-dialog-actions">
           <button type="button" className="app-dialog-cancel" onClick={onClose} disabled={busy}>Cancel</button>
           <button ref={confirmRef} type="button" className={"app-dialog-confirm " + tone} onClick={confirm} disabled={busy}>
