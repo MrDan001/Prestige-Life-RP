@@ -98,6 +98,9 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   }
 
   const { id } = await params;
+  if (isPrimaryOwnerAccount(id)) {
+    return NextResponse.json({ error: "This account is privately protected and cannot be deleted." }, { status: 404 });
+  }
   if (id === actor.actor.id) {
     return NextResponse.json({ error: "You cannot delete your own owner account" }, { status: 409 });
   }
