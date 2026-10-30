@@ -183,3 +183,5 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Verify custom dropdown, all confirmation dialogs, and FOUNDER/PRM role names on local dev server and Android Chrome.
 - [ ] Run npm build and deploy only after local verification.
+
+- [x] Force the role directory API to be dynamic and no-store; staff and roles pages also fetch role data with cache: no-store so old role labels are not retained by a browser response cache.
