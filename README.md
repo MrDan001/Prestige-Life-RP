@@ -16,7 +16,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Passwordless staff invitation and session changes deployed to production on 30 October 2026 (commit `afbe39ff10e39a71af2b72fa6b2faa5b27240046`).
 - The production domain is intended to remain public; preview and generated deployment URLs remain protected by Vercel Authentication.
 - Admin access remains behind the application's own session checks at `/auth` and `/admin`.
-- Staff access is invitation-only and passwordless. The owner creates staff records and privately shares a one-use invitation link; links expire after 48 hours.
+- Staff access is invitation-only and passwordless. The Add Staff form requests name, email, and role/level only—never a password. Creating a staff record immediately returns a private one-use invitation link; links expire after 48 hours.
 - Invitation acceptance creates a 30-day server-registered session. The owner can revoke pending invitations, revoke all active sessions for a staff member, or suspend the account.
 - Invitation links are shown once in the Owner-only Staff interface and are not automatically emailed. Share them privately.
 - Existing staff records, role assignments, levels, extra rights, and game-account links are preserved.
