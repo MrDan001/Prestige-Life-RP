@@ -365,7 +365,7 @@ export default function StaffPage() {
         <form onSubmit={add} className="staff-add-form">
           <label><span>Name</span><input name="name" placeholder="Staff name" required /></label>
           <label><span>Email</span><input name="email" type="email" placeholder="name@example.com" required /></label>
-          <div className="staff-role-picker-field"><span className="staff-input-label">Role</span><RoleSelect value={nRole} options={roleSelectOptions(assignable)} onChange={pickRole} placeholder="Choose a role…" ariaLabel="New staff role" />{!nRole && <input aria-hidden="true" tabIndex={-1} value="" required readOnly className="role-select-validation" />}</div>
+          <div className="staff-role-picker-field"><span className="staff-input-label">Role</span><RoleSelect value={nRole} options={roleSelectOptions(assignable)} onChange={pickRole} placeholder="Choose a role…" ariaLabel="New staff role" /></div>
           {chosen?.kind === "ADMIN" && <label><span>Level</span><select value={nLevel} onChange={e => setNLevel(e.target.value)} required aria-label="Level">
             {chosenLevels.map(level => <option key={level} value={level}>Level {level}</option>)}
           </select></label>}
