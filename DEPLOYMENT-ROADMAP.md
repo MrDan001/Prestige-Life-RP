@@ -132,3 +132,19 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Verify the production Staff roster response contains no primary-owner account ID, name, or email.
 - [ ] Verify the primary owner can still sign in with an already-registered passkey and other staff can still sign in normally.
+
+
+## Admin workspace and complaint lifecycle update — 30 October 2026
+- [x] Remove the shared sign-out button from the admin layout/account panel.
+- [x] Add the self sign-out action to My Profile only, using the existing revocable logout endpoint.
+- [x] Keep all admin routes in desktop layout: fixed desktop workspace minimum width, no admin mobile media-query transformations, and an admin-only 1200px viewport request that restores the public site's original viewport when leaving admin.
+- [x] Add separate **Active** and **History** complaint queue tabs.
+- [x] Default the Active queue to OPEN and IN_REVIEW only; History contains RESOLVED and DISMISSED only, with optional status filters.
+- [x] On closure by manual status or judgment outcome, automatically move the selected complaint into History.
+- [x] Enforce closed status server-side: closed cases reject replies, judgment drafts, notes, claim/release actions, and further status changes.
+- [x] Allow only top-tier accounts (OWNER, TECH/PRM, DEVELOPER) to explicitly reopen a closed case to OPEN or IN_REVIEW; the case returns to Active and requires a separate response action.
+- [x] Make complaint state updates and reply creation atomic to avoid a closed case being saved without its submitted response.
+- [x] Update README and this roadmap.
+- [ ] Run Vercel preview build; verify TypeScript and production build before promotion.
+- [ ] Test Active/History queue routing, close by status, close by judgment, non-top-tier reopen denial, top-tier reopen, and reply-after-reopen behavior.
+- [ ] Test that sign out appears only on My Profile and desktop navigation remains intact on Android and desktop browsers.
