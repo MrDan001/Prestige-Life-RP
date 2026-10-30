@@ -76,6 +76,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     await db.$transaction([
       db.adminSession.updateMany({ where: { adminId: id, revokedAt: null }, data: { revokedAt: now } }),
       db.adminInvitation.updateMany({ where: { adminId: id, usedAt: null, revokedAt: null }, data: { revokedAt: now } }),
+      db.admin.update({ where: { id }, data: { sessionsRevokedAt: now } }),
     ]);
   }
   await audit(a.actor.id, "STAFF_UPDATE", id, `was ${target.kind}/L${target.level}/${target.title}; changes ${JSON.stringify({ ...rest, roleId })}`);
