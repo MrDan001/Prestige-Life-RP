@@ -68,3 +68,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Active means the staff member visited the admin website or resolved/dismissed a complaint within the last 24 hours. The admin shell sends a lightweight authenticated heartbeat once per minute while its browser tab is visible.
 - Inactive means neither a website visit nor a complaint resolution/dismissal has been recorded in the last 24 hours.
 - The Admin lastSeenAt field is added by migration 20261030040000_staff_activity_presence; run migrations before local testing.
+
+
+## Built-in FOUNDER role
+The built-in top-tier role is displayed as **FOUNDER**. It retains the existing OWNER kind and owner-level permissions and safeguards; only the displayed role name has changed. The additive migration `20261030050000_rename_prm2_to_founder` updates the existing role row and matching staff display titles. No staff accounts or permissions are recreated or changed.
