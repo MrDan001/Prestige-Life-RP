@@ -28,7 +28,6 @@ const fmt = (d: string) => new Date(d).toLocaleString();
 
 export default function ComplaintsPage() {
   const [meId, setMeId] = useState("");
-  const [meKind, setMeKind] = useState("");
   const [bucket, setBucket] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
   const [chip, setChip] = useState("all");
   const [q, setQ] = useState("");
@@ -57,7 +56,6 @@ export default function ComplaintsPage() {
     if (r.ok) {
       const current = await r.json();
       setMeId(current.id);
-      setMeKind(current.kind);
     }
   }); }, []);
   useEffect(() => { loadList(); }, [loadList]);
