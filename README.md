@@ -60,3 +60,11 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - The admin workspace requests a 1200px desktop viewport and retains its desktop sidebar, complaint split view, staff controls, and multi-column layouts on narrow devices. Phones may need horizontal panning or pinch zoom.
 - Complaints in **OPEN** and **IN_REVIEW** appear in the **Active** queue. **RESOLVED** and **DISMISSED** complaints appear in the separate **History** queue.
 - Closed complaints are read-only: staff cannot reply, draft a judgment, add a note, claim, release, or change their status while closed. The owner, PRM/TECH, and Developer top tier can explicitly reopen a closed complaint; it returns to Active, and a new response requires a separate action after reopening.
+
+
+## Staff presence and invitation status
+- The Staff directory shows a presence state on every staff card: **Active** (green), **Pending** (gold), **Suspended** (red), or **Inactive** (gray).
+- Pending means the latest issued invitation has not been accepted. A revoked invitation remains Pending if the staff member has never accepted any invitation; a revoked recovery link for an already-onboarded staff member does not turn them back to Pending.
+- Active means the staff member visited the admin website or resolved/dismissed a complaint within the last 24 hours. The admin shell sends a lightweight authenticated heartbeat once per minute while its browser tab is visible.
+- Inactive means neither a website visit nor a complaint resolution/dismissal has been recorded in the last 24 hours.
+- The Admin lastSeenAt field is added by migration 20261030040000_staff_activity_presence; run migrations before local testing.

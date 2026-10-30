@@ -2,12 +2,15 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { hasRight } from "@/lib/permissions";
+import { db } from "@/lib/db";
 
 export async function GET() {
   const a = await requireAdmin();
   if (a.error) return a.error;
   const { admin, actor } = a;
-  const passkeyCount = await (await import("@/lib/db")).db.adminPasskey.count({ where: { adminId: admin.id } });
+  const now = new Date();
+  await db.admin.update({ where: { id: admin.id }, data: { lastSeenAt: now } });
+  const passkeyCount = await db.adminPasskey.count({ where: { adminId: admin.id } });
   return NextResponse.json({
     hasPasskey: passkeyCount > 0,
     id: admin.id,
