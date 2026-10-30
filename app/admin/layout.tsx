@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 type Me = {
   name: string; kind: string; level: number; gameId: string | null;
-  canManageStaff: boolean; canManageCategories: boolean; canManageTemplates: boolean; canManageSite: boolean;
+  canManageStaff: boolean; canManageCategories: boolean; canManageTemplates: boolean; canManageSite: boolean; hasPasskey: boolean;
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -16,8 +16,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/me");
     if (!r.ok) { window.location.href = "/auth"; return; }
-    setMe(await r.json());
-  }, []);
+    const current: Me = await r.json();
+    setMe(current);
+    if (!current.hasPasskey && path !== "/admin/profile") { window.location.href = "/admin/profile?setupPasskey=1"; }
+  }, [path]);
   useEffect(() => { load(); }, [load]);
 
   async function logout() {

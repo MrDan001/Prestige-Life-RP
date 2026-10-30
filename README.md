@@ -8,7 +8,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 2. Run `powershell -ExecutionPolicy Bypass -File .\\setup.ps1`.
 3. Start the app with `npm run dev`.
 4. In a second terminal, run `powershell -ExecutionPolicy Bypass -File .\\test.ps1`.
-5. Open `http://localhost:3000/auth`. Staff access is invitation-only; ask the owner for a private invitation link.
+5. Open `http://localhost:3000/auth`. Staff sign in with a registered passkey; new staff must accept an owner invitation and register a passkey first.
 
 ## Production access
 
@@ -16,9 +16,13 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Passwordless staff invitation and session changes deployed to production on 30 October 2026 (commit `afbe39ff10e39a71af2b72fa6b2faa5b27240046`).
 - The production domain is intended to remain public; preview and generated deployment URLs remain protected by Vercel Authentication.
 - Admin access remains behind the application's own database-validated session checks. Opening `/auth` while already signed in redirects directly to `/admin`; signed-out visitors see the invitation-only access instructions.
-- Staff access is invitation-only and passwordless. The Add Staff form requests name, email, and role/level only—never a password. Creating a staff record immediately returns a private one-use invitation link; links expire after 48 hours.
-- Invitation acceptance creates a 30-day server-registered session. The owner can revoke pending invitations, revoke all active sessions for a staff member, or suspend the account.
+- Staff access is passwordless and uses WebAuthn passkeys. Staff sign in at `/auth` with their registered email and device passkey (fingerprint, face unlock, device PIN, or compatible security key); no password or email delivery provider is used.
+- New staff are created by the owner using name, email, and role/level only. The owner shares a private one-use invitation link that expires after 48 hours. Accepting it starts a session and requires passkey registration before the dashboard can be used.
+- Invitation acceptance creates a 30-day server-registered session. Each staff member must register a passkey before accessing the dashboard. Successful passkey sign-in creates a fresh 30-day session.
+- Staff can add multiple passkeys in My Profile. Keep at least one working passkey; the UI prevents removal of the final one.
+- If a staff member loses all passkeys, the owner can use **Reset passkeys & issue recovery invitation** in Staff management. This signs them out everywhere, removes their old passkeys, and issues a fresh one-use invitation so they can register a replacement.
 - Invitation links are shown once in the Owner-only Staff interface and are not automatically emailed. Share them privately.
+- Passkeys are stored as public-key credentials; private key material remains with the staff member's device or passkey provider.
 - Existing staff records, role assignments, levels, extra rights, and game-account links are preserved.
 - The owner must accept the separately issued one-use owner invitation to enter the new passwordless flow.
 - When a replacement custom domain is ready, add and verify it in Vercel before changing player-facing links or redirects.

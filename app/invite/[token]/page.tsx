@@ -24,7 +24,7 @@ export default function AcceptInvitationPage({ params }: { params: Promise<{ tok
         setBusy(false);
         return;
       }
-      window.location.href = "/admin";
+      window.location.href = "/admin/profile?setupPasskey=1";
     } catch {
       setError("A network error occurred. Please try again.");
       setBusy(false);

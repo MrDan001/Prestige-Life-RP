@@ -59,6 +59,8 @@ model Admin {
   notes             Note[]
   invitations       AdminInvitation[]
   sessions          AdminSession[]
+  passkeys           AdminPasskey[]
+  passkeyChallenges  AdminPasskeyChallenge[]
 }
 
 model Category {
@@ -247,5 +249,38 @@ model AdminSession {
   createdAt DateTime @default(now())
 
   @@index([adminId, revokedAt])
+  @@index([expiresAt])
+}
+
+
+/// WebAuthn passkeys registered by staff for passwordless sign-in.
+model AdminPasskey {
+  id           String   @id @default(cuid())
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  credentialId String   @unique
+  publicKey    Bytes
+  counter      BigInt   @default(0)
+  transports   String[] @default([])
+  deviceType   String
+  backedUp     Boolean  @default(false)
+  name         String   @default("My passkey")
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([adminId, createdAt])
+}
+
+/// Short-lived, single-use challenges for passkey registration and authentication.
+model AdminPasskeyChallenge {
+  id        String   @id @default(cuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  challenge String
+  purpose   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([adminId, purpose, expiresAt])
   @@index([expiresAt])
 }

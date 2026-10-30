@@ -21,8 +21,8 @@ const levelsFor = (role: { kind: string; minLevel: number; maxLevel: number }, l
 const nearest = (allowed: number[], level: number) =>
   allowed.reduce((best, item) => Math.abs(item - level) < Math.abs(best - level) ? item : best, allowed[0]);
 
-function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRevokeSessions }: {
-  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void; onRevokeSessions: (id: string) => void;
+function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevokeSessions }: {
+  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void; onRecover: (id: string) => void; onRevokeSessions: (id: string) => void;
 }) {
   const [rights, setRights] = useState<string[]>(s.extraRights);
   const roleOptions = roles.filter(role => (role.active && role.assignable) || role.id === s.roleId);
@@ -49,7 +49,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRevokeSessions }:
         <svg className="staff-chevron" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m4 7 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
       </summary>
       <div className="staff-body">
-        {me.kind === "OWNER" && s.canManage && <section className="staff-section" style={{ borderTop: 0, paddingTop: 0 }}><button type="button" className="staff-invite-button" onClick={() => onInvite(s.id)}>Issue / replace private invitation</button></section>}
+        {me.kind === "OWNER" && s.canManage && <section className="staff-section" style={{ borderTop: 0, paddingTop: 0 }}><button type="button" className="staff-invite-button" onClick={() => onInvite(s.id)}>Issue / replace private invitation</button><button type="button" className="staff-invite-button" onClick={() => onRecover(s.id)}>Reset passkeys &amp; issue recovery invitation</button></section>}
         <div className="staff-email">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="1.8" y="3.3" width="14.4" height="11.4" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5"/><path d="m3 5 6 4.6L15 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           <span>{s.email}</span>
@@ -209,6 +209,16 @@ export default function StaffPage() {
     setMsg("Private invitation created. Copy it and share it directly with the staff member.");
   }
 
+  async function recoverPasskeys(id: string) {
+    const confirmed = window.confirm("This will sign this staff member out everywhere, remove all their registered passkeys, and issue a new one-use recovery invitation. Continue?");
+    if (!confirmed) return;
+    const response = await fetch(`/api/admin/admins/${id}/passkeys/reset`, { method: "POST" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { setMsg(data.error ?? "Could not reset passkeys."); return; }
+    setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });
+    setMsg("All passkeys and sessions were revoked. Copy the recovery invitation and share it privately.");
+  }
+
   async function revokeInvite() {
     if (!invite) return;
     const response = await fetch(`/api/admin/invitations/${invite.id}/revoke`, { method: "POST" });
@@ -310,7 +320,7 @@ export default function StaffPage() {
       <section className="staff-list" aria-label="Staff accounts">
         {loading ? <div className="staff-empty">Loading staff accounts…</div> : visibleStaff.length ? visibleStaff.map(person =>
           <StaffRow key={[person.id, person.roleId, person.level, person.suspended, person.gameId, person.extraRights.join()].join("|")}
-            s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} onRevokeSessions={revokeSessions} />
+            s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} onRecover={recoverPasskeys} onRevokeSessions={revokeSessions} />
         ) : <div className="staff-empty">No staff match this search or filter.</div>}
       </section>
       <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you.</p>

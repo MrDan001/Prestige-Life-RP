@@ -29,7 +29,23 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Existing Admin/Role data is preserved by additive migrations.
 - [x] README and this roadmap updated.
 
-### Database migrations and security
+### Stage 3 — WebAuthn passkeys (in progress)
+
+### Design
+- [x] Use WebAuthn passkeys; no Resend, SendGrid, SMS, password, or external email delivery is involved.
+- [x] Add per-staff passkey credentials and short-lived, one-use registration/authentication challenges.
+- [x] Invitation acceptance routes new staff to passkey enrollment.
+- [x] `/auth` now supports email + device passkey sign-in.
+- [x] Dashboard navigation redirects staff without an enrolled passkey to profile setup.
+- [x] Staff can add multiple passkeys and cannot accidentally remove their last one.
+- [ ] Confirm dependency installation and a successful Vercel preview build.
+- [ ] Test passkey enrollment and subsequent sign-in on Android Chrome and at least one desktop browser.
+- [ ] Test replayed/expired challenges, suspended accounts, revoked sessions, and wrong-origin responses.
+- [x] Added owner-controlled passkey reset/recovery: revoke all sessions, delete the staff member's passkeys, and issue a one-use recovery invitation.
+- [ ] Test the recovery flow end-to-end with a non-owner staff account.
+- [ ] Verify production domain RP ID and origin; configure `WEBAUTHN_RP_ID` / `WEBAUTHN_ORIGIN` only if the production hostname changes.
+
+## Database migrations and security
 - [x] Applied the staff invitation/session migration.
 - [x] Applied the session revocation cutoff migration.
 - [x] Applied `lock_down_public_app_tables`: RLS enabled on all 14 public application tables and direct table privileges revoked from PUBLIC, anon, and authenticated.

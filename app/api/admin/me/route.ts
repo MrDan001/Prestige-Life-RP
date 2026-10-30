@@ -7,7 +7,9 @@ export async function GET() {
   const a = await requireAdmin();
   if (a.error) return a.error;
   const { admin, actor } = a;
+  const passkeyCount = await (await import("@/lib/db")).db.adminPasskey.count({ where: { adminId: admin.id } });
   return NextResponse.json({
+    hasPasskey: passkeyCount > 0,
     id: admin.id,
     name: admin.name,
     email: admin.email,
