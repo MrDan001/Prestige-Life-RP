@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { backfillAccused } from "@/lib/linking";
-import { RIGHTS, canAssignLevel, canAssignRole, canManageTarget, type Staff } from "@/lib/permissions";
+import { RIGHTS, canAssignLevel, canAssignRole, canGrantStaffPermissions, canManageTarget, type Staff } from "@/lib/permissions";
 import { isPrimaryOwnerAccount } from "@/lib/owner-privacy";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -37,7 +37,8 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   if (!canManageTarget(a.actor, t)) return NextResponse.json({ error: "You cannot change this person" }, { status: 403 });
   if (rest.level !== undefined && !canAssignLevel(a.actor, t, rest.level)) return NextResponse.json({ error: "You cannot award that level" }, { status: 403 });
-  if (rest.extraRights && a.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can change personal extra rights" }, { status: 403 });
+  if (rest.extraRights !== undefined && !canGrantStaffPermissions(a.actor))
+    return NextResponse.json({ error: "You do not have permission to grant or revoke staff permissions" }, { status: 403 });
   if (rest.gameId && (await db.admin.findFirst({ where: { gameId: rest.gameId, NOT: { id } } })))
     return NextResponse.json({ error: "That game ID is already linked to someone" }, { status: 409 });
 
@@ -81,7 +82,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
       db.admin.update({ where: { id }, data: { sessionsRevokedAt: now } }),
     ]);
   }
-  await audit(a.actor.id, "STAFF_UPDATE", id, `was ${target.kind}/L${target.level}/${target.title}; changes ${JSON.stringify({ ...rest, roleId })}`);
+  await audit(
+    a.actor.id,
+    rest.extraRights !== undefined ? "STAFF_PERMISSIONS_UPDATE" : "STAFF_UPDATE",
+    id,
+    rest.extraRights !== undefined
+      ? `Staff permissions changed from [${target.extraRights.join(", ")}] to [${rest.extraRights.join(", ")}]`
+      : `was ${target.kind}/L${target.level}/${target.title}; changes ${JSON.stringify({ ...rest, roleId })}`,
+  );
   return NextResponse.json(updated);
 }
 
