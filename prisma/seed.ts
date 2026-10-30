@@ -81,7 +81,7 @@ async function main() {
     { name: "Deputy chief admin", kind: "ADMIN" as const, minLevel: 6, maxLevel: 6 },
     { name: "PRM", kind: "TECH" as const, minLevel: 6, maxLevel: 6 },
     { name: "Developer", kind: "DEVELOPER" as const, minLevel: 6, maxLevel: 6 },
-    { name: "Owner", kind: "OWNER" as const, minLevel: 6, maxLevel: 6 },
+    { name: "PRM 2", kind: "OWNER" as const, minLevel: 6, maxLevel: 6 },
   ];
   for (const r of roles) await db.role.upsert({ where: { name: r.name }, update: {}, create: { ...r, system: true } });
 
