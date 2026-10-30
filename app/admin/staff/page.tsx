@@ -21,8 +21,8 @@ const levelsFor = (role: { kind: string; minLevel: number; maxLevel: number }, l
 const nearest = (allowed: number[], level: number) =>
   allowed.reduce((best, item) => Math.abs(item - level) < Math.abs(best - level) ? item : best, allowed[0]);
 
-function StaffRow({ s, me, levels, roles, onPatch, onInvite }: {
-  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void;
+function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRevokeSessions }: {
+  s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void; onRevokeSessions: (id: string) => void;
 }) {
   const [rights, setRights] = useState<string[]>(s.extraRights);
   const roleOptions = roles.filter(role => (role.active && role.assignable) || role.id === s.roleId);
@@ -87,7 +87,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite }: {
             )}</div>
             <button type="button" className="primary staff-save" disabled={[...rights].sort().join() === [...s.extraRights].sort().join()} onClick={() => onPatch(s.id, { extraRights: rights })}>Save rights</button>
           </section>}
-          <section className="staff-section staff-status-section">
+          {me.kind === "OWNER" && <section className="staff-section"><h3 className="staff-label">Active sessions</h3><button type="button" className="staff-invite-button" onClick={() => onRevokeSessions(s.id)}>Sign out all devices</button></section>}\n          <section className="staff-section staff-status-section">
             <div><h3 className="staff-label">Status</h3><div className={`staff-status-text ${s.suspended ? "off" : "on"}`}><i className={`staff-dot ${s.suspended ? "off" : "on"}`}/>{s.suspended ? "Suspended" : "Active"}</div></div>
             <button type="button" className={s.suspended ? "staff-restore" : "staff-suspend"} onClick={() => onPatch(s.id, { suspended: !s.suspended })}>{s.suspended ? "Restore" : "Suspend"}</button>
           </section>
@@ -194,7 +194,7 @@ export default function StaffPage() {
     }).catch(() => { setMsg("Could not load your admin session. Please refresh and try again."); setLoading(false); });
   }, [load]);
 
-  async function issueInvite(id: string) {\n    const response = await fetch(`/api/admin/admins/${id}/invite`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    if (!response.ok) { setMsg(data.error ?? "Could not issue invitation."); return; }\n    setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });\n    setMsg("Private invitation created. Copy it and share it directly with the staff member.");\n  }\n\n  async function revokeInvite() {\n    if (!invite) return;\n    const response = await fetch(`/api/admin/invitations/${invite.id}/revoke`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    setMsg(response.ok ? "Invitation revoked." : data.error ?? "Could not revoke invitation.");\n    if (response.ok) setInvite(null);\n  }\n\n  async function patch(id: string, body: object) {
+  async function issueInvite(id: string) {\n    const response = await fetch(`/api/admin/admins/${id}/invite`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    if (!response.ok) { setMsg(data.error ?? "Could not issue invitation."); return; }\n    setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });\n    setMsg("Private invitation created. Copy it and share it directly with the staff member.");\n  }\n\n  async function revokeInvite() {\n    if (!invite) return;\n    const response = await fetch(`/api/admin/invitations/${invite.id}/revoke`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    setMsg(response.ok ? "Invitation revoked." : data.error ?? "Could not revoke invitation.");\n    if (response.ok) setInvite(null);\n  }\n\n  async function revokeSessions(id: string) {\n    const response = await fetch(`/api/admin/admins/${id}/sessions/revoke`, { method: "POST" });\n    const data = await response.json().catch(() => ({}));\n    setMsg(response.ok ? `Revoked ${data.revoked} active session(s).` : data.error ?? "Could not revoke sessions.");\n  }\n\n  async function patch(id: string, body: object) {
     const response = await fetch(`/api/admin/admins/${id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
@@ -277,7 +277,7 @@ export default function StaffPage() {
       <section className="staff-list" aria-label="Staff accounts">
         {loading ? <div className="staff-empty">Loading staff accounts…</div> : visibleStaff.length ? visibleStaff.map(person =>
           <StaffRow key={[person.id, person.roleId, person.level, person.suspended, person.gameId, person.extraRights.join()].join("|")}
-            s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} />
+            s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} onRevokeSessions={revokeSessions} />
         ) : <div className="staff-empty">No staff match this search or filter.</div>}
       </section>
       <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you.</p>
