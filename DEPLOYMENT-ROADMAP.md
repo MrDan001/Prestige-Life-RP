@@ -171,3 +171,15 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update the Prisma seed role name so future seed runs use FOUNDER.
 - [x] Update README and this roadmap.
 - [ ] Verify the Roles and Staff screens show FOUNDER after the migration and deployment.
+
+
+## Admin role selector and branded confirmation dialogs — 30 October 2026
+- [x] Replace the Android/browser-native role dropdown in Add Staff and staff profile editing with a branded accessible role picker.
+- [x] Show each role's name, level range or top-tier description, and selected state in the custom menu.
+- [x] Replace browser-native "site says" confirmations for passkey reset, staff deletion, sign-out-all-devices, and profile logout with branded in-app confirmation dialogs.
+- [x] Use a consistent dark Prestige Life dialog with clear action labels, cancel controls, keyboard Escape handling, and busy-state protection.
+- [x] Confirm production Role table now contains FOUNDER (kind OWNER) and PRM (kind TECH); no PRM 2 role row remains. PRM remains a separate Project Management role as previously specified.
+- [x] Keep underlying permissions, role levels, owner privacy, and staff account assignments unchanged.
+- [x] Update README and this roadmap.
+- [ ] Verify custom dropdown, all confirmation dialogs, and FOUNDER/PRM role names on local dev server and Android Chrome.
+- [ ] Run npm build and deploy only after local verification.
