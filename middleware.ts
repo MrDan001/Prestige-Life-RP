@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
   if (ok) return NextResponse.next();
 
   if (req.nextUrl.pathname.startsWith("/api/admin")) {
-    if (req.nextUrl.pathname === "/api/admin/login") return NextResponse.next();
+    if (req.nextUrl.pathname === "/api/admin/login" || req.nextUrl.pathname === "/api/admin/invitations/accept") return NextResponse.next();
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
   return NextResponse.redirect(new URL("/auth", req.url));

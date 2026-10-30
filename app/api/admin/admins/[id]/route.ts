@@ -71,6 +71,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
     select: { id: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true, roleId: true },
   });
   if (rest.gameId) await backfillAccused(id, rest.gameId);
+  if (rest.suspended === true) {
+    const now = new Date();
+    await db.$transaction([
+      db.adminSession.updateMany({ where: { adminId: id, revokedAt: null }, data: { revokedAt: now } }),
+      db.adminInvitation.updateMany({ where: { adminId: id, usedAt: null, revokedAt: null }, data: { revokedAt: now } }),
+      db.admin.update({ where: { id }, data: { sessionsRevokedAt: now } }),
+    ]);
+  }
   await audit(a.actor.id, "STAFF_UPDATE", id, `was ${target.kind}/L${target.level}/${target.title}; changes ${JSON.stringify({ ...rest, roleId })}`);
   return NextResponse.json(updated);
 }
