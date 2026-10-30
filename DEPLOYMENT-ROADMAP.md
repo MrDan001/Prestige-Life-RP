@@ -41,7 +41,8 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Confirm dependency installation and a successful Vercel preview build.
 - [ ] Test passkey enrollment and subsequent sign-in on Android Chrome and at least one desktop browser.
 - [ ] Test replayed/expired challenges, suspended accounts, revoked sessions, and wrong-origin responses.
-- [ ] Add owner-controlled passkey reset/recovery for a staff member who loses all registered devices.
+- [x] Added owner-controlled passkey reset/recovery: revoke all sessions, delete the staff member's passkeys, and issue a one-use recovery invitation.
+- [ ] Test the recovery flow end-to-end with a non-owner staff account.
 - [ ] Verify production domain RP ID and origin; configure `WEBAUTHN_RP_ID` / `WEBAUTHN_ORIGIN` only if the production hostname changes.
 
 ## Database migrations and security
