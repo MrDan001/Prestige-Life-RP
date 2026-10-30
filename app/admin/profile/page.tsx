@@ -65,6 +65,13 @@ export default function ProfilePage() {
     if (res.ok) load();
   }
 
+  async function logout() {
+    if (!window.confirm("Sign out of Prestige Life RP on this device?")) return;
+    const res = await fetch("/api/admin/logout", { method: "POST" });
+    if (res.ok) window.location.href = "/auth";
+    else setMsg("Could not sign out. Please try again.");
+  }
+
   if (!me) return <p className="muted" style={{ padding: "24px" }}>Loading profile...</p>;
   const rank = me.kind === "ADMIN" ? `Level ${me.level} admin` : me.kind.charAt(0) + me.kind.slice(1).toLowerCase() + " · full rights";
 
@@ -105,6 +112,10 @@ export default function ProfilePage() {
               <button type="submit" className="primary">Link Account</button>
             </form>
           )}
+        </div>
+        <div className="panel" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <div><strong>Sign out</strong><p className="muted" style={{ margin: "3px 0 0" }}>End your current admin session on this device.</p></div>
+          <button type="button" onClick={logout}>Sign out</button>
         </div>
         {msg && <p role="status" className="panel" style={{ margin: 0, overflowWrap: "anywhere" }}>{msg}</p>}
       </div>
