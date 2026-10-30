@@ -21,6 +21,7 @@ export async function POST(_req: Request, { params }: Ctx) {
 
   const c = await db.complaint.findUnique({ where: { id }, include });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "Closed complaints are view-only. A top-tier administrator must reopen the complaint first." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
   if (c.claimedById === a.actor.id) return NextResponse.json({ ok: true });
   if (claimLocked(a.actor, c.claimedById))
@@ -39,6 +40,8 @@ export async function DELETE(_req: Request, { params }: Ctx) {
 
   const c = await db.complaint.findUnique({ where: { id }, select: { claimedById: true } });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const current = await db.complaint.findUnique({ where: { id }, select: { status: true } });
+  if (current?.status === "RESOLVED" || current?.status === "DISMISSED") return NextResponse.json({ error: "Closed complaints are view-only. A top-tier administrator must reopen the complaint first." }, { status: 409 });
   if (!c.claimedById) return NextResponse.json({ error: "Not claimed" }, { status: 400 });
   if (c.claimedById !== a.actor.id && !canOverrideClaim(a.actor))
     return NextResponse.json({ error: "Only the claimer or a level 6 can release this" }, { status: 403 });
