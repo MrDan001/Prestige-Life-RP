@@ -9,9 +9,10 @@ export async function POST(req: Request) {
   if (typeof body?.email !== "string" || body.email.length > 254) return NextResponse.json({ error: "Enter your registered staff email." }, { status: 400 });
   const email = body.email.toLowerCase().trim();
   const admin = await db.admin.findUnique({ where: { email } });
-  if (!admin || admin.suspended) return NextResponse.json({ error: "No active passkey account was found for those details." }, { status: 404 });
+  if (!admin || admin.suspended) return NextResponse.json({ error: "Passkey sign-in could not be started. Check your details or contact the owner." }, { status: 401 });
   const passkeys = await db.adminPasskey.findMany({ where: { adminId: admin.id }, select: { credentialId: true, transports: true } });
-  if (!passkeys.length) return NextResponse.json({ error: "This account has no passkey yet. Ask the owner to issue an invitation so you can set one up." }, { status: 404 });
+  if (!passkeys.length) return NextResponse.json({ error: "Passkey sign-in could not be started. Check your details or contact the owner." }, { status: 401 });
+  await db.adminPasskeyChallenge.deleteMany({ where: { expiresAt: { lt: new Date() } } });
   const { rpID } = relyingParty(req);
   const options = await generateAuthenticationOptions({
     rpID,
