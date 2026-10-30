@@ -23,6 +23,7 @@ export async function POST(req: Request, { params }: Ctx) {
     include: { category: true, accusedAdmin: { select: { id: true, kind: true, level: true } } },
   });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "This complaint is closed. Reopen it before adding a note." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot add notes to this complaint" }, { status: 403 });
 
   const note = await db.note.create({ data: { complaintId: id, adminId: a.actor.id, message: parsed.data.message } });
