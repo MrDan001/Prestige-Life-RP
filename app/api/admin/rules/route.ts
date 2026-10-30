@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { canManageRules } from "@/lib/permissions";
 import { audit } from "@/lib/audit";
+import { ensureRuleStorage } from "@/lib/rules";
 
 const ruleSchema = z.object({
   title: z.string().trim().min(1).max(120),
@@ -21,6 +22,7 @@ export async function GET() {
   if (access.error) return access.error;
   if (!canManageRules(access.actor)) return denied();
 
+  await ensureRuleStorage();
   const rules = await db.rule.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
@@ -32,6 +34,7 @@ export async function POST(req: Request) {
   if (access.error) return access.error;
   if (!canManageRules(access.actor)) return denied();
 
+  await ensureRuleStorage();
   const parsed = ruleSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Enter a title and rule details (up to 5,000 characters)." }, { status: 400 });
