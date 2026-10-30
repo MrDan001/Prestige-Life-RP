@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { startRegistration } from "@simplewebauthn/browser";
+import ConfirmDialog from "@/app/admin/components/ConfirmDialog";
 
 type Me = {
   name: string; email: string; kind: string; level: number; gameId: string | null;
@@ -13,6 +14,7 @@ export default function ProfilePage() {
   const [passkeys, setPasskeys] = useState<Passkey[]>([]);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const load = useCallback(async () => {
     const [profileResponse, keysResponse] = await Promise.all([fetch("/api/admin/me"), fetch("/api/admin/passkeys")]);
@@ -65,8 +67,11 @@ export default function ProfilePage() {
     if (res.ok) load();
   }
 
-  async function logout() {
-    if (!window.confirm("Sign out of Prestige Life RP on this device?")) return;
+  function logout() {
+    setConfirmLogout(true);
+  }
+
+  async function confirmSignOut() {
     const res = await fetch("/api/admin/logout", { method: "POST" });
     if (res.ok) window.location.href = "/auth";
     else setMsg("Could not sign out. Please try again.");
@@ -119,6 +124,7 @@ export default function ProfilePage() {
         </div>
         {msg && <p role="status" className="panel" style={{ margin: 0, overflowWrap: "anywhere" }}>{msg}</p>}
       </div>
+      <ConfirmDialog open={confirmLogout} title="Sign out of Prestige Life RP?" message="This will end your current admin session on this device. Your passkeys will remain registered so you can sign in again." confirmLabel="Sign out" tone="danger" onConfirm={confirmSignOut} onClose={() => setConfirmLogout(false)} />
     </div>
   );
 }

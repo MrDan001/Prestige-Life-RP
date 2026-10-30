@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { RIGHTS } from "@/lib/permissions";
+import ConfirmDialog from "@/app/admin/components/ConfirmDialog";
+import RoleSelect, { type RoleSelectOption } from "@/app/admin/components/RoleSelect";
 
 type Me = { kind: string; level: number; canManageStaff: boolean };
 type RoleInfo = { name: string; kind: string; minLevel: number; maxLevel: number };
@@ -12,6 +14,16 @@ type Staff = {
 type Role = { id: string; name: string; kind: string; minLevel: number; maxLevel: number; active: boolean; assignable: boolean };
 type Filter = "ALL" | "ADMINS" | "TOP_TIER" | "ACTIVE" | "PENDING" | "SUSPENDED" | "INACTIVE";
 type InviteInfo = { id: string; url: string; expiresAt: string };
+type Confirmation = { title: string; message: string; confirmLabel: string; tone: "danger" | "accent"; onConfirm: () => Promise<void> };
+
+const roleSelectOptions = (items: Role[]): RoleSelectOption[] => items.map(role => ({
+  value: role.id,
+  label: role.name,
+  description: role.kind === "ADMIN"
+    ? (role.minLevel === role.maxLevel ? `Level ${role.minLevel} access` : `Levels ${role.minLevel}–${role.maxLevel}`)
+    : "Top tier · Full administrative rights",
+  badge: role.kind === "ADMIN" ? `LEVEL ${role.minLevel}${role.maxLevel !== role.minLevel ? `–${role.maxLevel}` : ""}` : "TOP TIER",
+}));
 
 const RIGHTS_LABEL: Record<string, string> = {
   MANAGE_CATEGORIES: "Edit categories", MANAGE_STAFF: "Manage staff",
@@ -61,12 +73,9 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
           <section className="staff-section">
             <h3 className="staff-label">Role and level</h3>
             <div className="staff-control-grid">
-              <label className="staff-field"><span>Role</span>
-                <select value={s.roleId ?? ""} onChange={e => changeRole(e.target.value)} aria-label={`Role for ${s.name}`}>
-                  {!s.roleId && <option value="">No role yet</option>}
-                  {roleOptions.map(role => <option key={role.id} value={role.id}>{role.name}</option>)}
-                </select>
-              </label>
+              <div className="staff-field"><span>Role</span>
+                <RoleSelect value={s.roleId ?? ""} options={roleSelectOptions(roleOptions)} onChange={changeRole} placeholder="No role assigned" ariaLabel={`Role for ${s.name}`} />
+              </div>
               {s.kind === "ADMIN" && <label className="staff-field"><span>Level</span>
                 <select value={s.level} onChange={e => onPatch(s.id, { level: Number(e.target.value) })} aria-label={`Level for ${s.name}`}>
                   {levelChoices.map(level => <option key={level} value={level}>Level {level}</option>)}
@@ -198,9 +207,10 @@ export default function StaffPage() {
   const [nLevel, setNLevel] = useState("");
   const [loading, setLoading] = useState(true);
   const [invite, setInvite] = useState<InviteInfo | null>(null);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const load = useCallback(async () => {
-    const [staffRes, rolesRes] = await Promise.all([fetch("/api/admin/admins"), fetch("/api/admin/roles")]);
+    const [staffRes, rolesRes] = await Promise.all([fetch("/api/admin/admins", { cache: "no-store" }), fetch("/api/admin/roles", { cache: "no-store" })]);
     if (staffRes.ok) setStaff(await staffRes.json());
     if (rolesRes.ok) setRoles(await rolesRes.json());
     setLoading(false);
@@ -229,14 +239,20 @@ export default function StaffPage() {
     setMsg("Private invitation created. Copy it and share it directly with the staff member.");
   }
 
-  async function recoverPasskeys(id: string) {
-    const confirmed = window.confirm("This will sign this staff member out everywhere, remove all their registered passkeys, and issue a new one-use recovery invitation. Continue?");
-    if (!confirmed) return;
-    const response = await fetch(`/api/admin/admins/${id}/passkeys/reset`, { method: "POST" });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) { setMsg(data.error ?? "Could not reset passkeys."); return; }
-    setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });
-    setMsg("All passkeys and sessions were revoked. Copy the recovery invitation and share it privately.");
+  function recoverPasskeys(id: string) {
+    setConfirmation({
+      title: "Reset staff passkeys?",
+      message: "This will sign the staff member out on every device, remove all registered passkeys, and create a fresh one-use recovery invitation. They will need to accept it and register a new passkey.",
+      confirmLabel: "Reset passkeys",
+      tone: "danger",
+      onConfirm: async () => {
+        const response = await fetch(`/api/admin/admins/${id}/passkeys/reset`, { method: "POST" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) { setMsg(data.error ?? "Could not reset passkeys."); return; }
+        setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });
+        setMsg("All passkeys and sessions were revoked. Copy the recovery invitation and share it privately.");
+      },
+    });
   }
 
   async function revokeInvite() {
@@ -247,19 +263,33 @@ export default function StaffPage() {
     if (response.ok) setInvite(null);
   }
 
-  async function revokeSessions(id: string) {
-    const response = await fetch(`/api/admin/admins/${id}/sessions/revoke`, { method: "POST" });
-    const data = await response.json().catch(() => ({}));
-    setMsg(response.ok ? `Revoked ${data.revoked} active session(s).` : data.error ?? "Could not revoke sessions.");
+  function revokeSessions(id: string) {
+    setConfirmation({
+      title: "Sign out this staff member everywhere?",
+      message: "All active sessions on their devices will be revoked. Their registered passkeys will remain available for their next sign-in.",
+      confirmLabel: "Sign out all devices",
+      tone: "danger",
+      onConfirm: async () => {
+        const response = await fetch(`/api/admin/admins/${id}/sessions/revoke`, { method: "POST" });
+        const data = await response.json().catch(() => ({}));
+        setMsg(response.ok ? `Revoked ${data.revoked} active session(s).` : data.error ?? "Could not revoke sessions.");
+      },
+    });
   }
 
-  async function deleteStaff(person: Staff) {
-    const confirmed = window.confirm(`Permanently delete ${person.name} (${person.email})? This removes their staff account, passkeys, invitations, sessions, complaint responses, internal notes, and audit entries. This cannot be undone.`);
-    if (!confirmed) return;
-    const response = await fetch(`/api/admin/admins/${person.id}`, { method: "DELETE" });
-    const data = await response.json().catch(() => ({}));
-    setMsg(response.ok ? `${person.name} was permanently deleted.` : data.error ?? "Could not delete staff account.");
-    if (response.ok) await load();
+  function deleteStaff(person: Staff) {
+    setConfirmation({
+      title: "Permanently delete this staff account?",
+      message: `${person.name} (${person.email}) will be removed, including their passkeys, invitations, sessions, complaint responses, internal notes and audit entries. Complaint records remain, but this account deletion cannot be undone.`,
+      confirmLabel: "Delete staff account",
+      tone: "danger",
+      onConfirm: async () => {
+        const response = await fetch(`/api/admin/admins/${person.id}`, { method: "DELETE" });
+        const data = await response.json().catch(() => ({}));
+        setMsg(response.ok ? `${person.name} was permanently deleted.` : data.error ?? "Could not delete staff account.");
+        if (response.ok) await load();
+      },
+    });
   }
 
   async function patch(id: string, body: object) {
@@ -300,6 +330,7 @@ export default function StaffPage() {
     event.preventDefault();
     const form = event.currentTarget;
     const fields = Object.fromEntries(new FormData(form));
+    if (!nRole) { setMsg("Choose a role before creating the staff account."); return; }
     const response = await fetch("/api/admin/admins", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: fields.name, email: fields.email, roleId: nRole,
@@ -334,9 +365,7 @@ export default function StaffPage() {
         <form onSubmit={add} className="staff-add-form">
           <label><span>Name</span><input name="name" placeholder="Staff name" required /></label>
           <label><span>Email</span><input name="email" type="email" placeholder="name@example.com" required /></label>
-          <label><span>Role</span><select value={nRole} onChange={e => pickRole(e.target.value)} required aria-label="Role">
-            <option value="">Choose a role…</option>{assignable.map(role => <option key={role.id} value={role.id}>{role.name}</option>)}
-          </select></label>
+          <div className="staff-role-picker-field"><span className="staff-input-label">Role</span><RoleSelect value={nRole} options={roleSelectOptions(assignable)} onChange={pickRole} placeholder="Choose a role…" ariaLabel="New staff role" /></div>
           {chosen?.kind === "ADMIN" && <label><span>Level</span><select value={nLevel} onChange={e => setNLevel(e.target.value)} required aria-label="Level">
             {chosenLevels.map(level => <option key={level} value={level}>Level {level}</option>)}
           </select></label>}
@@ -358,6 +387,7 @@ export default function StaffPage() {
         ) : <div className="staff-empty">No staff match this search or filter.</div>}
       </section>
       <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you.</p>
+      <ConfirmDialog open={!!confirmation} title={confirmation?.title ?? ""} message={confirmation?.message ?? ""} confirmLabel={confirmation?.confirmLabel} tone={confirmation?.tone} onConfirm={confirmation?.onConfirm ?? (async () => {})} onClose={() => setConfirmation(null)} />
     </main>
   );
 }
