@@ -264,8 +264,12 @@ export default function StaffPage() {
         level: chosen?.kind === "ADMIN" ? Number(nLevel) : undefined }),
     });
     const data = await response.json().catch(() => ({}));
-    setMsg(response.ok ? "Staff account created." : data.error ?? "Could not create staff account.");
-    if (response.ok) { form.reset(); setNRole(""); setNLevel(""); setAdding(false); await load(); }
+    if (!response.ok) { setMsg(data.error ?? "Could not create staff account."); return; }
+    setMsg("Staff account created. Copy the private invitation link and share it directly with the new staff member.");
+    if (data.invitationId && data.invitationUrl && data.expiresAt) {
+      setInvite({ id: data.invitationId, url: data.invitationUrl, expiresAt: data.expiresAt });
+    }
+    form.reset(); setNRole(""); setNLevel(""); setAdding(false); await load();
   }
 
   const filters: { id: Filter; label: string }[] = [
@@ -292,7 +296,6 @@ export default function StaffPage() {
           {chosen?.kind === "ADMIN" && <label><span>Level</span><select value={nLevel} onChange={e => setNLevel(e.target.value)} required aria-label="Level">
             {chosenLevels.map(level => <option key={level} value={level}>Level {level}</option>)}
           </select></label>}
-          <label><span>Password</span><input name="password" type="password" placeholder="Password (10+ characters)" minLength={10} required /></label>
           <button type="submit" className="primary staff-create">Create staff account</button>
         </form>
       </section>}
