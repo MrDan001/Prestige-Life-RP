@@ -53,3 +53,10 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 
 ### Owner identity privacy
 - The primary owner's account is a private system identity, excluded from the Staff directory by immutable Admin ID regardless of its role/title. It cannot be edited, invited, suspended, deleted, or have its sessions/passkeys reset through staff-management APIs. Sign-in remains passkey-only for the primary owner's registered account; other staff see only their own signed-in identity in the account header.
+
+
+## Admin workspace behavior
+- Sign out is available only from **My Profile**; it is no longer shown in the shared admin navigation/account panel.
+- The admin workspace requests a 1200px desktop viewport and retains its desktop sidebar, complaint split view, staff controls, and multi-column layouts on narrow devices. Phones may need horizontal panning or pinch zoom.
+- Complaints in **OPEN** and **IN_REVIEW** appear in the **Active** queue. **RESOLVED** and **DISMISSED** complaints appear in the separate **History** queue.
+- Closed complaints are read-only: staff cannot reply, draft a judgment, add a note, claim, release, or change their status while closed. The owner, PRM/TECH, and Developer top tier can explicitly reopen a closed complaint; it returns to Active, and a new response requires a separate action after reopening.
