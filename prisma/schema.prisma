@@ -238,7 +238,7 @@ model Role {
 }
 
 
-/// One-time, owner-issued invitation. Only a SHA-256 token hash is stored.
+/// One-time, staff-manager-issued invitation. Only a SHA-256 token hash is stored.
 model AdminInvitation {
   id          String   @id @default(cuid())
   adminId     String
