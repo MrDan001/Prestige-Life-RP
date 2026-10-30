@@ -15,8 +15,18 @@ Bring the homepage photography closer to the supplied desktop reference: crisp c
 - [x] Keep overlays limited to the lower portion of gallery images so photographs remain visible while labels stay readable.
 - [x] Update the README with the visual asset approach and roadmap reference.
 
+## Brand mark and icon pass — completed 30 October 2026
+- [x] Replaced the improvised crown text glyph with a dedicated vector crown + PRESTIGE + LIVE RP logo matching the supplied reference composition.
+- [x] Used the same logo asset in the site header and footer so the brand mark stays consistent.
+- [x] Replaced the four Unicode feature symbols with custom SVG outline icons for community, economy, roleplay, and possibilities.
+- [x] Standardised the feature icon box, stroke thickness, headings, and description spacing for a more deliberate aligned row.
+- [x] Updated README documentation for the official wordmark and icon system.
+
 ## Verification still required
 - [ ] Run `npm run build` and resolve any build errors.
+- [ ] Compare the rendered crown proportions, gold wordmark, and LIVE RP lettering against the supplied reference on desktop and mobile.
+- [ ] Confirm SVG logo sizing does not crowd the compact mobile navigation.
+- [ ] Review the new line icons at high-density mobile scale and adjust stroke thickness only if necessary.
 - [ ] Check the homepage at 1440px, 1024px, 768px, 390px, and 360px widths.
 - [ ] Confirm each Unsplash image URL loads in production and review the crop against the intended scene.
 - [ ] If production must not depend on a third-party image CDN, download approved originals into `public/images/` and switch the CSS to local assets.
