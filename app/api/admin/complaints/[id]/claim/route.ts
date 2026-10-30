@@ -21,12 +21,17 @@ export async function POST(_req: Request, { params }: Ctx) {
 
   const c = await db.complaint.findUnique({ where: { id }, include });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "Closed complaints are view-only. A top-tier administrator must reopen the complaint first." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
   if (c.claimedById === a.actor.id) return NextResponse.json({ ok: true });
   if (claimLocked(a.actor, c.claimedById))
     return NextResponse.json({ error: `Already claimed by ${c.claimedBy?.name ?? "another admin"}` }, { status: 409 });
 
-  await db.complaint.update({ where: { id }, data: { claimedById: a.actor.id, claimedAt: new Date() } });
+  const claimed = await db.complaint.updateMany({
+    where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
+    data: { claimedById: a.actor.id, claimedAt: new Date(), updatedAt: new Date() },
+  });
+  if (claimed.count !== 1) return NextResponse.json({ error: "This complaint is closed. Reopen it before claiming it." }, { status: 409 });
   await audit(a.actor.id, "COMPLAINT_CLAIM", id, c.claimedBy ? `took over from ${c.claimedBy.name}` : "claimed this complaint");
   return NextResponse.json({ ok: true });
 }
@@ -37,13 +42,18 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   if (a.error) return a.error;
   const { id } = await params;
 
-  const c = await db.complaint.findUnique({ where: { id }, select: { claimedById: true } });
+  const c = await db.complaint.findUnique({ where: { id }, select: { claimedById: true, status: true } });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "Closed complaints are view-only. A top-tier administrator must reopen the complaint first." }, { status: 409 });
   if (!c.claimedById) return NextResponse.json({ error: "Not claimed" }, { status: 400 });
   if (c.claimedById !== a.actor.id && !canOverrideClaim(a.actor))
     return NextResponse.json({ error: "Only the claimer or a level 6 can release this" }, { status: 403 });
 
-  await db.complaint.update({ where: { id }, data: { claimedById: null, claimedAt: null } });
+  const released = await db.complaint.updateMany({
+    where: { id, status: { in: ["OPEN", "IN_REVIEW"] }, claimedById: c.claimedById },
+    data: { claimedById: null, claimedAt: null, updatedAt: new Date() },
+  });
+  if (released.count !== 1) return NextResponse.json({ error: "This complaint was closed or changed. Refresh and try again." }, { status: 409 });
   await audit(a.actor.id, "COMPLAINT_RELEASE", id, "released this complaint");
   return NextResponse.json({ ok: true });
 }

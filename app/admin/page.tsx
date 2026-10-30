@@ -9,15 +9,17 @@ type Row = {
   player: { username: string }; category: { id: string; name: string };
   claimedBy: { name: string } | null; claimedById: string | null;
   accusedName: string | null; accusedAdmin: { name: string } | null;
-  canReply: boolean; lockedByClaim: boolean;
+  canReply: boolean; canClose: boolean; lockedByClaim: boolean; isClosed: boolean; canReopen: boolean;
 };
 type Detail = Row & {
-  player: { username: string; gameId: string }; canNote: boolean; canClose: boolean; verdict: string | null;
+  player: { username: string; gameId: string }; canNote: boolean; verdict: string | null;
   evidence: Ev[]; timeline: Item[]; respondedAt: string | null; reviewedByName: string | null;
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
 
-const CHIPS: [string, string][] = [["all", "All"], ["OPEN", "Open"], ["IN_REVIEW", "In review"], ["none", "Unclaimed"], ["me", "Mine"]];
+const ACTIVE_CHIPS: [string, string][] = [["all", "All"], ["OPEN", "Open"], ["IN_REVIEW", "In review"], ["none", "Unclaimed"], ["me", "Mine"]];
+const HISTORY_CHIPS: [string, string][] = [["all", "All"], ["RESOLVED", "Resolved"], ["DISMISSED", "Dismissed"]];
+const isClosed = (status: string) => status === "RESOLVED" || status === "DISMISSED";
 const STATUSES = ["OPEN", "IN_REVIEW", "RESOLVED", "DISMISSED"];
 const pill = (s: string) => (s === "OPEN" ? "open" : s === "IN_REVIEW" ? "review" : "done");
 const label = (s: string) => s.replace("_", " ").toLowerCase().replace(/^./, c => c.toUpperCase());
@@ -26,6 +28,7 @@ const fmt = (d: string) => new Date(d).toLocaleString();
 
 export default function ComplaintsPage() {
   const [meId, setMeId] = useState("");
+  const [bucket, setBucket] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
   const [chip, setChip] = useState("all");
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
@@ -37,15 +40,24 @@ export default function ComplaintsPage() {
   const [msg, setMsg] = useState("");
 
   const loadList = useCallback(async () => {
-    const p = new URLSearchParams();
-    if (STATUSES.includes(chip)) p.set("status", chip);
-    if (chip === "me" || chip === "none") p.set("claimed", chip);
+    const p = new URLSearchParams({ bucket });
+    if (bucket === "ACTIVE") {
+      if (chip === "OPEN" || chip === "IN_REVIEW") p.set("status", chip);
+      if (chip === "me" || chip === "none") p.set("claimed", chip);
+    } else if (chip === "RESOLVED" || chip === "DISMISSED") {
+      p.set("status", chip);
+    }
     const res = await fetch("/api/admin/complaints?" + p);
     if (res.status === 401) { window.location.href = "/auth"; return; }
     setRows(await res.json());
-  }, [chip]);
+  }, [bucket, chip]);
 
-  useEffect(() => { fetch("/api/admin/me").then(async r => { if (r.ok) setMeId((await r.json()).id); }); }, []);
+  useEffect(() => { fetch("/api/admin/me").then(async r => {
+    if (r.ok) {
+      const current = await r.json();
+      setMeId(current.id);
+    }
+  }); }, []);
   useEffect(() => { loadList(); }, [loadList]);
 
   const shown = useMemo(() => {
@@ -61,12 +73,24 @@ export default function ComplaintsPage() {
   }
 
   async function select(id: string) {
-    const d: Detail = await (await fetch(`/api/admin/complaints/${id}`)).json();
+    const response = await fetch(`/api/admin/complaints/${id}`);
+    if (!response.ok) { setMsg((await response.json().catch(() => ({}))).error ?? "Could not load complaint."); return null; }
+    const d: Detail = await response.json();
     setOpen(d); setTpl(null); setReply(""); setNote(""); setMsg("");
+    setBucket(isClosed(d.status) ? "HISTORY" : "ACTIVE");
     const t = await fetch(`/api/admin/templates?categoryId=${d.category.id}`);
     setTpls(t.ok ? ((await t.json()) as Tpl[]).filter(x => x.canUse) : []);
+    return d;
   }
-  async function refresh(id: string) { await select(id); loadList(); }
+  async function refresh(id: string) {
+    const d = await select(id);
+    if (!d) return;
+    const nextBucket = isClosed(d.status) ? "HISTORY" : "ACTIVE";
+    setBucket(nextBucket);
+    setChip("all");
+    const response = await fetch(`/api/admin/complaints?bucket=${nextBucket}`);
+    if (response.ok) setRows(await response.json());
+  }
 
   async function pick(t: Tpl) {
     if (!open) return;
@@ -78,6 +102,10 @@ export default function ComplaintsPage() {
     if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { reply, templateId: tpl?.id }))) { await refresh(open.id); setMsg("Sent. The player will see it in the game."); }
   }
   async function setStatus(status: string) { if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status }))) await refresh(open.id); }
+  async function reopen() { if (open?.isClosed && open.canReopen && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status: "OPEN" }))) await refresh(open.id); }
+  async function changeBucket(next: "ACTIVE" | "HISTORY") {
+    setBucket(next); setChip("all"); setOpen(null); setTpl(null); setReply(""); setNote(""); setMsg("");
+  }
   async function claim() { if (open && (await call(`/api/admin/complaints/${open.id}/claim`, "POST"))) await refresh(open.id); }
   async function release() { if (open && (await call(`/api/admin/complaints/${open.id}/claim`, "DELETE"))) await refresh(open.id); }
   async function addNote() { if (open && (await call(`/api/admin/complaints/${open.id}/notes`, "POST", { message: note }))) { setNote(""); await refresh(open.id); } }
@@ -96,8 +124,12 @@ export default function ComplaintsPage() {
     <div>
       <header className="topbar">
         <h1>Complaints</h1>
+        <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
+          <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
+          <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
+        </div>
         <div className="chips">
-          {CHIPS.map(([k, l]) => <button key={k} className={`chip${chip === k ? " on" : ""}`} onClick={() => setChip(k)}>{l}</button>)}
+          {(bucket === "ACTIVE" ? ACTIVE_CHIPS : HISTORY_CHIPS).map(([k, l]) => <button key={k} className={`chip${chip === k ? " on" : ""}`} onClick={() => setChip(k)}>{l}</button>)}
         </div>
         <input className="search" type="search" placeholder="Search player or case number…" aria-label="Search complaints" value={q} onChange={e => setQ(e.target.value)} />
       </header>
@@ -125,12 +157,19 @@ export default function ComplaintsPage() {
               <div className="claimbar">
                 <span className={`pill ${pill(open.status)}`}>{label(open.status)}</span>
                 <span className="muted">{open.claimedBy ? <>Handled by <strong>{mine ? "you" : open.claimedBy.name}</strong></> : "Not claimed yet"}</span>
-                {!open.claimedById && open.canReply && <button onClick={claim}>Claim</button>}
-                {open.claimedById && !mine && !open.lockedByClaim && open.canNote && <button onClick={claim}>Take over</button>}
-                {open.claimedById && (mine || !open.lockedByClaim) && <button onClick={release}>Release</button>}
-                <label style={{ marginLeft: "auto" }}><span className="muted">Status </span>
-                  <select value={open.status} disabled={!open.canReply} onChange={e => setStatus(e.target.value)} aria-label="Status">{STATUSES.map(s => <option key={s} value={s}>{label(s)}</option>)}</select>
-                </label>
+                {!open.isClosed && !open.claimedById && open.canReply && <button onClick={claim}>Claim</button>}
+                {!open.isClosed && open.claimedById && !mine && !open.lockedByClaim && open.canNote && <button onClick={claim}>Take over</button>}
+                {!open.isClosed && open.claimedById && (mine || !open.lockedByClaim) && <button onClick={release}>Release</button>}
+                {open.isClosed ? (
+                  <>
+                    <span className="muted">Closed · moved to History</span>
+                    {open.canReopen && <button type="button" className="primary" onClick={reopen}>Reopen complaint</button>}
+                  </>
+                ) : (
+                  <label style={{ marginLeft: "auto" }}><span className="muted">Status </span>
+                    <select value={open.status} disabled={!open.canReply} onChange={e => setStatus(e.target.value)} aria-label="Status">{STATUSES.map(s => <option key={s} value={s}>{label(s)}</option>)}</select>
+                  </label>
+                )}
               </div>
 
               <div>
@@ -171,7 +210,9 @@ export default function ComplaintsPage() {
                     </div>
                   </div>
                 </>
-              ) : <p className="muted">{open.lockedByClaim ? `${open.claimedBy?.name ?? "Another admin"} is handling this complaint.` : "You can view this complaint but you cannot answer it."}</p>}
+              ) : <p className="muted">{open.isClosed
+                ? (open.canReopen ? "This complaint is closed. Reopen it to return it to the active queue before replying." : "This complaint is closed and read-only. Only the owner or a top-tier administrator can reopen it.")
+                : open.lockedByClaim ? `${open.claimedBy?.name ?? "Another admin"} is handling this complaint.` : "You can view this complaint but you cannot answer it."}</p>}
 
               {open.canNote && (
                 <div className="panel" style={{ display: "grid", gap: 8 }}>

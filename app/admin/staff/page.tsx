@@ -102,7 +102,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
 }
 
 const staffStyles = `
-.staff-page{max-width:980px;margin:0 auto;padding:24px 28px 36px;display:grid;align-content:start;gap:18px}
+.staff-page{max-width:none;min-width:940px;margin:0;padding:24px 28px 36px;display:grid;align-content:start;gap:18px}
 .staff-page .staff-header{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .staff-page .staff-header h1{font-size:1.65rem;line-height:1.25;letter-spacing:-.025em}
 .staff-page .staff-count{color:var(--muted);margin:3px 0 0;font-size:13px}
@@ -171,9 +171,7 @@ const staffStyles = `
 .staff-page .staff-add-form label{display:grid;gap:5px;min-width:0;color:var(--muted);font-size:12px}
 .staff-page .staff-add-form input,.staff-page .staff-add-form select{box-sizing:border-box;width:100%;min-width:0}
 .staff-page .staff-create{align-self:end;min-height:42px}
-@media(max-width:900px){.staff-page{padding:22px 18px 30px}}
-@media(max-width:520px){.staff-page{padding:20px 16px 28px;gap:15px}.staff-page .staff-header h1{font-size:1.7rem}.staff-page .staff-add{padding:10px 13px}.staff-page .staff-summary{padding:11px 12px;gap:10px}.staff-page .staff-avatar{width:36px;height:36px}.staff-page .staff-body{padding:14px 12px 12px}.staff-page .staff-add-form label:nth-child(1),.staff-page .staff-add-form label:nth-child(2),.staff-page .staff-add-form label:last-of-type,.staff-page .staff-create{grid-column:1/-1}}
-@media(max-width:360px){.staff-page .staff-control-grid,.staff-page .staff-rights-grid{grid-template-columns:1fr}}
+
 `;
 
 export default function StaffPage() {

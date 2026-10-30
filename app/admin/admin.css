@@ -1,6 +1,6 @@
 /* PATH: app/admin/admin.css */
 .shell, .auth-card { --bg: #0b0a14; --panel: #13111f; --raise: #1d1830; --line: #2a2540; --line2: #3b3560; --text: #f2f0fa; --muted: #a7a2c2; --accent: #d6197a; }
-.shell { display: flex; min-height: 100vh; background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.5; }
+.shell { display: flex; min-width: 1200px; min-height: 100vh; background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.5; }
 .shell a { color: var(--muted); text-decoration: none; }
 .shell a:hover { color: var(--text); }
 .shell h1, .shell h2 { margin: 0; }
@@ -39,7 +39,7 @@
 .me-linked span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .me-msg { overflow-wrap: anywhere; }
 .me-signout { width: 100%; }
-.content { flex: 1; min-width: 0; }
+.content { flex: 1; min-width: 980px; }
 
 /* complaints page */
 .topbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 20px 28px; border-bottom: 1px solid var(--line); }
@@ -89,15 +89,20 @@
 .auth-card h1 { margin: 0; font-size: 1.4rem; }
 .auth-card input { width: 100%; box-sizing: border-box; }
 
-@media (max-width: 900px) {
-  .shell { flex-direction: column; }
-  .side { width: auto; height: auto; position: static; flex-direction: column; align-items: stretch; gap: 12px; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
-  .nav { flex-direction: row; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
-  .nav a { white-space: nowrap; flex: none; }
-  .me { margin-top: 0; }
-  .split { flex-direction: column; }
-  .list { width: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-  .infocards, .judg-grid, .evgrid { grid-template-columns: repeat(2, 1fr); }
-  .search { margin-left: 0; width: 100%; }
-}
-@media (max-width: 520px) { .infocards, .judg-grid, .evgrid { grid-template-columns: 1fr; } }
+
+
+/* Admin UI deliberately retains its desktop workspace at every viewport size.
+   Narrow screens can pan horizontally rather than switching to mobile navigation/cards. */
+html:has(.shell), body:has(.shell) { overflow-x: auto; }
+.shell { min-width: 1200px; }
+.side { flex: 0 0 220px; }
+.split { min-width: 980px; flex-direction: row; }
+.list { width: 340px; flex: 0 0 340px; border-right: 1px solid var(--line); border-bottom: 0; }
+.infocards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.judg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.evgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Queue switcher: active work and closed case history are distinct destinations. */
+.queue-tabs { display: flex; align-items: center; gap: 8px; }
+.shell button.queue-tab { border-radius: 999px; padding: 7px 18px; border-color: var(--line2); color: var(--muted); }
+.shell button.queue-tab.on { background: var(--raise); border-color: var(--accent); color: var(--text); font-weight: 700; }

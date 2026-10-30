@@ -22,10 +22,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [path]);
   useEffect(() => { load(); }, [load]);
 
-  async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    window.location.href = "/auth";
-  }
+  // Request a desktop-width layout only while inside the admin workspace.
+  // Restore the site's normal responsive viewport when the visitor leaves admin.
+  useEffect(() => {
+    const existingViewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+    const viewport = existingViewport ?? document.createElement("meta");
+    const previous = existingViewport?.content ?? null;
+    if (!existingViewport) {
+      viewport.name = "viewport";
+      document.head.appendChild(viewport);
+    }
+    viewport.content = "width=1200, initial-scale=1, viewport-fit=cover";
+    return () => {
+      if (existingViewport) viewport.content = previous ?? "width=device-width, initial-scale=1";
+      else viewport.remove();
+    };
+  }, []);
 
   const items = [
     { href: "/admin", label: "Complaints", show: true },
@@ -54,7 +66,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="avatar">{me.name.charAt(0).toUpperCase()}</div>
               <div className="me-id"><strong>{me.name}</strong><small>{rank}</small></div>
             </div>
-            <button type="button" className="me-signout" onClick={logout}>Sign out</button>
           </div>
         )}
       </aside>
