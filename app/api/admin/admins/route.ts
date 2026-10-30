@@ -25,9 +25,38 @@ export async function GET() {
     select: {
       id: true, email: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true,
       roleId: true, role: { select: { name: true, kind: true, minLevel: true, maxLevel: true } },
+      lastSeenAt: true,
+      invitations: { orderBy: { createdAt: "desc" }, take: 1, select: { usedAt: true, revokedAt: true, expiresAt: true } },
     },
   });
-  return NextResponse.json(rows.map((r) => ({ ...r, canManage: canManageTarget(a.actor, r) })));
+  const closures = await db.auditLog.groupBy({
+    by: ["actorId"],
+    where: {
+      action: "COMPLAINT_STATUS",
+      OR: [{ detail: { contains: "-> RESOLVED" } }, { detail: { contains: "-> DISMISSED" } }],
+    },
+    _max: { createdAt: true },
+  });
+  const closedAtByAdmin = new Map(closures.map(row => [row.actorId, row._max.createdAt]));
+  const now = Date.now();
+  const activeWindow = 24 * 60 * 60 * 1000;
+  return NextResponse.json(rows.map((r) => {
+    const latestInvite = r.invitations[0];
+    const pending = !!latestInvite && !latestInvite.usedAt && !latestInvite.revokedAt;
+    const closedAt = closedAtByAdmin.get(r.id) ?? null;
+    const lastActivityAt = [r.lastSeenAt, closedAt].filter(Boolean).sort((x, y) => y!.getTime() - x!.getTime())[0] ?? null;
+    const recentActivity = !!lastActivityAt && now - lastActivityAt.getTime() <= activeWindow;
+    const presence = pending ? "PENDING" : r.suspended ? "SUSPENDED" : recentActivity ? "ACTIVE" : "INACTIVE";
+    const { invitations: _invitations, ...staff } = r;
+    return {
+      ...staff,
+      canManage: canManageTarget(a.actor, r),
+      presence,
+      lastActivityAt: lastActivityAt?.toISOString() ?? null,
+      lastSeenAt: r.lastSeenAt?.toISOString() ?? null,
+      lastClosedAt: closedAt?.toISOString() ?? null,
+    };
+  }));
 }
 
 const schema = z.object({
