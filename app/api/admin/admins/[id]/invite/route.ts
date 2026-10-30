@@ -23,12 +23,13 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-  await db.$transaction(async tx => {
+  const invitation = await db.$transaction(async tx => {
     await tx.adminInvitation.updateMany({ where: { adminId: id, usedAt: null, revokedAt: null }, data: { revokedAt: new Date() } });
-    await tx.adminInvitation.create({ data: { adminId: id, tokenHash: hashToken(token), expiresAt, createdById: actor.actor.id } });
+    return tx.adminInvitation.create({ data: { adminId: id, tokenHash: hashToken(token), expiresAt, createdById: actor.actor.id }, select: { id: true } });
   });
   await audit(actor.actor.id, "STAFF_INVITE_ISSUE", id, `Invitation expires ${expiresAt.toISOString()}`);
   return NextResponse.json({
+    invitationId: invitation.id,
     invitationUrl: `${new URL(req.url).origin}/invite/${token}`,
     expiresAt: expiresAt.toISOString(),
     note: "Copy this private link now. It is shown only once and is not emailed automatically.",
