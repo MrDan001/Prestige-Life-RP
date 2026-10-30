@@ -13,7 +13,7 @@ export type ComplaintForCheck = {
   claimedById?: string | null;
 };
 
-/** Owner, tech and developers: equal full rights. */
+/** Founder (OWNER), PRM (TECH) and developers have full workspace rights. */
 export const isTop = (s: { kind: Kind }) => s.kind !== "ADMIN";
 
 export const canAccessSite = (s: Staff) => isTop(s) || s.level >= MIN_SITE_LEVEL;
@@ -60,7 +60,7 @@ export const flags = (actor: Staff, c: ComplaintForCheck) => {
   };
 };
 
-/** May this actor edit this staff member at all? */
+/** May this actor edit this staff member at all? Top-tier profiles are Founder-only. */
 export function canManageTarget(actor: Staff, target: Staff) {
   if (!hasRight(actor, "MANAGE_STAFF") || actor.id === target.id) return false;
   if (isTop(target)) return actor.kind === "OWNER";

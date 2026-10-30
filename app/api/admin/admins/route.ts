@@ -15,12 +15,14 @@ const hashToken = (token: string) => createHash("sha256").update(token).digest("
 export async function GET() {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
-  // Privacy boundary: never include OWNER accounts in the staff roster API.
-  // This applies to every viewer (OWNER, PRM/TECH, DEVELOPER, etc.). The
-  // authenticated user's identity is still returned by /api/admin/me for
-  // their own session header; this endpoint never exposes owner roster rows.
+  // Visibility boundary: only Founder (the OWNER staff kind) can see top-tier
+  // staff profiles. PRM and Developer can manage regular admin tiers, but cannot
+  // inspect or open one another's profile. The primary owner account stays private.
   const rows = await db.admin.findMany({
-    where: { id: { not: PRIMARY_OWNER_ADMIN_ID } },
+    where: {
+      id: { not: PRIMARY_OWNER_ADMIN_ID },
+      ...(a.actor.kind === "OWNER" ? {} : { kind: "ADMIN" as const }),
+    },
     orderBy: [{ kind: "asc" }, { level: "desc" }],
     select: {
       id: true, email: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true,

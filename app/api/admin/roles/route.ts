@@ -11,7 +11,26 @@ export async function GET() {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
   const roles = await db.role.findMany({ include: { _count: { select: { admins: true } } } });
-  roles.sort((x, y) => Number(x.kind !== "ADMIN") - Number(y.kind !== "ADMIN") || x.minLevel - y.minLevel || x.name.localeCompare(y.name));
+  // Keep the staff role picker in authority order. Within the level-6 admin tier,
+  // Deputy Chief Admin precedes Chief Admin. Among top-tier roles, Founder is last.
+  const adminTieOrder = new Map([["deputy chief admin", 0], ["chief admin", 1]]);
+  const topTierOrder = new Map([["developer", 0], ["prm", 1], ["founder", 2]]);
+  roles.sort((x, y) => {
+    const tierOrder = Number(x.kind !== "ADMIN") - Number(y.kind !== "ADMIN");
+    if (tierOrder !== 0) return tierOrder;
+
+    if (x.kind === "ADMIN" && y.kind === "ADMIN") {
+      const levelOrder = x.minLevel - y.minLevel;
+      if (levelOrder !== 0) return levelOrder;
+      const xOrder = adminTieOrder.get(x.name.trim().toLowerCase()) ?? 99;
+      const yOrder = adminTieOrder.get(y.name.trim().toLowerCase()) ?? 99;
+      return xOrder - yOrder || x.name.localeCompare(y.name);
+    }
+
+    const xOrder = topTierOrder.get(x.name.trim().toLowerCase()) ?? 99;
+    const yOrder = topTierOrder.get(y.name.trim().toLowerCase()) ?? 99;
+    return xOrder - yOrder || x.name.localeCompare(y.name);
+  });
   return NextResponse.json(roles.map((r) => ({ ...r, assignable: r.active && canAssignRole(a.actor, r) })));
 }
 
