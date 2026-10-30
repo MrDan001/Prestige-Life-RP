@@ -107,12 +107,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 
 
 ## Built-in Owner role display label — 30 October 2026
-- [x] Rename the built-in role's displayed name from **Owner** to **PRM 2**.
+- [x] Rename the built-in role's displayed name from **Owner** to **FOUNDER**.
 - [x] Preserve the underlying `StaffKind.OWNER` kind, full owner permissions, authentication, and owner-only safeguards.
 - [x] Keep the owner-account Staff directory hiding change from PR #5 intact.
 - [x] Add a database migration and update the Prisma seed role name.
 - [x] Update README and this roadmap.
-- [ ] Verify PRM 2 appears in the Roles interface after deployment and that owner-only authorization remains unchanged.
+- [ ] Verify FOUNDER appears in the Roles interface after deployment and that owner-only authorization remains unchanged.
 
 
 ## Owner roster privacy correction — 30 October 2026
@@ -125,10 +125,10 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 
 ## Private primary owner account — 30 October 2026
 - [x] Identify the primary owner account by its immutable database Admin ID, not editable role, title, name, or email display fields.
-- [x] Exclude only that primary account from the Staff roster for every viewer; PRM 2 and other legitimate staff accounts remain visible.
+- [x] Exclude only that primary account from the Staff roster for every viewer; FOUNDER and other legitimate staff accounts remain visible.
 - [x] Block staff-management API operations against the primary account (role changes, suspension, deletion, invitation replacement, passkey reset, and session revocation).
 - [x] Preserve normal passkey sign-in for the primary owner and preserve each staff member's own session identity in their own account header.
-- [x] Keep the Owner/PRM 2 role and its authorization model unchanged for other accounts.
+- [x] Keep the Owner/FOUNDER role and its authorization model unchanged for other accounts.
 - [x] Update README and this roadmap.
 - [ ] Verify the production Staff roster response contains no primary-owner account ID, name, or email.
 - [ ] Verify the primary owner can still sign in with an already-registered passkey and other staff can still sign in normally.
@@ -162,3 +162,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Run npx prisma migrate deploy against the local test database, then npx prisma generate.
 - [ ] Run npm run build and verify the four status colors, invitation acceptance transition, heartbeat refresh, and 24-hour boundary locally.
 - [ ] Confirm existing owner identity privacy and staff permissions remain unchanged.
+
+
+## Built-in role label update — 30 October 2026
+- [x] Rename the built-in top-tier role display label from **PRM 2** to **FOUNDER**.
+- [x] Preserve the underlying OWNER kind, full permissions, primary-owner privacy protections, authentication, and authorization behavior.
+- [x] Add an additive SQL migration to rename the existing role record and any matching staff display titles without deleting or recreating staff accounts.
+- [x] Update the Prisma seed role name so future seed runs use FOUNDER.
+- [x] Update README and this roadmap.
+- [ ] Verify the Roles and Staff screens show FOUNDER after the migration and deployment.
