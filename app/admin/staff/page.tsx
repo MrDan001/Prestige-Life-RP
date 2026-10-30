@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { RIGHTS } from "@/lib/permissions";
 
-type Me = { kind: string; level: number; canManageStaff: boolean };
+type Me = { kind: string; level: number; canManageStaff: boolean; canGrantStaffPermissions: boolean };
 type RoleInfo = { name: string; kind: string; minLevel: number; maxLevel: number };
 type Staff = {
   id: string; email: string; name: string; title: string; kind: string; level: number; extraRights: string[];
@@ -15,6 +15,7 @@ type InviteInfo = { id: string; url: string; expiresAt: string };
 
 const RIGHTS_LABEL: Record<string, string> = {
   MANAGE_CATEGORIES: "Edit categories", MANAGE_STAFF: "Manage staff",
+  GRANT_STAFF_PERMISSIONS: "Grant staff permissions",
   MANAGE_TEMPLATES: "Edit judgments", MANAGE_SITE: "Edit home page",
 };
 const levelsFor = (role: { kind: string; minLevel: number; maxLevel: number }, levels: number[]) =>
@@ -80,8 +81,9 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
               {s.gameId && <button type="button" onClick={() => onPatch(s.id, { gameId: null })}>Unlink</button>}
             </div>
           </section>
-          {me.kind === "OWNER" && s.kind === "ADMIN" && <section className="staff-section">
-            <h3 className="staff-label">Extra rights <span>(owner only)</span></h3>
+          {me.canGrantStaffPermissions && s.canManage && <section className="staff-section">
+            <h3 className="staff-label">Staff permissions <span>(delegated authority)</span></h3>
+            <p className="staff-help">These permissions are assigned to this person directly. Manage Staff allows eligible recruitment; Grant Staff Permissions allows controlled permission delegation. Role rank limits still apply.</p>
             <div className="staff-rights-grid">{RIGHTS.map(right =>
               <label key={right} className={`staff-right${rights.includes(right) ? " checked" : ""}`}>
                 <input type="checkbox" checked={rights.includes(right)} onChange={e => setRights(e.target.checked ? [...rights, right] : rights.filter(item => item !== right))}/>
@@ -357,7 +359,7 @@ export default function StaffPage() {
             s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} onRecover={recoverPasskeys} onRevokeSessions={revokeSessions} onDelete={deleteStaff} />
         ) : <div className="staff-empty">No staff match this search or filter.</div>}
       </section>
-      <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you.</p>
+      <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you. Staff-management permissions are separate from rank and must be granted explicitly.</p>
     </main>
   );
 }
