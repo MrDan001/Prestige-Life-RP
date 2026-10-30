@@ -52,7 +52,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
         <svg className="staff-chevron" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m4 7 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
       </summary>
       <div className="staff-body">
-        {me.kind === "OWNER" && s.canManage && <section className="staff-section" style={{ borderTop: 0, paddingTop: 0 }}><button type="button" className="staff-invite-button" onClick={() => onInvite(s.id)}>Issue / replace private invitation</button><button type="button" className="staff-invite-button" onClick={() => onRecover(s.id)}>Reset passkeys &amp; issue recovery invitation</button></section>}
+        {s.canManage && <section className="staff-section" style={{ borderTop: 0, paddingTop: 0 }}><button type="button" className="staff-invite-button" onClick={() => onInvite(s.id)}>Issue / replace private invitation</button>{me.kind === "OWNER" && <button type="button" className="staff-invite-button" onClick={() => onRecover(s.id)}>Reset passkeys &amp; issue recovery invitation</button>}</section>}
         <div className="staff-email">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="1.8" y="3.3" width="14.4" height="11.4" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5"/><path d="m3 5 6 4.6L15 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           <span>{s.email}</span>
