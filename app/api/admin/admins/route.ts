@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + INVITE_HOURS * 60 * 60 * 1000);
-  const admin = await db.$transaction(async tx => {
+  const adminResult = await db.$transaction(async tx => {
     const created = await tx.admin.create({
       data: {
         email, name: d.name, passwordHash: null, kind, level, roleId: role.id, gameId: d.gameId,
@@ -68,17 +68,20 @@ export async function POST(req: Request) {
       },
       select: { id: true, email: true, name: true, title: true, kind: true, level: true },
     });
-    await tx.adminInvitation.create({
+    const invitation = await tx.adminInvitation.create({
       data: { adminId: created.id, tokenHash: hashToken(token), expiresAt, createdById: a.actor.id },
+      select: { id: true },
     });
-    return created;
+    return { created, invitation };
   });
 
+  const { created: admin, invitation } = adminResult;
   if (d.gameId) await backfillAccused(admin.id, d.gameId);
   await audit(a.actor.id, "STAFF_INVITE_CREATE", admin.id, `${admin.kind} level ${admin.level}; invitation expires ${expiresAt.toISOString()}`);
   const origin = new URL(req.url).origin;
   return NextResponse.json({
     staff: admin,
+    invitationId: invitation.id,
     invitationUrl: `${origin}/invite/${token}`,
     expiresAt: expiresAt.toISOString(),
     note: "Copy this private link now. It is shown only once and is not emailed automatically.",
