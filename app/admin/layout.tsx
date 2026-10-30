@@ -22,11 +22,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [path]);
   useEffect(() => { load(); }, [load]);
 
-  async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    window.location.href = "/auth";
-  }
-
   const items = [
     { href: "/admin", label: "Complaints", show: true },
     { href: "/admin/staff", label: "Staff", show: !!me?.canManageStaff },
@@ -54,7 +49,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="avatar">{me.name.charAt(0).toUpperCase()}</div>
               <div className="me-id"><strong>{me.name}</strong><small>{rank}</small></div>
             </div>
-            <button type="button" className="me-signout" onClick={logout}>Sign out</button>
           </div>
         )}
       </aside>
