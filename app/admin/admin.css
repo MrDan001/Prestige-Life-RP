@@ -106,3 +106,133 @@ html:has(.shell), body:has(.shell) { overflow-x: auto; }
 .queue-tabs { display: flex; align-items: center; gap: 8px; }
 .shell button.queue-tab { border-radius: 999px; padding: 7px 18px; border-color: var(--line2); color: var(--muted); }
 .shell button.queue-tab.on { background: var(--raise); border-color: var(--accent); color: var(--text); font-weight: 700; }
+
+
+/* Prestige confirmation dialog — replaces browser-owned "site says" prompts. */
+.app-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(5, 4, 12, .78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.app-dialog {
+  width: min(100%, 470px);
+  box-sizing: border-box;
+  padding: 25px;
+  border: 1px solid rgba(226, 45, 145, .42);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #1c182b 0%, #11101b 75%);
+  color: #f6f3ff;
+  box-shadow: 0 26px 90px rgba(0, 0, 0, .62), 0 0 0 1px rgba(255,255,255,.025) inset;
+  animation: app-dialog-in .18s ease-out;
+}
+.app-dialog-symbol {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(214,25,122,.38);
+  border-radius: 14px;
+  background: rgba(214,25,122,.12);
+  color: #f15aa9;
+  font-size: 22px;
+  font-weight: 800;
+}
+.app-dialog-symbol.danger { border-color: rgba(240,82,101,.42); background: rgba(240,82,101,.12); color: #ff8291; }
+.app-dialog-copy { display: grid; gap: 9px; }
+.app-dialog-eyebrow { color: #d85a9f; font-size: 10px; font-weight: 800; letter-spacing: .16em; }
+.app-dialog-copy h2 { margin: 0; font-size: 21px; line-height: 1.25; letter-spacing: -.02em; }
+.app-dialog-copy p { margin: 0; color: #b6b1c9; font-size: 14px; line-height: 1.65; }
+.app-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+.app-dialog-actions button { min-height: 44px; padding: 0 17px; border-radius: 12px; font-weight: 650; }
+.app-dialog-cancel { border: 1px solid #39344e; background: #161421; color: #d6d1e3; }
+.app-dialog-confirm { border: 1px solid transparent; background: #d6197a; color: white; }
+.app-dialog-confirm.danger { background: #be3552; color: white; }
+.app-dialog-actions button:disabled { opacity: .55; cursor: wait; }
+@keyframes app-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Custom role selector with a branded in-app menu, instead of the OS/browser select sheet. */
+.role-select { position: relative; width: 100%; min-width: 0; z-index: 1; }
+.role-select.is-open { z-index: 100; }
+.role-select-trigger {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  padding: 12px 15px;
+  border: 1px solid #3a3451;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1b1829 0%, #141220 100%);
+  color: #f5f2ff;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14), inset 0 1px rgba(255,255,255,.035);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.role-select-trigger:hover, .role-select.is-open .role-select-trigger {
+  border-color: rgba(226,45,145,.72);
+  box-shadow: 0 0 0 3px rgba(214,25,122,.10), 0 12px 28px rgba(0,0,0,.2);
+}
+.role-select-trigger:focus-visible { outline: 2px solid #e34b9b; outline-offset: 3px; }
+.role-select-current { display: grid; gap: 3px; min-width: 0; }
+.role-select-current strong { overflow: hidden; color: #f8f5ff; font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.role-select-current small { overflow: hidden; color: #a9a2c1; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.role-select-chevron { flex: none; color: #c0b8d4; font-size: 24px; line-height: 1; transform: translateY(-3px); transition: transform .16s ease, color .16s ease; }
+.role-select-chevron.up { color: #ef63ad; transform: rotate(180deg) translateY(3px); }
+.role-select-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 200;
+  max-height: min(390px, 60vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  border: 1px solid rgba(226,45,145,.4);
+  border-radius: 17px;
+  background: linear-gradient(155deg, #211c32 0%, #14121f 72%);
+  box-shadow: 0 22px 58px rgba(0,0,0,.62), inset 0 1px rgba(255,255,255,.035);
+}
+.role-select-menu-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px 11px; border-bottom: 1px solid rgba(255,255,255,.07); color: #e16aa9; font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.role-select-menu-heading small { color: #8f89a7; font-size: 10px; font-weight: 500; letter-spacing: 0; }
+.role-select-option {
+  width: 100%;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+  padding: 10px 11px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: #f0ecfb;
+  text-align: left;
+  transition: background .14s ease, border-color .14s ease;
+}
+.role-select-option:hover, .role-select-option:focus-visible { outline: none; border-color: rgba(214,25,122,.28); background: rgba(255,255,255,.055); }
+.role-select-option.selected { border-color: rgba(214,25,122,.48); background: linear-gradient(90deg, rgba(214,25,122,.18), rgba(214,25,122,.055)); }
+.role-select-option-copy { display: grid; gap: 3px; flex: 1; min-width: 0; }
+.role-select-option-copy strong { color: #f7f3ff; font-size: 13px; font-weight: 700; }
+.role-select-option-copy small { color: #a49dbb; font-size: 10px; }
+.role-select-badge { flex: none; padding: 5px 7px; border: 1px solid rgba(180,157,218,.18); border-radius: 7px; background: rgba(180,157,218,.08); color: #c6b6e7; font-size: 8px; font-weight: 800; letter-spacing: .08em; }
+.role-select-check { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border: 1px solid #524a66; border-radius: 50%; color: #fff; font-size: 12px; }
+.role-select-option.selected .role-select-check { border-color: #dc3b91; background: #d6197a; }
+.role-select-empty { margin: 10px; color: #a9a2c1; font-size: 12px; }
+.staff-role-picker-field { display: grid; gap: 5px; min-width: 0; color: var(--muted); font-size: 12px; }
+.staff-role-picker-field .staff-input-label { color: var(--muted); font-size: 12px; }
+.staff-page .staff-card:has(.role-select.is-open) { position: relative; z-index: 50; overflow: visible; }
+.staff-page .staff-section:has(.role-select.is-open) { position: relative; z-index: 60; }
+@media (prefers-reduced-motion: reduce) {
+  .app-dialog { animation: none; }
+  .role-select-trigger, .role-select-chevron, .role-select-option { transition: none; }
+}
