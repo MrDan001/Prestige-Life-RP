@@ -71,7 +71,7 @@ const schema = z.object({
   gameId: z.string().max(64).optional(),
 });
 
-/** Owner creates a staff record and receives a private, one-use invitation URL. */
+/** Staff managers create an eligible staff record and receive a private, one-use invitation URL. */
 export async function POST(req: Request) {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
