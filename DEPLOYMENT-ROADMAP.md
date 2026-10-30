@@ -113,7 +113,8 @@ Updated: 30 October 2026
 - [x] Implemented cryptographically random one-use invitation tokens; only SHA-256 hashes are stored.
 - [x] Set invitation expiry to 48 hours and added owner-only reissue/revocation endpoints.
 - [x] Added a passwordless invitation acceptance screen and endpoint.
-- [x] Added server-registered 30-day sessions with database revocation checks on every protected API request.\n- [x] Added a session-revocation cutoff timestamp so older pre-migration cookies are invalidated too, including after a suspended account is restored.
+- [x] Added server-registered 30-day sessions with database revocation checks on every protected API request.
+- [x] Added a session-revocation cutoff timestamp so older pre-migration cookies are invalidated too, including after a suspended account is restored.
 - [x] Added owner controls to revoke all sessions for a staff account.
 - [x] Suspension now revokes that staff member's active sessions and pending invitations.
 - [x] Replaced the password sign-in form with invitation-only access instructions; the old password login endpoint now returns HTTP 410.
@@ -126,7 +127,8 @@ The additive migrations were applied successfully to the connected Supabase proj
 
 - [x] `Admin.passwordHash` is nullable for passwordless accounts; existing hashes were not deleted.
 - [x] Added `AdminInvitation` with token hash, expiry, use and revocation timestamps.
-- [x] Added `AdminSession` with 30-day expiry and revocation timestamp.\n- [x] Added `Admin.sessionsRevokedAt` to invalidate legacy cookies and enforce revocation cutoffs.
+- [x] Added `AdminSession` with 30-day expiry and revocation timestamp.
+- [x] Added `Admin.sessionsRevokedAt` to invalidate legacy cookies and enforce revocation cutoffs.
 - [x] Existing Admin, Role, Complaint and related data was not dropped or rewritten.
 - [ ] Verify the final database schema against Prisma Client after preview build.
 - [ ] Confirm migration history records the migration and perform read-only checks of existing staff counts and role assignments.
