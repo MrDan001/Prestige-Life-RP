@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { backfillAccused } from "@/lib/linking";
 import { RIGHTS, canAssignLevel, canAssignRole, canManageTarget, type Staff } from "@/lib/permissions";
+import { isPrimaryOwnerAccount } from "@/lib/owner-privacy";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -29,6 +30,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid details" }, { status: 400 });
   const { roleId, ...rest } = parsed.data;
 
+  if (isPrimaryOwnerAccount(id)) return NextResponse.json({ error: "This account is privately protected and cannot be managed as staff." }, { status: 404 });
   const target = await db.admin.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const t: Staff = { id: target.id, kind: target.kind, level: target.level, extraRights: target.extraRights };
@@ -96,6 +98,9 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   }
 
   const { id } = await params;
+  if (isPrimaryOwnerAccount(id)) {
+    return NextResponse.json({ error: "This account is privately protected and cannot be deleted." }, { status: 404 });
+  }
   if (id === actor.actor.id) {
     return NextResponse.json({ error: "You cannot delete your own owner account" }, { status: 409 });
   }

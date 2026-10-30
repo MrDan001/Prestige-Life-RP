@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { backfillAccused } from "@/lib/linking";
 import { canAssignLevel, canAssignRole, canManageTarget } from "@/lib/permissions";
+import { PRIMARY_OWNER_ADMIN_ID } from "@/lib/owner-privacy";
 
 const INVITE_HOURS = 48;
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
@@ -19,7 +20,7 @@ export async function GET() {
   // authenticated user's identity is still returned by /api/admin/me for
   // their own session header; this endpoint never exposes owner roster rows.
   const rows = await db.admin.findMany({
-    where: { kind: { not: "OWNER" } },
+    where: { id: { not: PRIMARY_OWNER_ADMIN_ID } },
     orderBy: [{ kind: "asc" }, { level: "desc" }],
     select: {
       id: true, email: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true,

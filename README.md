@@ -52,4 +52,4 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 
 
 ### Owner identity privacy
-- The staff directory API excludes all accounts with `kind = OWNER` for every viewer. The current user's own session header remains visible only to that signed-in user; no owner roster record is returned.
+- The primary owner's account is a private system identity, excluded from the Staff directory by immutable Admin ID regardless of its role/title. It cannot be edited, invited, suspended, deleted, or have its sessions/passkeys reset through staff-management APIs. Sign-in remains passkey-only for the primary owner's registered account; other staff see only their own signed-in identity in the account header.
