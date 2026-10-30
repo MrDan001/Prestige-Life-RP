@@ -49,3 +49,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Build command: `prisma generate && next build`.
 - Passwordless staff migration files live under `prisma/migrations/`; keep Prisma schema, SQL migrations, API routes, and documentation in sync.
 - Deployment checks and remaining live verification steps are tracked in [DEPLOYMENT-ROADMAP.md](./DEPLOYMENT-ROADMAP.md).
+
+
+### Owner identity privacy
+- The staff directory API excludes all accounts with `kind = OWNER` for every viewer. The current user's own session header remains visible only to that signed-in user; no owner roster record is returned.
