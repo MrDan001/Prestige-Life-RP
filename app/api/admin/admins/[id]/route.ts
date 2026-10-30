@@ -82,3 +82,44 @@ export async function PATCH(req: Request, { params }: Ctx) {
   await audit(a.actor.id, "STAFF_UPDATE", id, `was ${target.kind}/L${target.level}/${target.title}; changes ${JSON.stringify({ ...rest, roleId })}`);
   return NextResponse.json(updated);
 }
+
+/**
+ * Permanently remove a staff account and its account-owned history.
+ * Complaint records remain; accused/claimed staff references are nulled by
+ * the schema's onDelete: SetNull relations.
+ */
+export async function DELETE(_req: Request, { params }: Ctx) {
+  const actor = await requireAdmin("MANAGE_STAFF");
+  if (actor.error) return actor.error;
+  if (actor.actor.kind !== "OWNER") {
+    return NextResponse.json({ error: "Only the owner can permanently delete staff accounts" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  if (id === actor.actor.id) {
+    return NextResponse.json({ error: "You cannot delete your own owner account" }, { status: 409 });
+  }
+
+  const target = await db.admin.findUnique({ where: { id } });
+  if (!target) return NextResponse.json({ error: "Staff account not found" }, { status: 404 });
+  const staff: Staff = { id: target.id, kind: target.kind, level: target.level, extraRights: target.extraRights };
+  if (target.kind === "OWNER" || !canManageTarget(actor.actor, staff)) {
+    return NextResponse.json({ error: "You cannot delete this account" }, { status: 403 });
+  }
+
+  await db.$transaction(async tx => {
+    // These relations use RESTRICT, so delete their account-owned rows explicitly.
+    await tx.response.deleteMany({ where: { adminId: id } });
+    await tx.note.deleteMany({ where: { adminId: id } });
+    await tx.auditLog.deleteMany({ where: { actorId: id } });
+    await tx.adminInvitation.deleteMany({ where: { adminId: id } });
+    await tx.adminSession.deleteMany({ where: { adminId: id } });
+    await tx.adminPasskeyChallenge.deleteMany({ where: { adminId: id } });
+    await tx.adminPasskey.deleteMany({ where: { adminId: id } });
+    // Complaint accused/claimed references are SET NULL; complaints themselves remain.
+    await tx.admin.delete({ where: { id } });
+  });
+
+  await audit(actor.actor.id, "STAFF_DELETE", id, `Permanently deleted staff account ${target.name} <${target.email}>; related responses, notes, and audit entries were removed.`);
+  return NextResponse.json({ ok: true, deletedId: id });
+}
