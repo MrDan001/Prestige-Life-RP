@@ -121,3 +121,14 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Preserve `/api/admin/me` so the signed-in user can still see their own session identity in the top account panel; that is not a roster disclosure to other staff.
 - [x] Update README and this roadmap.
 - [ ] Confirm preview and production roster API responses contain no OWNER records.
+
+
+## Private primary owner account — 30 October 2026
+- [x] Identify the primary owner account by its immutable database Admin ID, not editable role, title, name, or email display fields.
+- [x] Exclude only that primary account from the Staff roster for every viewer; PRM 2 and other legitimate staff accounts remain visible.
+- [x] Block staff-management API operations against the primary account (role changes, suspension, deletion, invitation replacement, passkey reset, and session revocation).
+- [x] Preserve normal passkey sign-in for the primary owner and preserve each staff member's own session identity in their own account header.
+- [x] Keep the Owner/PRM 2 role and its authorization model unchanged for other accounts.
+- [x] Update README and this roadmap.
+- [ ] Verify the production Staff roster response contains no primary-owner account ID, name, or email.
+- [ ] Verify the primary owner can still sign in with an already-registered passkey and other staff can still sign in normally.
