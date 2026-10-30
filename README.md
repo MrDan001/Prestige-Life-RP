@@ -20,6 +20,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - New staff are created by the owner using name, email, and role/level only. The owner shares a private one-use invitation link that expires after 48 hours. Accepting it starts a session and requires passkey registration before the dashboard can be used.
 - Invitation acceptance creates a 30-day server-registered session. Each staff member must register a passkey before accessing the dashboard. Successful passkey sign-in creates a fresh 30-day session.
 - Staff can add multiple passkeys in My Profile. Keep at least one working passkey; the UI prevents removal of the final one.
+- If a staff member loses all passkeys, the owner can use **Reset passkeys & issue recovery invitation** in Staff management. This signs them out everywhere, removes their old passkeys, and issues a fresh one-use invitation so they can register a replacement.
 - Invitation links are shown once in the Owner-only Staff interface and are not automatically emailed. Share them privately.
 - Passkeys are stored as public-key credentials; private key material remains with the staff member's device or passkey provider.
 - Existing staff records, role assignments, levels, extra rights, and game-account links are preserved.
