@@ -37,6 +37,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Supabase security advisor no longer reports RLS-disabled tables. It reports informational no-policy notices because browser access is intentionally disabled and app access is server-side.
 - [x] Existing staff and role rows were preserved.
 
+### Production UI correction — 30 October 2026
+- [x] Live owner screenshot exposed a leftover password input in the Add Staff form despite the passwordless API.
+- [x] Removed the password field; the form now sends only name, email, role, and applicable level.
+- [x] Updated successful creation handling to display the one-use invitation URL and expiry immediately, with copy/revoke controls.
+- [ ] Verify the corrected Add Staff form and invite flow on the new production deployment.
+
 ### Deployment status
 - [x] Preview build READY for the final PR code.
 - [x] PR #1 merged to `main`.
