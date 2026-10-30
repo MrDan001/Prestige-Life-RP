@@ -62,6 +62,8 @@ model Admin {
   sessions          AdminSession[]
   passkeys           AdminPasskey[]
   passkeyChallenges  AdminPasskeyChallenge[]
+
+  @@index([lastSeenAt])
 }
 
 model Category {
