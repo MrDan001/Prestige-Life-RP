@@ -2,8 +2,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { PRIMARY_OWNER_ADMIN_ID } from "@/lib/owner-privacy";
 
-/** Audit log: who changed what. For people who manage staff (level 6+ and the top tier). ?action=...&cursor=...&limit=50 */
+/** Audit log: who changed what. Owner activity is kept private from the staff audit page. */
 export async function GET(req: Request) {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
@@ -14,7 +15,12 @@ export async function GET(req: Request) {
   const cursor = sp.get("cursor");
 
   const rows = await db.auditLog.findMany({
-    where: action ? { action } : undefined,
+    // Exclude the primary owner as the actor, but keep other staff activity
+    // (including activity that happens to target the owner's account).
+    where: {
+      actorId: { not: PRIMARY_OWNER_ADMIN_ID },
+      ...(action ? { action } : {}),
+    },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
