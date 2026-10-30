@@ -113,7 +113,7 @@ Updated: 30 October 2026
 - [x] Implemented cryptographically random one-use invitation tokens; only SHA-256 hashes are stored.
 - [x] Set invitation expiry to 48 hours and added owner-only reissue/revocation endpoints.
 - [x] Added a passwordless invitation acceptance screen and endpoint.
-- [x] Added server-registered 30-day sessions with database revocation checks on every protected API request.
+- [x] Added server-registered 30-day sessions with database revocation checks on every protected API request.\n- [x] Added a session-revocation cutoff timestamp so older pre-migration cookies are invalidated too, including after a suspended account is restored.
 - [x] Added owner controls to revoke all sessions for a staff account.
 - [x] Suspension now revokes that staff member's active sessions and pending invitations.
 - [x] Replaced the password sign-in form with invitation-only access instructions; the old password login endpoint now returns HTTP 410.
@@ -122,11 +122,11 @@ Updated: 30 October 2026
 
 ### Database migration
 
-The additive migration was applied successfully to the connected Supabase project on 30 October 2026:
+The additive migrations were applied successfully to the connected Supabase project on 30 October 2026:
 
 - [x] `Admin.passwordHash` is nullable for passwordless accounts; existing hashes were not deleted.
 - [x] Added `AdminInvitation` with token hash, expiry, use and revocation timestamps.
-- [x] Added `AdminSession` with 30-day expiry and revocation timestamp.
+- [x] Added `AdminSession` with 30-day expiry and revocation timestamp.\n- [x] Added `Admin.sessionsRevokedAt` to invalidate legacy cookies and enforce revocation cutoffs.
 - [x] Existing Admin, Role, Complaint and related data was not dropped or rewritten.
 - [ ] Verify the final database schema against Prisma Client after preview build.
 - [ ] Confirm migration history records the migration and perform read-only checks of existing staff counts and role assignments.
@@ -143,5 +143,5 @@ The additive migration was applied successfully to the connected Supabase projec
 ### Known limitations and security follow-up
 
 - Invitation URLs are returned once to the Owner-only Staff interface. No email delivery provider is configured in this implementation; the owner must share the link privately.
-- The Supabase security advisor reports RLS disabled on 12 public tables. This is a separate critical exposure. Do not enable RLS without a reviewed least-privilege policy plan; this authentication change does not modify RLS.
+- The Supabase security advisor now reports RLS disabled on 14 public tables, including the newly added `AdminInvitation` and `AdminSession`. This is a critical exposure: the invitation hashes and session registry may be reachable through Supabase APIs to clients using the anon/authenticated roles. Do not deploy the invitation flow while this remains unresolved. Do not blindly enable RLS without reviewed least-privilege policies; the application currently uses a server-side PostgreSQL connection, but its exact database role/bypass behavior must be verified before choosing policies.
 - The feature branch is not yet the production deployment. Do not treat the implementation as live until all deployment gates above pass.
