@@ -24,6 +24,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Invitation links are shown once in the Owner-only Staff interface and are not automatically emailed. Share them privately.
 - Passkeys are stored as public-key credentials; private key material remains with the staff member's device or passkey provider.
 - The former Tech role is displayed as **PRM (Project Management)**. Its underlying `TECH` permission kind is intentionally unchanged, so access rights and behavior stay the same.
+- Owner accounts are hidden from the Staff directory for all viewers, including PRM/TECH, developers, and other owners. The Owner role and full owner permissions remain intact; this is a directory-visibility change, not a role or access change.
 - The owner can permanently delete a staff account from its Staff card. Deletion removes that account's invitations, sessions, passkeys, complaint responses, internal notes, and audit entries; complaint records themselves remain and staff references are cleared by the database. Owner accounts and the currently signed-in owner cannot be deleted.
 - The owner must accept the separately issued one-use owner invitation to enter the new passwordless flow.
 - When a replacement custom domain is ready, add and verify it in Vercel before changing player-facing links or redirects.
