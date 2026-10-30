@@ -20,7 +20,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setMe(current);
     if (!current.hasPasskey && path !== "/admin/profile") { window.location.href = "/admin/profile?setupPasskey=1"; }
   }, [path]);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    const heartbeat = window.setInterval(() => {
+      if (document.visibilityState === "visible") fetch("/api/admin/me", { cache: "no-store" }).catch(() => {});
+    }, 60_000);
+    return () => window.clearInterval(heartbeat);
+  }, [load]);
 
   // Request a desktop-width layout only while inside the admin workspace.
   // Restore the site's normal responsive viewport when the visitor leaves admin.
