@@ -12,8 +12,9 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 ### Recovery and hardening
 - [x] Restored a coherent baseline and confirmed a healthy Vercel build.
 - [x] Kept existing staff records, role assignments, levels, extra rights, and game-account links.
-- [x] Implemented the passwordless staff invitation/session flow on feature branch `feature/passwordless-staff-invitations`.
-- [x] Feature branch preview build reached READY at commit `6df9758fca4bfbf4b99c912e3f53bf42685c762c`.
+- [x] Implemented the passwordless staff invitation/session flow.
+- [x] Feature preview build reached READY at the final PR head.
+- [x] Merged PR #1 to main (merge commit `afbe39ff10e39a71af2b72fa6b2faa5b27240046`).
 
 ## Stage 2 — Passwordless staff invitations
 
@@ -26,30 +27,33 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Suspension revokes active sessions and pending invitations.
 - [x] Legacy password login endpoint returns HTTP 410; /auth now explains invitation-only access.
 - [x] Existing Admin/Role data is preserved by additive migrations.
-- [x] Updated README and this roadmap.
+- [x] README and this roadmap updated.
 
-### Database migrations
+### Database migrations and security
 - [x] Applied the staff invitation/session migration.
 - [x] Applied the session revocation cutoff migration.
 - [x] Applied `lock_down_public_app_tables`: RLS enabled on all 14 public application tables and direct table privileges revoked from PUBLIC, anon, and authenticated.
 - [x] Verified all 14 tables have RLS enabled; anon/authenticated have no SELECT privilege; table owner remains postgres and FORCE RLS is off.
-- [x] Supabase security advisor no longer reports RLS-disabled tables. It reports informational no-policy notices because browser access is intentionally disabled and all app data access is server-side.
-- [x] Existing staff and role rows were preserved; the new invitation/session tables were empty before rollout.
-- [ ] Verify the deployed Prisma connection can read/write through its production DATABASE_URL after RLS lockdown.
+- [x] Supabase security advisor no longer reports RLS-disabled tables. It reports informational no-policy notices because browser access is intentionally disabled and app access is server-side.
+- [x] Existing staff and role rows were preserved.
 
-### Deployment and live test gates
-- [x] Feature preview build reached READY.
-- [ ] Merge the reviewed feature branch to main and deploy production.
-- [ ] Verify public homepage and /auth respond correctly.
-- [ ] Issue a fresh one-use owner invitation after production deployment; owner must accept it before passwordless admin use.
+### Deployment status
+- [x] Preview build READY for the final PR code.
+- [x] PR #1 merged to `main`.
+- [x] Production deployment READY: `dpl_83U9emKcNcZPdoJoi9Zp5cGKPFpK`.
+- [x] Production deployment commit: `afbe39ff10e39a71af2b72fa6b2faa5b27240046`.
+- [x] Confirmed `prestige-life-rp.vercel.app` remains a verified project domain.
+- [x] Checked Vercel runtime errors for the new deployment; none were reported in the initial 30-minute window.
+- [ ] Confirm from a real browser that the public homepage and /auth load on the production domain.
+- [ ] Owner accepts the separately issued one-use owner invitation and confirms dashboard access.
+- [ ] Verify production Prisma DATABASE_URL read/write access through authenticated app actions.
 - [ ] Test invitation acceptance, one-use enforcement, expiry, revocation, logout, suspension, session revocation, and permission preservation with authorized accounts.
 - [ ] Confirm non-owner staff cannot create staff, issue invitations, revoke sessions, or access owner-only controls.
-- [ ] Review Vercel runtime errors and verify dashboard data access.
 
 ### Important operational notes
 - Invitation URLs are shown once in the Owner-only Staff interface; no email delivery provider is configured. Share links privately.
+- A fresh one-use owner invitation has been issued separately from the repository. It expires after 48 hours and must be kept private.
 - Existing password hashes have not been deleted, but password login is disabled by the new application code.
-- The current owner needs a fresh invitation link to enter the passwordless flow. Do not assume an old password will work after cutover.
 - The public player-facing domain remains `https://prestige-life-rp.vercel.app`; application admin routes remain protected by application sessions.
 - Vercel preview/generated deployment URLs remain behind Vercel Authentication.
-- The RLS lockdown intentionally denies browser/API roles direct access to all public application tables. The server uses the private PostgreSQL connection; no broad client policies were added.
+- The RLS lockdown intentionally denies browser/API roles direct access to all public application tables. No broad client policies were added.
