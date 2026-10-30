@@ -10,6 +10,14 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 4. In a second terminal, run `powershell -ExecutionPolicy Bypass -File .\\test.ps1`.
 5. Open `http://localhost:3000/auth` and sign in with the Owner email and password.
 
+## Production access
+
+- Public player-facing website: https://prestige-life-rp.vercel.app
+- Vercel Authentication uses Standard Protection: the production domain is public, while preview and generated deployment URLs remain protected.
+- Admin access remains behind the application's own sign-in/session checks at `/auth` and `/admin`. Vercel's public production-domain setting does not grant an application admin session.
+- The deployed admin flow is currently email/password. The separately discussed passwordless invitation flow has not yet been implemented.
+- When a replacement custom domain is ready, add and verify it in Vercel before changing player-facing links or redirects.
+
 ## Visual quality
 
 - The header uses the custom Prestige crown wordmark in `public/prestige-logo.svg`.
