@@ -13,8 +13,6 @@ const hashToken = (token: string) => createHash("sha256").update(token).digest("
 export async function POST(req: Request, { params }: Ctx) {
   const actor = await requireAdmin("MANAGE_STAFF");
   if (actor.error) return actor.error;
-  if (actor.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can issue staff invitations" }, { status: 403 });
-
   const { id } = await params;
   if (isPrimaryOwnerAccount(id)) return NextResponse.json({ error: "Staff account not found" }, { status: 404 });
   const target = await db.admin.findUnique({ where: { id } });
