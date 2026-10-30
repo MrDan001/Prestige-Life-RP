@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { ComplaintStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { flags } from "@/lib/permissions";
+import { flags, isTop } from "@/lib/permissions";
 
 /**
  * Everyone with site access sees ALL complaints.
@@ -17,10 +17,18 @@ export async function GET(req: Request) {
   const status = sp.get("status");
   const categoryId = sp.get("categoryId");
   const claimed = sp.get("claimed");
+  const bucket = sp.get("bucket") === "HISTORY" ? "HISTORY" : "ACTIVE";
+  const requestedStatus = status && status in ComplaintStatus ? status as ComplaintStatus : null;
+  const allowedStatus = bucket === "HISTORY" ? ["RESOLVED", "DISMISSED"] : ["OPEN", "IN_REVIEW"];
+  const effectiveStatus = requestedStatus && allowedStatus.includes(requestedStatus)
+    ? requestedStatus
+    : null;
 
   const rows = await db.complaint.findMany({
     where: {
-      ...(status && status in ComplaintStatus ? { status: status as ComplaintStatus } : {}),
+      status: effectiveStatus
+        ? effectiveStatus
+        : { in: allowedStatus as ComplaintStatus[] },
       ...(categoryId ? { categoryId } : {}),
       ...(claimed === "me" ? { claimedById: a.actor.id } : claimed === "none" ? { claimedById: null } : {}),
     },
@@ -34,5 +42,16 @@ export async function GET(req: Request) {
       _count: { select: { responses: true } },
     },
   });
-  return NextResponse.json(rows.map((r) => ({ ...r, ...flags(a.actor, r) })));
+  return NextResponse.json(rows.map((r) => {
+    const permissionFlags = flags(a.actor, r);
+    const isClosed = r.status === "RESOLVED" || r.status === "DISMISSED";
+    return {
+      ...r,
+      ...permissionFlags,
+      isClosed,
+      canReply: !isClosed && permissionFlags.canReply,
+      canClose: !isClosed && permissionFlags.canClose,
+      canReopen: isTop(a.actor),
+    };
+  }));
 }
