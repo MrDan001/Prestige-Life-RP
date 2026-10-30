@@ -3,7 +3,6 @@ import fs from "node:fs";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pkg from "pg";
-import bcrypt from "bcryptjs";
 
 // Load .env (the seed runs outside Next.js, and Prisma 7 does not load it either).
 if (fs.existsSync(".env")) {
@@ -41,14 +40,13 @@ const JUDGMENTS: J[] = [
 
 async function main() {
   const email = process.env.OWNER_EMAIL;
-  const password = process.env.OWNER_PASSWORD;
-  if (!email || !password) throw new Error("Set OWNER_EMAIL and OWNER_PASSWORD in .env");
+  if (!email) throw new Error("Set OWNER_EMAIL in .env");
 
-  // Owner login comes from .env only. No default passwords.
+  // The Owner identity is provisioned from the trusted environment; access uses a private one-time invitation.
   await db.admin.upsert({
     where: { email: email.toLowerCase() },
     update: { kind: "OWNER", level: 6, title: "Owner" },
-    create: { email: email.toLowerCase(), name: "Owner", title: "Owner", passwordHash: await bcrypt.hash(password, 12), kind: "OWNER", level: 6 },
+    create: { email: email.toLowerCase(), name: "Owner", title: "Owner", kind: "OWNER", level: 6 },
   });
 
   // Starting examples only. Owner, tech and developers can edit these later.
