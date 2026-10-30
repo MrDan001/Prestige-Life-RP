@@ -28,13 +28,13 @@ export async function createSession(adminId: string) {
     .sign(secret());
 }
 
-async function getSessionIdentity(): Promise<{ adminId: string; sessionId: string | null } | null> {
+async function getSessionIdentity(): Promise<{ adminId: string; sessionId: string | null; issuedAt: Date | null } | null> {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
   try {
     const payload = (await jwtVerify(token, secret())).payload;
     if (!payload.sub) return null;
-    return { adminId: payload.sub, sessionId: typeof payload.jti === "string" ? payload.jti : null };
+    return { adminId: payload.sub, sessionId: typeof payload.jti === "string" ? payload.jti : null, issuedAt: typeof payload.iat === "number" ? new Date(payload.iat * 1000) : null };
   } catch {
     return null;
   }
@@ -72,6 +72,9 @@ export async function requireAdmin(right?: Right): Promise<Ok | Fail> {
   });
   if (!admin) return { error: NextResponse.json({ error: "Not signed in" }, { status: 401 }) };
   if (admin.suspended) return { error: NextResponse.json({ error: "This account is suspended" }, { status: 403 }) };
+  if (admin.sessionsRevokedAt && (!identity.issuedAt || identity.issuedAt <= admin.sessionsRevokedAt)) {
+    return { error: NextResponse.json({ error: "This session has been revoked. Accept a fresh staff invitation." }, { status: 401 }) };
+  }
 
   const actor: Staff = {
     id: admin.id,
