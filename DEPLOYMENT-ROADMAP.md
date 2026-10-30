@@ -84,3 +84,14 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - The public player-facing domain remains `https://prestige-life-rp.vercel.app`; application admin routes remain protected by application sessions.
 - Vercel preview/generated deployment URLs remain behind Vercel Authentication.
 - The RLS lockdown intentionally denies browser/API roles direct access to all public application tables. No broad client policies were added.
+
+
+## Staff account deletion controls — 30 October 2026
+- [x] Added a clearly marked **Delete staff** action to every manageable staff card in the owner Staff page, alongside Suspend/Restore.
+- [x] Added an owner-only DELETE API on `/api/admin/admins/[id]`; non-owner requests are rejected server-side.
+- [x] Prevented deletion of owner accounts and the currently signed-in owner account.
+- [x] Added a destructive confirmation naming the staff member and explaining which account-owned records will be removed.
+- [x] Deletion transaction removes the staff member's invitations, sessions, passkeys, complaint responses, internal notes, and audit entries to satisfy existing restrictive foreign keys.
+- [x] Complaint records are retained; accused/claimed staff references are cleared by the schema's SET NULL relations.
+- [x] README and this roadmap updated.
+- [ ] Run a production build and test owner delete, non-owner denial, owner protection, and retained complaint behavior before merging.
