@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RIGHTS } from "@/lib/permissions";
 
 type Me = { kind: string; level: number; canManageStaff: boolean; canGrantStaffPermissions: boolean };
-type RoleInfo = { name: string; kind: string; minLevel: number; maxLevel: number };
+type RoleInfo = { name: string; kind: string; minLevel: number; maxLevel: number; extraRights: string[] };
 type Staff = {
   id: string; email: string; name: string; title: string; kind: string; level: number; extraRights: string[];
   gameId: string | null; suspended: boolean; canManage: boolean; roleId: string | null; role: RoleInfo | null;
@@ -27,6 +27,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
   s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void; onRecover: (id: string) => void; onRevokeSessions: (id: string) => void; onDelete: (staff: Staff) => void;
 }) {
   const [rights, setRights] = useState<string[]>(s.extraRights);
+  const inheritedRights = (s.role?.extraRights ?? []).filter(right => right !== "MANAGE_STAFF" && right !== "GRANT_STAFF_PERMISSIONS");
   const roleOptions = roles.filter(role => (role.active && role.assignable) || role.id === s.roleId);
   const levelOptions = s.role ? levelsFor(s.role, levels) : levels;
   const levelChoices = levelOptions.includes(s.level) ? levelOptions : [...levelOptions, s.level].sort((a, b) => a - b);
@@ -83,11 +84,11 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
           </section>
           {me.canGrantStaffPermissions && s.canManage && <section className="staff-section">
             <h3 className="staff-label">Staff permissions <span>(delegated authority)</span></h3>
-            <p className="staff-help">These permissions are assigned to this person directly. Manage Staff allows eligible recruitment; Grant Staff Permissions allows controlled permission delegation. Role rank limits still apply.</p>
+            <p className="staff-help">Direct grants are editable here. Rights marked “via role” remain inherited from the assigned role and are controlled by the Owner in Roles. Manage Staff allows eligible recruitment; Grant Staff Permissions allows controlled permission delegation. Role rank limits still apply.</p>
             <div className="staff-rights-grid">{RIGHTS.map(right =>
-              <label key={right} className={`staff-right${rights.includes(right) ? " checked" : ""}`}>
-                <input type="checkbox" checked={rights.includes(right)} onChange={e => setRights(e.target.checked ? [...rights, right] : rights.filter(item => item !== right))}/>
-                <span>{RIGHTS_LABEL[right] ?? right}</span>
+              <label key={right} className={`staff-right${rights.includes(right) || inheritedRights.includes(right) ? " checked" : ""}`}>
+                <input type="checkbox" checked={rights.includes(right) || inheritedRights.includes(right)} disabled={inheritedRights.includes(right)} onChange={e => setRights(e.target.checked ? [...rights, right] : rights.filter(item => item !== right))}/>
+                <span>{RIGHTS_LABEL[right] ?? right}{inheritedRights.includes(right) ? " · via role" : ""}</span>
               </label>
             )}</div>
             <button type="button" className="primary staff-save" disabled={[...rights].sort().join() === [...s.extraRights].sort().join()} onClick={() => onPatch(s.id, { extraRights: rights })}>Save rights</button>
