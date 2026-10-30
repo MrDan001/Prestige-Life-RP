@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 type Me = {
   name: string; kind: string; level: number; gameId: string | null;
-  canManageStaff: boolean; canManageCategories: boolean; canManageTemplates: boolean; canManageSite: boolean; hasPasskey: boolean;
+  canManageStaff: boolean; canManageCategories: boolean; canManageTemplates: boolean; canManageSite: boolean; canManageRules: boolean; hasPasskey: boolean;
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -51,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/roles", label: "Roles", show: me?.kind === "OWNER" },
     { href: "/admin/categories", label: "Categories", show: !!me?.canManageCategories },
     { href: "/admin/templates", label: "Judgments", show: !!me?.canManageTemplates },
-    { href: "/admin/settings", label: "Home page", show: !!me?.canManageSite },
+    { href: "/admin/settings", label: "Home page", show: !!me?.canManageSite || !!me?.canManageRules },
     { href: "/admin/audit", label: "Audit log", show: !!me?.canManageStaff },
     { href: "/admin/profile", label: "Profile", show: true },
   ];

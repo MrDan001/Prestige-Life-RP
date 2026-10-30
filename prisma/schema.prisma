@@ -210,6 +210,18 @@ model SiteSetting {
   updatedAt    DateTime @updatedAt
 }
 
+// Public community rules, ordered by the staff in Homepage settings.
+model Rule {
+  id        String   @id @default(cuid())
+  title     String   @db.VarChar(120)
+  content   String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder, createdAt])
+}
+
 // A role is a title with rules about which levels it can sit on. Rights still come from the level
 // (and top tier). Custom roles can also carry extra rights.
 model Role {

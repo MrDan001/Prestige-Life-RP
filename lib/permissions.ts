@@ -18,6 +18,9 @@ export const isTop = (s: { kind: Kind }) => s.kind !== "ADMIN";
 
 export const canAccessSite = (s: Staff) => isTop(s) || s.level >= MIN_SITE_LEVEL;
 
+/** Community rules are managed by Chief Admin (level 6) and the top tier only. */
+export const canManageRules = (s: Staff) => isTop(s) || (s.kind === "ADMIN" && s.level >= 6);
+
 export function hasRight(s: Staff, right: Right) {
   if (isTop(s)) return true;
   if (right === "MANAGE_STAFF" && s.level >= 6) return true; // deputy chief and above award levels

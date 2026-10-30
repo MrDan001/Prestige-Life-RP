@@ -1,7 +1,7 @@
 // PATH: app/api/admin/me/route.ts
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { hasRight } from "@/lib/permissions";
+import { hasRight, canManageRules } from "@/lib/permissions";
 import { db } from "@/lib/db";
 
 export async function GET() {
@@ -25,5 +25,6 @@ export async function GET() {
     canManageCategories: hasRight(actor, "MANAGE_CATEGORIES"),
     canManageTemplates: hasRight(actor, "MANAGE_TEMPLATES"),
     canManageSite: hasRight(actor, "MANAGE_SITE"),
+    canManageRules: canManageRules(actor),
   });
 }

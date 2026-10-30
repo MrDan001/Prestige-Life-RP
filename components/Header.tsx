@@ -12,6 +12,7 @@ export default function Header() {
       </a>
       <nav className="nav" aria-label="Main navigation">
         <a href="#features">Features</a>
+        <a href="/rules">Rules</a>
         <a href="#download">Download</a>
         <a href="#join">How to Join</a>
       </nav>

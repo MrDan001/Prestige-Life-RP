@@ -31,7 +31,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
   const levelChoices = levelOptions.includes(s.level) ? levelOptions : [...levelOptions, s.level].sort((a, b) => a - b);
   const initials = s.name.trim().split(/\s+/).slice(0, 2).map(part => part[0] ?? "").join("").toUpperCase();
   const presenceClass = s.presence.toLowerCase();
-  const presenceLabel = s.presence.charAt(0) + s.presence.slice(1).toLowerCase();
+  const presenceLabel = s.presence === "INACTIVE" ? "Offline" : s.presence.charAt(0) + s.presence.slice(1).toLowerCase();
 
   function changeRole(id: string) {
     const role = roles.find(item => item.id === id);
@@ -318,7 +318,7 @@ export default function StaffPage() {
     { id: "ALL", label: "All" }, { id: "ADMINS", label: "Admins" },
     { id: "TOP_TIER", label: "Top tier" }, { id: "ACTIVE", label: "Active" },
     { id: "PENDING", label: "Pending" }, { id: "SUSPENDED", label: "Suspended" },
-    { id: "INACTIVE", label: "Inactive" },
+    { id: "INACTIVE", label: "Offline" },
   ];
 
   return (
