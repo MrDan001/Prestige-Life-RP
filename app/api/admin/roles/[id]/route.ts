@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { RIGHTS } from "@/lib/permissions";
+import { ROLE_RIGHTS } from "@/lib/permissions";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -12,7 +12,7 @@ const patch = z.object({
   name: z.string().min(2).max(40).optional(),
   minLevel: z.coerce.number().int().min(1).max(6).optional(),
   maxLevel: z.coerce.number().int().min(1).max(6).optional(),
-  extraRights: z.array(z.enum(RIGHTS)).optional(),
+  extraRights: z.array(z.enum(ROLE_RIGHTS)).optional(),
   active: z.boolean().optional(),
 });
 
