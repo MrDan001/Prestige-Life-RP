@@ -20,7 +20,7 @@ export default function RolesPage() {
   const [msg, setMsg] = useState("");
 
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/roles");
+    const r = await fetch("/api/admin/roles", { cache: "no-store" });
     if (r.ok) setRoles(await r.json());
   }, []);
 
