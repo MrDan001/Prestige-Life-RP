@@ -7,12 +7,15 @@ import { audit } from "@/lib/audit";
 import { RIGHTS, canAssignRole } from "@/lib/permissions";
 
 /** Roles, for the Staff screen and the Roles screen. assignable = whether you may give that role. */
+export const dynamic = "force-dynamic";
 export async function GET() {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
   const roles = await db.role.findMany({ include: { _count: { select: { admins: true } } } });
   roles.sort((x, y) => Number(x.kind !== "ADMIN") - Number(y.kind !== "ADMIN") || x.minLevel - y.minLevel || x.name.localeCompare(y.name));
-  return NextResponse.json(roles.map((r) => ({ ...r, assignable: r.active && canAssignRole(a.actor, r) })));
+  return NextResponse.json(roles.map((r) => ({ ...r, assignable: r.active && canAssignRole(a.actor, r) })), {
+    headers: { "Cache-Control": "no-store, max-age=0" },
+  });
 }
 
 const schema = z
