@@ -15,7 +15,10 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Public player-facing website: https://prestige-life-rp.vercel.app
 - Vercel Authentication uses Standard Protection: the production domain is public, while preview and generated deployment URLs remain protected.
 - Admin access remains behind the application's own sign-in/session checks at `/auth` and `/admin`. Vercel's public production-domain setting does not grant an application admin session.
-- The deployed admin flow is currently email/password. The separately discussed passwordless invitation flow has not yet been implemented.
+- Staff access is invitation-only and passwordless. The owner creates staff records and privately shares a one-use invitation link; links expire after 48 hours.
+- Invitation acceptance creates a 30-day server-registered session. The owner can revoke pending invitations, revoke all active sessions for a staff member, or suspend the account. Suspension and revocation are checked against existing sessions on every protected request.
+- The invitation link is returned once in the Owner-only Staff screen; it is not automatically emailed. Share it privately and do not post it in public channels.
+- Existing staff records, role assignments, levels, extra rights, and game-account links are preserved by the additive database migration.
 - When a replacement custom domain is ready, add and verify it in Vercel before changing player-facing links or redirects.
 
 ## Visual quality
@@ -36,6 +39,7 @@ Image sizing, alignment, crop positions, and the next visual checks are tracked 
 
 - The production app is connected to the `prestige-life-rp` Vercel project and deploys from `main`.
 - The build command is `prisma generate && next build`; Prisma schema changes must remain in sync with API routes, seed scripts, dependencies, and the database.
+- The staff invitation migration is `prisma/migrations/20261030000000_staff_invitations/migration.sql`; it adds invitation/session tables and makes the legacy password hash nullable without deleting existing staff data.
 - Deployment incident findings and follow-up checks are tracked in [DEPLOYMENT-ROADMAP.md](./DEPLOYMENT-ROADMAP.md).
 - Keep database and session secrets in Vercel environment variables; never commit their values.
 
