@@ -104,3 +104,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update the seed role name so future seed runs use PRM.
 - [x] Update README and this roadmap.
 - [ ] Confirm the production Roles and Staff screens show PRM after deployment.
+
+
+## Owner identity visibility in Staff directory — 30 October 2026
+- [x] Exclude all accounts with `kind = OWNER` from the staff-directory API response, regardless of who is viewing it.
+- [x] PRM/TECH, DEVELOPER, other OWNER accounts, and the primary owner therefore do not see owner account rows in the Staff directory.
+- [x] Preserve the built-in Owner role, owner authentication, permissions, role assignment rules, and all underlying owner records.
+- [x] Keep this narrowly scoped to the Staff directory; no other role, permission, or account behavior is changed.
+- [x] Update README and this roadmap.
+- [ ] Verify the preview build and confirm the Staff directory omits Owner rows for owner, PRM/TECH, and DEVELOPER sessions.

@@ -14,7 +14,12 @@ const hashToken = (token: string) => createHash("sha256").update(token).digest("
 export async function GET() {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
+  // Owner accounts are deliberately omitted from the staff directory for every
+  // viewer, including other owners, PRM/TECH and developers. The OWNER role,
+  // permissions and authentication remain unchanged; this only hides account
+  // identities from the roster response.
   const rows = await db.admin.findMany({
+    where: { kind: { not: "OWNER" } },
     orderBy: [{ kind: "asc" }, { level: "desc" }],
     select: {
       id: true, email: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true,
