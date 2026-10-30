@@ -39,9 +39,9 @@ enum EvidenceKind {
 model Admin {
   id           String    @id @default(cuid())
   email        String    @unique
-  passwordHash String?
   name         String
   title        String    @default("Admin") // display only: Curator, Senior Admin, Chief Admin...
+  passwordHash String
   kind         StaffKind @default(ADMIN)
   level        Int       @default(1)
   extraRights  String[]  @default([]) // MANAGE_CATEGORIES, MANAGE_STAFF (owner grants)

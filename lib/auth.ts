@@ -11,7 +11,7 @@ const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET!);
 export const COOKIE = "session";
 
 export async function createSession(adminId: string) {
-  return new SignJWT({}).setProtectedHeader({ alg: "HS256" }).setSubject(adminId).setExpirationTime("30d").sign(secret());
+  return new SignJWT({}).setProtectedHeader({ alg: "HS256" }).setSubject(adminId).setExpirationTime("8h").sign(secret());
 }
 
 async function getSessionId(): Promise<string | null> {

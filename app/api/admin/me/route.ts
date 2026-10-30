@@ -9,7 +9,6 @@ export async function GET() {
   const { admin, actor } = a;
   return NextResponse.json({
     id: admin.id,
-    isOwner: admin.kind === "OWNER",
     name: admin.name,
     email: admin.email,
     title: admin.title,
