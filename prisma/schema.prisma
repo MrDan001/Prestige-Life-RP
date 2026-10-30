@@ -39,6 +39,7 @@ enum EvidenceKind {
 model Admin {
   id           String    @id @default(cuid())
   email        String    @unique
+  passwordHash String
   name         String
   title        String    @default("Admin") // display only: Curator, Senior Admin, Chief Admin...
   kind         StaffKind @default(ADMIN)
@@ -55,7 +56,6 @@ model Admin {
   audits            AuditLog[]
   claimedComplaints Complaint[] @relation("Claimed")
   notes             Note[]
-  invitations       AdminInvite[]
 }
 
 model Category {
@@ -215,18 +215,4 @@ model Role {
   active      Boolean   @default(true)
   createdAt   DateTime  @default(now())
   admins      Admin[]
-}
-
-
-model AdminInvite {
-  id        String   @id @default(cuid())
-  adminId   String
-  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  tokenHash String   @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
-  @@index([adminId, createdAt])
-  @@index([expiresAt])
 }
