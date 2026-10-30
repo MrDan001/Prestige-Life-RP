@@ -149,6 +149,7 @@ html:has(.shell), body:has(.shell) { overflow-x: auto; }
 .app-dialog-eyebrow { color: #d85a9f; font-size: 10px; font-weight: 800; letter-spacing: .16em; }
 .app-dialog-copy h2 { margin: 0; font-size: 21px; line-height: 1.25; letter-spacing: -.02em; }
 .app-dialog-copy p { margin: 0; color: #b6b1c9; font-size: 14px; line-height: 1.65; }
+.app-dialog-error { margin: 14px 0 0; padding: 10px 12px; border: 1px solid rgba(240,82,101,.3); border-radius: 10px; background: rgba(240,82,101,.08); color: #ff9aa6; font-size: 12px; line-height: 1.5; }
 .app-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
 .app-dialog-actions button { min-height: 44px; padding: 0 17px; border-radius: 12px; font-weight: 650; }
 .app-dialog-cancel { border: 1px solid #39344e; background: #161421; color: #d6d1e3; }
