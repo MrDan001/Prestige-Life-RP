@@ -171,8 +171,7 @@ const staffStyles = `
 .staff-page .staff-add-form label{display:grid;gap:5px;min-width:0;color:var(--muted);font-size:12px}
 .staff-page .staff-add-form input,.staff-page .staff-add-form select{box-sizing:border-box;width:100%;min-width:0}
 .staff-page .staff-create{align-self:end;min-height:42px}
-.staff-page .staff-header h1{font-size:1.7rem}.staff-page .staff-add{padding:10px 13px}.staff-page .staff-summary{padding:11px 12px;gap:10px}.staff-page .staff-avatar{width:36px;height:36px}.staff-page .staff-body{padding:14px 12px 12px}.staff-page .staff-add-form label:nth-child(1),.staff-page .staff-add-form label:nth-child(2),.staff-page .staff-add-form label:last-of-type,.staff-page .staff-create{grid-column:1/-1}}
-}
+
 `;
 
 export default function StaffPage() {
