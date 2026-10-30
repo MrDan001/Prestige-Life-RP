@@ -39,7 +39,7 @@ enum EvidenceKind {
 model Admin {
   id           String    @id @default(cuid())
   email        String    @unique
-  passwordHash String
+  passwordHash String?
   name         String
   title        String    @default("Admin") // display only: Curator, Senior Admin, Chief Admin...
   kind         StaffKind @default(ADMIN)
