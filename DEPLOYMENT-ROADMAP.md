@@ -37,6 +37,11 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Supabase security advisor no longer reports RLS-disabled tables. It reports informational no-policy notices because browser access is intentionally disabled and app access is server-side.
 - [x] Existing staff and role rows were preserved.
 
+### Production navigation correction — 30 October 2026
+- [x] Updated `/auth` to validate the current database-backed staff session and redirect authenticated staff directly to `/admin`.
+- [x] Kept the invitation-only instructions visible for visitors without a valid session.
+- [ ] Verify direct `/auth` navigation redirects the owner to the dashboard on the latest production deployment.
+
 ### Production UI correction — 30 October 2026
 - [x] Live owner screenshot exposed a leftover password input in the Add Staff form despite the passwordless API.
 - [x] Removed the password field; the form now sends only name, email, role, and applicable level.
