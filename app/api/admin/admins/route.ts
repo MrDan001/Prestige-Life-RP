@@ -26,8 +26,7 @@ export async function GET() {
       id: true, email: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true,
       roleId: true, role: { select: { name: true, kind: true, minLevel: true, maxLevel: true } },
       lastSeenAt: true,
-      invitations: { orderBy: { createdAt: "desc" }, take: 1, select: { usedAt: true, revokedAt: true, expiresAt: true } },
-      acceptedInvitations: { where: { usedAt: { not: null } }, take: 1, select: { id: true } },
+      invitations: { orderBy: { createdAt: "desc" }, select: { usedAt: true, revokedAt: true, expiresAt: true } },
     },
   });
   const closures = await db.auditLog.groupBy({
@@ -43,13 +42,13 @@ export async function GET() {
   const activeWindow = 24 * 60 * 60 * 1000;
   return NextResponse.json(rows.map((r) => {
     const latestInvite = r.invitations[0];
-    const hasAcceptedInvite = r.acceptedInvitations.length > 0;
+    const hasAcceptedInvite = r.invitations.some(invitation => !!invitation.usedAt);
     const pending = !!latestInvite && !latestInvite.usedAt && (!latestInvite.revokedAt || !hasAcceptedInvite);
     const closedAt = closedAtByAdmin.get(r.id) ?? null;
     const lastActivityAt = [r.lastSeenAt, closedAt].filter(Boolean).sort((x, y) => y!.getTime() - x!.getTime())[0] ?? null;
     const recentActivity = !!lastActivityAt && now - lastActivityAt.getTime() <= activeWindow;
     const presence = r.suspended ? "SUSPENDED" : pending ? "PENDING" : recentActivity ? "ACTIVE" : "INACTIVE";
-    const { invitations: _invitations, acceptedInvitations: _acceptedInvitations, ...staff } = r;
+    const { invitations: _invitations, ...staff } = r;
     return {
       ...staff,
       canManage: canManageTarget(a.actor, r),
