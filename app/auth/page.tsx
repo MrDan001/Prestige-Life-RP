@@ -1,7 +1,13 @@
-// PATH: app/auth/page.tsx
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth";
 import "../admin/admin.css";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  // A signed-in staff member who opens /auth should go straight to the dashboard.
+  // Validate the database-backed session rather than trusting the JWT signature alone.
+  const session = await requireAdmin();
+  if (!session.error) redirect("/admin");
+
   return (
     <main className="auth-wrap">
       <section className="auth-card">
