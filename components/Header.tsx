@@ -6,8 +6,8 @@ export default function Header() {
           className="logo-image"
           src="/prestige-life-logo.jpg"
           alt="Prestige Life RP"
-          width="180"
-          height="120"
+          width="168"
+          height="112"
         />
       </a>
       <nav className="nav" aria-label="Main navigation">
