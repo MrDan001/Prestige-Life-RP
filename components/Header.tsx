@@ -1,11 +1,11 @@
 export default function Header() {
   return (
     <header className="header">
-      <a href="/" className="logo" aria-label="Prestige Live RP home">
+      <a href="/" className="logo" aria-label="Prestige Life RP home">
         <img
           className="logo-image"
           src="/prestige-logo.svg"
-          alt="Prestige Live RP"
+          alt="Prestige Life RP"
           width="190"
           height="75"
         />
