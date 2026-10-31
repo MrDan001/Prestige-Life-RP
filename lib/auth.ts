@@ -80,7 +80,12 @@ export async function requireAdmin(right?: Right): Promise<Ok | Fail> {
     id: admin.id,
     kind: admin.kind,
     level: admin.level,
-    extraRights: [...new Set([...admin.extraRights, ...(admin.role?.extraRights ?? [])])],
+    extraRights: [...new Set([
+      ...admin.extraRights,
+      // Staff-management powers must be granted directly on a staff account,
+      // not inherited invisibly from a reusable role.
+      ...(admin.role?.extraRights ?? []).filter(right => right !== "MANAGE_STAFF" && right !== "GRANT_STAFF_PERMISSIONS"),
+    ])],
   };
   if (!canAccessSite(actor))
     return { error: NextResponse.json({ error: "Your rank does not have website access" }, { status: 403 }) };

@@ -26,7 +26,7 @@ export async function GET() {
     orderBy: [{ kind: "asc" }, { level: "desc" }],
     select: {
       id: true, email: true, name: true, title: true, kind: true, level: true, extraRights: true, gameId: true, suspended: true,
-      roleId: true, role: { select: { name: true, kind: true, minLevel: true, maxLevel: true } },
+      roleId: true, role: { select: { name: true, kind: true, minLevel: true, maxLevel: true, extraRights: true } },
       lastSeenAt: true,
       invitations: { orderBy: { createdAt: "desc" }, select: { usedAt: true, revokedAt: true, expiresAt: true } },
     },
@@ -71,12 +71,10 @@ const schema = z.object({
   gameId: z.string().max(64).optional(),
 });
 
-/** Owner creates a staff record and receives a private, one-use invitation URL. */
+/** Staff managers create an eligible staff record and receive a private, one-use invitation URL. */
 export async function POST(req: Request) {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
-  if (a.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can invite new staff" }, { status: 403 });
-
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid details", details: parsed.error.flatten() }, { status: 400 });
   const d = parsed.data;
@@ -89,6 +87,10 @@ export async function POST(req: Request) {
   const level = kind === "ADMIN" ? (d.level ?? role.minLevel) : 6;
   if (kind === "ADMIN" && (level < role.minLevel || level > role.maxLevel))
     return NextResponse.json({ error: `The ${role.name} role needs a level between ${role.minLevel} and ${role.maxLevel}` }, { status: 400 });
+  // A role's allowed range is not the actor's authority. Enforce the selected
+  // level separately so a broad role cannot be used to promote above the inviter.
+  if (kind === "ADMIN" && !canAssignLevel(a.actor, null, level))
+    return NextResponse.json({ error: "You cannot invite staff at that level" }, { status: 403 });
 
   const email = d.email.toLowerCase().trim();
   if (await db.admin.findUnique({ where: { email } }))

@@ -1,7 +1,7 @@
 // PATH: app/admin/roles/page.tsx
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { RIGHTS } from "@/lib/permissions";
+import { ROLE_RIGHTS } from "@/lib/permissions";
 
 type Role = { id: string; name: string; kind: string; minLevel: number; maxLevel: number; extraRights: string[]; system: boolean; active: boolean; _count: { admins: number } };
 
@@ -56,7 +56,7 @@ export default function RolesPage() {
     <main style={{ maxWidth: 900, margin: "0 auto", padding: 24, display: "grid", gap: 20 }}>
       <header>
         <h1>Roles</h1>
-        <p style={{ color: muted, margin: "4px 0 0" }}>A role is a title that can only be given at certain levels. Rights come from the level. A custom role can also add extra rights.</p>
+        <p style={{ color: muted, margin: "4px 0 0" }}>A role is a title that can only be given at certain levels. Rights come from the level. A custom role can add general workspace rights; staff-management permissions are assigned directly to individual staff accounts.</p>
       </header>
 
       <section style={box}>
@@ -69,7 +69,7 @@ export default function RolesPage() {
           </div>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
             <small style={{ color: muted }}>Extra rights:</small>
-            {RIGHTS.map(r => <label key={r}><input type="checkbox" checked={rights.includes(r)} onChange={e => setRights(e.target.checked ? [...rights, r] : rights.filter(x => x !== r))} /> {RIGHT_LABEL[r]}</label>)}
+            {ROLE_RIGHTS.map(r => <label key={r}><input type="checkbox" checked={rights.includes(r)} onChange={e => setRights(e.target.checked ? [...rights, r] : rights.filter(x => x !== r))} /> {RIGHT_LABEL[r]}</label>)}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="primary">{editing ? "Save changes" : "Add role"}</button>

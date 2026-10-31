@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { RIGHTS } from "@/lib/permissions";
 
-type Me = { kind: string; level: number; canManageStaff: boolean };
-type RoleInfo = { name: string; kind: string; minLevel: number; maxLevel: number };
+type Me = { kind: string; level: number; canManageStaff: boolean; canGrantStaffPermissions: boolean };
+type RoleInfo = { name: string; kind: string; minLevel: number; maxLevel: number; extraRights: string[] };
 type Staff = {
   id: string; email: string; name: string; title: string; kind: string; level: number; extraRights: string[];
   gameId: string | null; suspended: boolean; canManage: boolean; roleId: string | null; role: RoleInfo | null;
@@ -15,6 +15,7 @@ type InviteInfo = { id: string; url: string; expiresAt: string };
 
 const RIGHTS_LABEL: Record<string, string> = {
   MANAGE_CATEGORIES: "Edit categories", MANAGE_STAFF: "Manage staff",
+  GRANT_STAFF_PERMISSIONS: "Grant staff permissions",
   MANAGE_TEMPLATES: "Edit judgments", MANAGE_SITE: "Edit home page",
 };
 const levelsFor = (role: { kind: string; minLevel: number; maxLevel: number }, levels: number[]) =>
@@ -26,6 +27,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
   s: Staff; me: Me; levels: number[]; roles: Role[]; onPatch: (id: string, body: object) => void; onInvite: (id: string) => void; onRecover: (id: string) => void; onRevokeSessions: (id: string) => void; onDelete: (staff: Staff) => void;
 }) {
   const [rights, setRights] = useState<string[]>(s.extraRights);
+  const inheritedRights = (s.role?.extraRights ?? []).filter(right => right !== "MANAGE_STAFF" && right !== "GRANT_STAFF_PERMISSIONS");
   const roleOptions = roles.filter(role => (role.active && role.assignable) || role.id === s.roleId);
   const levelOptions = s.role ? levelsFor(s.role, levels) : levels;
   const levelChoices = levelOptions.includes(s.level) ? levelOptions : [...levelOptions, s.level].sort((a, b) => a - b);
@@ -52,7 +54,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
         <svg className="staff-chevron" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m4 7 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
       </summary>
       <div className="staff-body">
-        {me.kind === "OWNER" && s.canManage && <section className="staff-section" style={{ borderTop: 0, paddingTop: 0 }}><button type="button" className="staff-invite-button" onClick={() => onInvite(s.id)}>Issue / replace private invitation</button><button type="button" className="staff-invite-button" onClick={() => onRecover(s.id)}>Reset passkeys &amp; issue recovery invitation</button></section>}
+        {s.canManage && <section className="staff-section" style={{ borderTop: 0, paddingTop: 0 }}><button type="button" className="staff-invite-button" onClick={() => onInvite(s.id)}>Issue / replace private invitation</button>{me.kind === "OWNER" && <button type="button" className="staff-invite-button" onClick={() => onRecover(s.id)}>Reset passkeys &amp; issue recovery invitation</button>}</section>}
         <div className="staff-email">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="1.8" y="3.3" width="14.4" height="11.4" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5"/><path d="m3 5 6 4.6L15 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           <span>{s.email}</span>
@@ -80,12 +82,13 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
               {s.gameId && <button type="button" onClick={() => onPatch(s.id, { gameId: null })}>Unlink</button>}
             </div>
           </section>
-          {me.kind === "OWNER" && s.kind === "ADMIN" && <section className="staff-section">
-            <h3 className="staff-label">Extra rights <span>(owner only)</span></h3>
+          {me.canGrantStaffPermissions && s.canManage && <section className="staff-section">
+            <h3 className="staff-label">Staff permissions <span>(delegated authority)</span></h3>
+            <p className="staff-help">Direct grants are editable here. Rights marked “via role” remain inherited from the assigned role and are controlled by the Owner in Roles. Manage Staff allows eligible recruitment; Grant Staff Permissions allows controlled permission delegation. Role rank limits still apply.</p>
             <div className="staff-rights-grid">{RIGHTS.map(right =>
-              <label key={right} className={`staff-right${rights.includes(right) ? " checked" : ""}`}>
-                <input type="checkbox" checked={rights.includes(right)} onChange={e => setRights(e.target.checked ? [...rights, right] : rights.filter(item => item !== right))}/>
-                <span>{RIGHTS_LABEL[right] ?? right}</span>
+              <label key={right} className={`staff-right${rights.includes(right) || inheritedRights.includes(right) ? " checked" : ""}`}>
+                <input type="checkbox" checked={rights.includes(right) || inheritedRights.includes(right)} disabled={inheritedRights.includes(right)} onChange={e => setRights(e.target.checked ? [...rights, right] : rights.filter(item => item !== right))}/>
+                <span>{RIGHTS_LABEL[right] ?? right}{inheritedRights.includes(right) ? " · via role" : ""}</span>
               </label>
             )}</div>
             <button type="button" className="primary staff-save" disabled={[...rights].sort().join() === [...s.extraRights].sort().join()} onClick={() => onPatch(s.id, { extraRights: rights })}>Save rights</button>
@@ -357,7 +360,7 @@ export default function StaffPage() {
             s={person} me={me} levels={levels} roles={roles} onPatch={patch} onInvite={issueInvite} onRecover={recoverPasskeys} onRevokeSessions={revokeSessions} onDelete={deleteStaff} />
         ) : <div className="staff-empty">No staff match this search or filter.</div>}
       </section>
-      <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you.</p>
+      <p className="staff-help">A role is a title and limits which levels it can have. Levels 1 and 2 cannot sign in to the website. You can only change people ranked below you. Staff-management permissions are separate from rank and must be granted explicitly.</p>
     </main>
   );
 }

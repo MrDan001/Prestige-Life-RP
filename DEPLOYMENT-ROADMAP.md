@@ -19,7 +19,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 ## Stage 2 — Passwordless staff invitations
 
 ### Implementation
-- [x] Owner-only staff creation by email, name, and role; no password is requested for new staff.
+- [x] Staff creation by authorized staff managers using email, name, and an eligible role/level; no password is requested for new staff.
 - [x] Cryptographically random, one-use invitations; only SHA-256 hashes are stored.
 - [x] Invitations expire after 48 hours; owner can reissue or revoke pending invitations.
 - [x] Invitation acceptance creates a 30-day server-registered session.
@@ -78,7 +78,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Confirm non-owner staff cannot create staff, issue invitations, revoke sessions, or access owner-only controls.
 
 ### Important operational notes
-- Invitation URLs are shown once in the Owner-only Staff interface; no email delivery provider is configured. Share links privately.
+- Invitation URLs are shown once in the Staff interface to the creator and authorized staff managers; no email delivery provider is configured. Share links privately.
 - A fresh one-use owner invitation has been issued separately from the repository. It expires after 48 hours and must be kept private.
 - Existing password hashes have not been deleted, but password login is disabled by the new application code.
 - The public player-facing domain remains `https://prestige-life-rp.vercel.app`; application admin routes remain protected by application sessions.
@@ -162,6 +162,17 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Run npx prisma migrate deploy against the local test database, then npx prisma generate.
 - [ ] Run npm run build and verify the four status colors, invitation acceptance transition, heartbeat refresh, and 24-hour boundary locally.
 - [ ] Confirm existing owner identity privacy and staff permissions remain unchanged.
+
+
+## Delegated staff recruitment and permission governance — 30 October 2026
+- [x] Add a direct **Manage Staff** permission; rank alone does not grant staff recruitment access, including level 6, PRM, or Developer.
+- [x] Add a separate **Grant Staff Permissions** permission for granting/revoking staff rights.
+- [x] Keep the Owner as the permanent authority for staff and permission management; the Owner can grant or revoke both permissions on eligible staff accounts.
+- [x] Allow delegated managers to create admin accounts, assign only permitted admin levels/roles, and issue/replace/revoke private invitations for accounts below their authority.
+- [x] Prevent delegated managers from changing their own permissions, managing equal/higher-ranked staff, assigning top-tier roles, or granting rights through reusable role definitions.
+- [x] Keep passkey resets, permanent staff deletion, and role-definition management Owner-only.
+- [x] Record permission grants/revocations in the audit log with actor, target, before/after rights, and timestamp.
+- [ ] Run the Vercel preview build and test Owner, delegated PRM/Chief Admin, Developer without delegation, and unprivileged admin scenarios before merging.
 
 
 ## Built-in role label update — 30 October 2026
