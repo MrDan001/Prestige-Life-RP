@@ -38,7 +38,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 
 ## Visual quality
 
-- The header uses the custom Prestige crown wordmark in `public/prestige-logo.svg`.
+- The header uses the Prestige Life crown wordmark in `public/prestige-logo.svg`.
 - The footer intentionally contains no logo.
 - The feature strip uses hand-drawn inline SVG line icons.
 - Image sizing, alignment, crop positions, and visual checks are tracked in [IMAGE-QUALITY-ROADMAP.md](./IMAGE-QUALITY-ROADMAP.md).
@@ -50,10 +50,8 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Passwordless staff migration files live under `prisma/migrations/`; keep Prisma schema, SQL migrations, API routes, and documentation in sync.
 - Deployment checks and remaining live verification steps are tracked in [DEPLOYMENT-ROADMAP.md](./DEPLOYMENT-ROADMAP.md).
 
-
 ### Owner identity privacy
 - The primary owner's account is a private system identity, excluded from the Staff directory by immutable Admin ID regardless of its role/title. It cannot be edited, invited, suspended, deleted, or have its sessions/passkeys reset through staff-management APIs. Sign-in remains passkey-only for the primary owner's registered account; other staff see only their own signed-in identity in the account header.
-
 
 ## Admin workspace behavior
 - Sign out is available only from **My Profile**; it is no longer shown in the shared admin navigation/account panel.
@@ -61,14 +59,12 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Complaints in **OPEN** and **IN_REVIEW** appear in the **Active** queue. **RESOLVED** and **DISMISSED** complaints appear in the separate **History** queue.
 - Closed complaints are read-only: staff cannot reply, draft a judgment, add a note, claim, release, or change their status while closed. The owner, PRM/TECH, and Developer top tier can explicitly reopen a closed complaint; it returns to Active, and a new response requires a separate action after reopening.
 
-
 ## Staff presence and invitation status
 - The Staff directory shows a presence state on every staff card: **Active** (green), **Pending** (gold), **Suspended** (red), or **Inactive** (gray).
 - Pending means the latest issued invitation has not been accepted. A revoked invitation remains Pending if the staff member has never accepted any invitation; a revoked recovery link for an already-onboarded staff member does not turn them back to Pending.
 - Active means the staff member visited the admin website or resolved/dismissed a complaint within the last 24 hours. The admin shell sends a lightweight authenticated heartbeat once per minute while its browser tab is visible.
 - Inactive means neither a website visit nor a complaint resolution/dismissal has been recorded in the last 24 hours.
 - The Admin lastSeenAt field is added by migration 20261030040000_staff_activity_presence; run migrations before local testing.
-
 
 ## Built-in FOUNDER role
 The built-in top-tier role is displayed as **FOUNDER**. It retains the existing OWNER kind and owner-level permissions and safeguards; only the displayed role name has changed. The additive migration `20261030050000_rename_prm2_to_founder` updates the existing role row and matching staff display titles. No staff accounts or permissions are recreated or changed.
