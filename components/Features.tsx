@@ -36,16 +36,7 @@ const features = [
 
 function FeatureIcon({ name }: { name: FeatureIconName }) {
   return (
-    <svg
-      viewBox="0 0 48 48"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.35"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      focusable="false"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.35" strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
       {featureIcons[name]}
     </svg>
   );
@@ -53,12 +44,10 @@ function FeatureIcon({ name }: { name: FeatureIconName }) {
 
 export default function Features() {
   return (
-    <section id="features" className="feature-strip" aria-label="Prestige Live RP features">
+    <section id="features" className="feature-strip" aria-label="Prestige Life RP features">
       {features.map((feature) => (
         <article key={feature.title} className="feature-item">
-          <span className="feature-icon">
-            <FeatureIcon name={feature.icon} />
-          </span>
+          <span className="feature-icon"><FeatureIcon name={feature.icon} /></span>
           <h2>{feature.title}</h2>
           <p>{feature.text}</p>
         </article>
