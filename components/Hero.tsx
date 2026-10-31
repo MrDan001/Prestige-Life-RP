@@ -18,7 +18,7 @@ export default function Hero({ site }: { site: Site }) {
         <p className="badge">{BADGE[site.launchStatus]}</p>
         <h1><span>Your Story.</span><span className="accent">Our World.</span></h1>
         <p className="tagline">
-          Prestige Live RP is a next-generation roleplay community where you create your own story.
+          Prestige Life RP is a next-generation roleplay community where you create your own story.
           Build a career, grow a business, uphold the law, or make your name on the streets — the city is yours.
         </p>
         <div className="cta-row">
