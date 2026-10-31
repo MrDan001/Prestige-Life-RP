@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Prestige Live RP — Live the Life",
+  title: "Prestige Life RP — Live the Life",
   description:
-    "A serious, immersive roleplay game built for mobile. Jobs, gangs, businesses and a living city in your pocket.",
+    "Prestige Life RP is a serious, immersive roleplay game built for mobile. Jobs, gangs, businesses and a living city in your pocket.",
   openGraph: {
-    title: "Prestige Live RP",
-    description: "Join the most immersive roleplay city. Your story starts tonight.",
+    title: "Prestige Life RP",
+    description: "Join Prestige Life RP, the most immersive roleplay city. Your story starts tonight.",
     type: "website",
   },
 };
