@@ -4,10 +4,10 @@ export default function Header() {
       <a href="/" className="logo" aria-label="Prestige Life RP home">
         <img
           className="logo-image"
-          src="/prestige-logo.svg"
+          src="/prestige-life-logo.jpg"
           alt="Prestige Life RP"
-          width="190"
-          height="75"
+          width="180"
+          height="120"
         />
       </a>
       <nav className="nav" aria-label="Main navigation">
