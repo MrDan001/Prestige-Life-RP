@@ -27,9 +27,6 @@ const fmt = (d: string) => new Date(d).toLocaleString();
 
 export default function ComplaintsPage() {
   const [meId, setMeId] = useState("");
-  const [canGenerateDemo, setCanGenerateDemo] = useState(false);
-  const [generatingDemo, setGeneratingDemo] = useState(false);
-  const [demoAlreadyGenerated, setDemoAlreadyGenerated] = useState(false);
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -59,11 +56,6 @@ export default function ComplaintsPage() {
     if (r.ok) {
       const current = await r.json();
       setMeId(current.id);
-      setCanGenerateDemo(!!current.canManageDemoComps);
-      if (current.canManageDemoComps) {
-        const demoState = await fetch("/api/admin/demo-comps", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
-        setDemoAlreadyGenerated(!!demoState?.generated);
-      }
     }
   }); }, []);
   useEffect(() => { loadList(); }, [loadList]);
@@ -73,16 +65,6 @@ export default function ComplaintsPage() {
     return s ? rows.filter(r => [r.player.username, r.accusedAdmin?.name, r.accusedName, r.id.slice(-6)].some(x => x?.toLowerCase().includes(s))) : rows;
   }, [rows, q]);
 
-  async function generateDemoComps() {
-    if (generatingDemo) return;
-    setGeneratingDemo(true); setMsg("");
-    try {
-      const response = await fetch("/api/admin/demo-comps", { method: "POST" });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) setMsg(data.error ?? "Could not generate demo complaints.");
-      else { setMsg(`Created ${data.created} demo complaints in the normal queue.`); setBucket("ACTIVE"); setChip("all"); await loadList(); }
-    } finally { setGeneratingDemo(false); }
-  }
 
   async function loadMore() {
     if (loadingMore || !hasMore) return;
@@ -158,7 +140,7 @@ export default function ComplaintsPage() {
     <div>
       <header className="topbar">
         <h1>Complaints</h1>
-        {canGenerateDemo && <button type="button" className="primary" disabled={generatingDemo || demoAlreadyGenerated} onClick={generateDemoComps}>{generatingDemo ? "Adding…" : demoAlreadyGenerated ? "Comps already added" : "Add comp"}</button>}
+        <a className="primary" href="/admin/create-comp?generate=1">Generate</a>
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
           <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
           <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
@@ -174,7 +156,7 @@ export default function ComplaintsPage() {
           {shown.length === 0 && <p className="muted">No complaints found.</p>}
           {shown.map(r => (
             <button key={r.id} className={`card${open?.id === r.id ? " sel" : ""}${r.canReply ? "" : " dim"}`} onClick={() => select(r.id)}>
-              <div className="row-top"><strong>{r.category.name}</strong><span className={`pill ${pill(r.status)}`}>{label(r.status)}</span></div>
+              <div className="row-top"><strong>#{r.id.slice(-6).toUpperCase()}</strong><span className={`pill ${pill(r.status)}`}>{label(r.status)}</span></div>
               <div style={{ marginTop: 4 }}>{r.player.username} <span className="muted">vs</span> {r.accusedAdmin?.name ?? r.accusedName ?? "unknown"}</div>
               <div className="sub">
                 {r.claimedBy ? (r.claimedById === meId ? "Claimed by you" : `Claimed by ${r.claimedBy.name}`) : "Available to claim"}
