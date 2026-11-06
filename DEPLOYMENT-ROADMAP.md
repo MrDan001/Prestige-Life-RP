@@ -224,16 +224,19 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 **Operational note:** the current Vercel secret is not readable through the available environment-variable metadata endpoint, so its password-bearing URI cannot safely be rewritten in place by this session. The code-side connection fan-out mitigation is committed; switching the production secret to transaction mode is still required for durable serverless scaling.
 
 
-## Complaint queue refinement — 6 November 2026
-- [x] Replace the generic "Reported player" label with distinct reported-player names for every generated training complaint.
-- [x] Add clearly labelled simulated text-evidence attachments to generated training complaints; these are not presented as genuine player-submitted proof, and the UI labels evidence as attached rather than claiming it came from the game.
-- [x] Paginate Active and History queues at 15 records per request with a Load more control.
-- [x] Keep Active complaints OPEN until resolved or dismissed; remove IN_REVIEW from the admin workflow and normalize existing IN_REVIEW records to OPEN.
-- [x] Require an explicit claim before staff can draft a judgment, reply, add a private note, or close a complaint; close controls are only exposed to the current claimer with close permission.
-- [x] Limit each admin to one OPEN claimed complaint at a time; preserve rank-based release/takeover rules.
-- [x] Remove the judgment-template helper sentence from the UI.
-- [x] Restrict the Add comp control and server endpoint to officialsafebase@gmail.com; all other staff receive no control and are rejected by the API.
+## Complaint queue and owner-created reports — 6 November 2026
+- [x] Keep Active complaints OPEN until resolved or dismissed.
+- [x] Require an explicit claim before staff can draft a judgment, reply, add a private note, or close a complaint.
+- [x] Limit each admin to one OPEN claim at a time; preserve rank-based release/takeover rules.
+- [x] Remove the judgment-template helper sentence.
+- [x] Enforce a fixed 15-record page size for Active and History and expose Load more only when more records exist.
+- [x] Display complaint IDs on queue cards instead of category names.
+- [x] Remove the bulk synthetic complaint generator and training-only permission tiers.
+- [x] Add an owner-only **Create comp** menu entry and server-enforced creation endpoint for `officialsafebase@gmail.com`.
+- [x] Add structured reporter/reported-player identity, editable generated description and optional evidence fields.
+- [x] Route owner-created cases into the normal OPEN queue and record their origin in the complaint audit timeline.
+- [x] Remove the retired training marker from the Prisma schema.
 - [x] Update README and this roadmap.
-- [x] Applied production migration `complaint_queue_refinements` to normalize active statuses, assign 45 distinct reported-player names, and attach simulated evidence to the existing 45 training complaints.
-- [x] Verified production: 45/45 demo complaints have distinct reported-player names, 45/45 are OPEN, and 45/45 have a simulated evidence attachment.
-- [ ] Confirm the latest Vercel production build reaches READY; test pagination, claim locking, rank overrides, evidence display, and owner-only Add comp visibility in an authenticated browser session.
+- [ ] Apply migration `20261106150000_remove_retired_training_complaints` to production; verify all 45 retired cases and their orphaned evidence/player records are removed.
+- [ ] Verify owner-only navigation and API access; create a case and confirm a different authorized admin can claim, investigate and close it.
+- [ ] Run the Vercel preview build and verify 15-item pagination in both Active and History.
