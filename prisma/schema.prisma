@@ -23,6 +23,17 @@ enum ComplaintStatus {
   DISMISSED
 }
 
+enum DemoCompGroup {
+  A
+  B
+  C
+}
+
+enum DemoCompStatus {
+  OPEN
+  CLOSED
+}
+
 enum Verdict {
   COMPLAINANT
   ACCUSED
@@ -298,4 +309,28 @@ model AdminPasskeyChallenge {
 
   @@index([adminId, purpose, expiresAt])
   @@index([expiresAt])
+}
+
+
+/// Synthetic player-submitted complaints used only for admin training and workflow demos.
+/// These records are deliberately separate from Player and Complaint so they never enter live game workflows.
+model DemoComp {
+  id             String         @id @default(cuid())
+  reference      String         @unique
+  playerName     String
+  playerGameId   String
+  playerCountry  String
+  category       String
+  subject        String
+  message        String         @db.Text
+  assignedGroup  DemoCompGroup
+  status         DemoCompStatus @default(OPEN)
+  closedById     String?
+  closedByName   String?
+  submittedAt    DateTime
+  closedAt       DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([assignedGroup, status, submittedAt])
 }
