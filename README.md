@@ -68,3 +68,12 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 
 ## Built-in FOUNDER role
 The built-in top-tier role is displayed as **FOUNDER**. It retains the existing OWNER kind and owner-level permissions and safeguards; only the displayed role name has changed. The additive migration `20261030050000_rename_prm2_to_founder` updates the existing role row and matching staff display titles. No staff accounts or permissions are recreated or changed.
+
+
+## Demo comps training workspace
+- The **Demo Comps** workspace contains 45 synthetic, international player-submitted complaint examples for staff training; these records are stored in the separate `DemoComp` table and never create or modify live `Player` or `Complaint` records.
+- The primary Owner account, identified by immutable Admin ID, is the only account allowed to generate the 45-case demo set. FOUNDER, PRM, Developers, and all other staff cannot generate or regenerate it.
+- The 45 cases are allocated as 25 Group A (admin levels 3–4), 15 Group B (levels 5–6), and 5 Group C (PRM and above).
+- Admin levels 3–4 can close Group A; levels 5–6 can close Groups A and B; top-tier accounts can close all three groups. The API enforces this independently of the UI.
+- Staff can only see their eligible groups and lower groups. Demo closure updates only the demo record and does not send a response to a real player or affect the live complaint history.
+- Apply the additive Prisma migration under `prisma/migrations/20261106090000_demo_complaints` before using the workspace. The Owner then generates the set once from **Admin → Demo Comps**.
