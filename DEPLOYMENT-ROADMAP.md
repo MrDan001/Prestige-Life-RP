@@ -195,3 +195,28 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Verified production counts: 45 linked synthetic players, 45 normal Complaint rows; A=25, B=15, C=5; all 45 OPEN.
 - [ ] Test rank closure rules with authenticated level 3/4/5/6, PRM, FOUNDER, and primary Owner accounts.
 - [ ] Confirm ordinary player complaints retain their existing category/target permission behavior.
+
+
+## Production incident — Supabase connection exhaustion on /auth (6 November 2026)
+
+### Confirmed root cause
+- [x] Vercel runtime error digest `3909642681` traced to Prisma `P2039` / Supabase `EMAXCONNSESSION`.
+- [x] The failing operation was `prisma.adminSession.findUnique()` during `GET /auth`; the same exhaustion affected `/api/admin/me` and complaint APIs.
+- [x] Supabase reported the session-mode pooler client ceiling of 15 had been reached.
+- [x] Inspected `lib/db.ts`: a new `pg.Pool` was created at module scope with the default maximum of 10 connections, and Prisma was cached only outside production.
+
+### Code mitigation
+- [x] Cache the PostgreSQL pool and Prisma client on `globalThis` in production and development.
+- [x] Limit each warm Vercel function instance to one PostgreSQL client connection.
+- [x] Set finite connection and idle timeouts to prevent requests waiting indefinitely.
+- [x] Keep the application database URL server-only.
+- [x] Update README and this roadmap.
+
+### Required production connection setting and verification
+- [ ] Replace Vercel Production `DATABASE_URL` with the Supabase **Transaction pooler** URI for project `bcximvygqxqnbghbghmd` (host pattern `aws-<region>.pooler.supabase.com`, port `6543`, database `postgres`, username `postgres.<project-ref>`). Preserve the existing database password; do not paste it into source control or chat.
+- [ ] Include `connection_limit=1` in the URI; ensure the connection library is compatible with transaction mode.
+- [ ] Redeploy production after the environment-variable change.
+- [ ] Verify `/auth`, `/api/admin/me`, and `/api/admin/complaints` return successfully and that runtime errors no longer report `EMAXCONNSESSION`.
+- [ ] Monitor Supabase pooler client usage under normal concurrent admin traffic.
+
+**Operational note:** the current Vercel secret is not readable through the available environment-variable metadata endpoint, so its password-bearing URI cannot safely be rewritten in place by this session. The code-side connection fan-out mitigation is committed; switching the production secret to transaction mode is still required for durable serverless scaling.
