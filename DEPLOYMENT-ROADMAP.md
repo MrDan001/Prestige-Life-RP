@@ -222,6 +222,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Route owner-created cases into the normal OPEN queue and record their origin in the complaint audit timeline.
 - [x] Remove the retired training marker from the Prisma schema.
 - [x] Update README and this roadmap.
-- [ ] Apply migration `20261106150000_remove_retired_training_complaints` to production; verify all 45 retired cases and their orphaned evidence/player records are removed.
+- [x] Deleted all 45 retired complaints, their 45 evidence records, related response/note/audit rows, and their now-unreferenced player records directly in production; verified zero remain.
+- [ ] Apply migration `20261106150000_remove_retired_training_complaints` after the updated app is deployed to drop the obsolete `demoGroup` column without breaking the currently deployed app.
 - [ ] Verify owner-only navigation and API access; create a case and confirm a different authorized admin can claim, investigate and close it.
 - [ ] Run the Vercel preview build and verify 15-item pagination in both Active and History.
