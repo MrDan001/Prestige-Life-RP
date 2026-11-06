@@ -30,6 +30,7 @@ export default function ComplaintsPage() {
   const [meId, setMeId] = useState("");
   const [canGenerateDemo, setCanGenerateDemo] = useState(false);
   const [generatingDemo, setGeneratingDemo] = useState(false);
+  const [demoAlreadyGenerated, setDemoAlreadyGenerated] = useState(false);
   const [bucket, setBucket] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
   const [chip, setChip] = useState("all");
   const [q, setQ] = useState("");
@@ -59,6 +60,10 @@ export default function ComplaintsPage() {
       const current = await r.json();
       setMeId(current.id);
       setCanGenerateDemo(!!current.isPrimaryOwner);
+      if (current.isPrimaryOwner) {
+        const demoState = await fetch("/api/admin/demo-comps", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
+        setDemoAlreadyGenerated(!!demoState?.generated);
+      }
     }
   }); }, []);
   useEffect(() => { loadList(); }, [loadList]);
@@ -138,7 +143,8 @@ export default function ComplaintsPage() {
     <div>
       <header className="topbar">
         <h1>Complaints</h1>
-        {canGenerateDemo && <button type="button" className="primary" disabled={generatingDemo} onClick={generateDemoComps}>{generatingDemo ? "Generating…" : "Generate demo complaints"}</button>}
+        {canGenerateDemo && !demoAlreadyGenerated && <button type="button" className="primary" disabled={generatingDemo} onClick={generateDemoComps}>{generatingDemo ? "Generating…" : "Generate demo complaints"}</button>}
+        {canGenerateDemo && demoAlreadyGenerated && <span className="muted">45 demo complaints are already in the queue</span>}
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
           <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
           <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
