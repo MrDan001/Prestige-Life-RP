@@ -190,8 +190,8 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Preserve normal complaint list/detail, claim, response, judgment, Active/History, and audit workflows.
 - [x] Restrict generation to the immutable primary Owner account and block duplicate generation.
 - [x] Remove the standalone Demo Comps navigation entry.
-- [ ] Apply the production migration that removes the old DemoComp table and adds the new metadata columns.
-- [ ] Delete the old 45 DemoComp rows, then generate 45 normal complaints through the primary Owner-only endpoint.
-- [ ] Verify production counts (45 complaints, 45 linked synthetic players; A=25/B=15/C=5), all OPEN.
+- [x] Applied production migration `normal_demo_complaints`: removed the old DemoComp table and added Player.country and Complaint.demoGroup.
+- [x] Removed the old 45 DemoComp records with the table; recreated 45 linked Player/Complaint records directly in production.
+- [x] Verified production counts: 45 linked synthetic players, 45 normal Complaint rows; A=25, B=15, C=5; all 45 OPEN.
 - [ ] Test rank closure rules with authenticated level 3/4/5/6, PRM, FOUNDER, and primary Owner accounts.
 - [ ] Confirm ordinary player complaints retain their existing category/target permission behavior.
