@@ -28,6 +28,8 @@ const fmt = (d: string) => new Date(d).toLocaleString();
 
 export default function ComplaintsPage() {
   const [meId, setMeId] = useState("");
+  const [canGenerateDemo, setCanGenerateDemo] = useState(false);
+  const [generatingDemo, setGeneratingDemo] = useState(false);
   const [bucket, setBucket] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
   const [chip, setChip] = useState("all");
   const [q, setQ] = useState("");
@@ -56,6 +58,7 @@ export default function ComplaintsPage() {
     if (r.ok) {
       const current = await r.json();
       setMeId(current.id);
+      setCanGenerateDemo(!!current.isPrimaryOwner);
     }
   }); }, []);
   useEffect(() => { loadList(); }, [loadList]);
@@ -64,6 +67,17 @@ export default function ComplaintsPage() {
     const s = q.trim().toLowerCase();
     return s ? rows.filter(r => [r.player.username, r.accusedAdmin?.name, r.accusedName, r.id.slice(-6)].some(x => x?.toLowerCase().includes(s))) : rows;
   }, [rows, q]);
+
+  async function generateDemoComps() {
+    if (generatingDemo) return;
+    setGeneratingDemo(true); setMsg("");
+    try {
+      const response = await fetch("/api/admin/demo-comps", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) setMsg(data.error ?? "Could not generate demo complaints.");
+      else { setMsg(`Created ${data.created} demo complaints in the normal queue.`); setBucket("ACTIVE"); setChip("all"); await loadList(); }
+    } finally { setGeneratingDemo(false); }
+  }
 
   async function call(url: string, method: string, body?: unknown) {
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
@@ -124,6 +138,7 @@ export default function ComplaintsPage() {
     <div>
       <header className="topbar">
         <h1>Complaints</h1>
+        {canGenerateDemo && <button type="button" className="primary" disabled={generatingDemo} onClick={generateDemoComps}>{generatingDemo ? "Generating…" : "Generate demo complaints"}</button>}
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
           <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
           <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
