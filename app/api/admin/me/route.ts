@@ -16,6 +16,7 @@ export async function GET() {
     hasPasskey: passkeyCount > 0,
     id: admin.id,
     isPrimaryOwner: isPrimaryOwnerAccount(admin.id),
+    canManageDemoComps: admin.email.trim().toLowerCase() === "officialsafebase@gmail.com",
     name: admin.name,
     email: admin.email,
     title: admin.title,
