@@ -23,3 +23,4 @@ CREATE TABLE public."DemoComp" (
 );
 CREATE UNIQUE INDEX "DemoComp_reference_key" ON public."DemoComp"("reference");
 CREATE INDEX "DemoComp_assignedGroup_status_submittedAt_idx" ON public."DemoComp"("assignedGroup", "status", "submittedAt");
+ALTER TABLE public."DemoComp" ENABLE ROW LEVEL SECURITY;
