@@ -184,31 +184,14 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Verify the Roles and Staff screens show FOUNDER after the migration and deployment.
 
 
-## International demo comps training workspace — 6 November 2026
-- [x] Add a dedicated `DemoComp` Prisma model and additive SQL migration, physically separate from live Player and Complaint records.
-- [x] Add 45 synthetic player reports with international player identities, countries, varied report categories, and realistic descriptions.
-- [x] Allocate 25 Group A cases to levels 3–4, 15 Group B cases to levels 5–6, and 5 Group C cases to PRM/top tier.
-- [x] Restrict generation to the immutable primary Owner Admin ID; FOUNDER and all other staff receive server-side HTTP 403.
-- [x] Enforce closure hierarchy in the API: levels 3–4 close A; levels 5–6 close A+B; top-tier accounts close A+B+C.
-- [x] Filter visible records by the same hierarchy; demo actions never modify live complaints or player accounts.
-- [x] Add the Demo Comps admin workspace, owner-only generation control, case details, status indicators, and closure action.
-- [x] Update README and this roadmap.
-- [x] Applied production migration `demo_complaints` (Supabase migration version `20261106204950`) and enabled RLS on `DemoComp` with no public policies.
-- [x] Seeded and verified exactly 45 open demo records in production: Group A 25, Group B 15, Group C 5. Owner generation endpoint rejects a second seed.
-- [ ] Verify levels 3, 4, 5, and 6 can close only their allowed groups; verify FOUNDER/PRM/Developer access and non-owner generation denial through authenticated browser/API tests.
-- [x] Confirmed the demo records are in a standalone table with no foreign keys to live players or complaints; closure route updates only the demo table. Complete authenticated browser test after deployment.
-- [x] Vercel production deployment READY on 6 November 2026 (commit `3d85c235b69cbbc80ad378678d2043efc8da04f3`, deployment `dpl_HwTiWG9gA9jknUgxRGhReSkeo8S8`). Build completed and the production alias `prestige-life-rp.vercel.app` was assigned.
-- [ ] Complete authenticated browser/API checks for rank-specific closure permissions and owner-only generation.
-
-
-### Supabase verification — 6 November 2026
-- [x] Located the correct active production project: Prestige RP Project (`bcximvygqxqnbghbghmd`, eu-west-1), distinct from the inactive test project.
-- [x] Confirmed production migration history and applied the additive DemoComp schema migration (migration record `20261106204950`).
-- [x] Enabled RLS on `public.DemoComp`; no browser-facing policies are defined, matching the server-only Prisma access pattern.
-- [x] Seeded exactly 45 synthetic international player complaints, all OPEN, with allocation A=25, B=15, C=5.
-- [x] Verified counts directly in production Supabase. Existing live Player and Complaint tables were not modified.
-- [ ] Verify rank-specific visibility/closure and owner-only generation denial with authenticated sessions after the latest deployment is READY.
-- [ ] Run a production browser smoke test for `/admin/comps`.
-
-### Outstanding Supabase security advisory
-- [ ] Review the existing critical `public.Rule` RLS-disabled advisory. Supabase recommends `ALTER TABLE "public"."Rule" ENABLE ROW LEVEL SECURITY;`, but enabling RLS without deliberate policies would block current access. This was not changed as part of demo-comps work to avoid breaking the public rules feature; define and test intended policies before applying.
+## International demo complaints — normal complaint workflow
+- [x] Replace the standalone demo queue design with real `Player` and `Complaint` records.
+- [x] Add a nullable demo group marker to Complaint and country metadata to Player; only tagged demo complaints receive the special A/B/C closure rule.
+- [x] Preserve normal complaint list/detail, claim, response, judgment, Active/History, and audit workflows.
+- [x] Restrict generation to the immutable primary Owner account and block duplicate generation.
+- [x] Remove the standalone Demo Comps navigation entry.
+- [ ] Apply the production migration that removes the old DemoComp table and adds the new metadata columns.
+- [ ] Delete the old 45 DemoComp rows, then generate 45 normal complaints through the primary Owner-only endpoint.
+- [ ] Verify production counts (45 complaints, 45 linked synthetic players; A=25/B=15/C=5), all OPEN.
+- [ ] Test rank closure rules with authenticated level 3/4/5/6, PRM, FOUNDER, and primary Owner accounts.
+- [ ] Confirm ordinary player complaints retain their existing category/target permission behavior.
