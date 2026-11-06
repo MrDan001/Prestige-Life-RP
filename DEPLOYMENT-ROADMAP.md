@@ -227,3 +227,26 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Apply migration `20261106150000_remove_retired_training_complaints` after the updated app is deployed to drop the obsolete `demoGroup` column without breaking the currently deployed app.
 - [ ] Verify owner-only navigation and API access; create a case and confirm a different authorized admin can claim, investigate and close it.
 - [ ] Run the Vercel preview build and verify 15-item pagination in both Active and History.
+
+
+## Vercel deployment failure investigation — 6 November 2026
+
+### Findings from live Vercel build logs
+- [x] Inspected the latest failed Preview build on `feature/owner-created-complaints` (commit `336a0b5fd0c38025a72df18d4f334d3b61354465`).
+- [x] Confirmed dependencies installed and Prisma Client generated; the Next.js build compiled before failing during page-data collection.
+- [x] Confirmed the fatal error: `DATABASE_URL is required to connect to the Prestige Life RP database` while Next.js imported `/api/admin/admins/[id]/invite`.
+- [x] Confirmed Vercel currently has the five required app variables configured for **Production only**; no Preview-target variables are present.
+- [x] Inspected earlier Main builds and found a separate stale-code TypeScript error in the retired bulk generator (`Cannot find name i`); that endpoint is removed on the current feature branch.
+- [x] Distinguished non-fatal npm configuration/install-script warnings from the actual build-stopping error.
+
+### Code fix
+- [x] Changed `lib/db.ts` to initialize Prisma and the PostgreSQL pool only when a database operation is first accessed, not when Next.js imports an API route during build collection.
+- [x] Kept an explicit, actionable missing-`DATABASE_URL` error at runtime so a Preview without a database cannot silently pretend database-backed features work.
+- [x] Preserved one pool/client per warm instance and the one-connection pool cap.
+- [x] Updated README and this roadmap.
+
+### Remaining validation and environment setup
+- [ ] Confirm a new Preview build reaches READY after the lazy-initialization commit.
+- [ ] Configure a dedicated non-production Supabase database/branch and add its `DATABASE_URL` to Vercel Preview before testing database-backed Preview routes. Do not point Preview at production data.
+- [ ] Confirm Production variables remain unchanged and production deployment is not triggered by this Preview-only fix.
+- [ ] Re-run a clean build and inspect the resulting logs for any additional compile/type errors.
