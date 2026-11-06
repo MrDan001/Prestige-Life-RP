@@ -1,5 +1,6 @@
 // PATH: app/api/admin/complaints/route.ts
 import { NextResponse } from "next/server";
+import { ComplaintStatus, Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { flags, isTop, claimLocked } from "@/lib/permissions";
@@ -18,9 +19,9 @@ export async function GET(req: Request) {
   const bucket = sp.get("bucket") === "HISTORY" ? "HISTORY" : "ACTIVE";
   const limit = Math.min(15, Math.max(1, Number.parseInt(sp.get("limit") ?? "15", 10) || 15));
   const offset = Math.max(0, Number.parseInt(sp.get("offset") ?? "0", 10) || 0);
-  const allowedStatus = bucket === "HISTORY" ? ["RESOLVED", "DISMISSED"] : ["OPEN"];
-  const effectiveStatus = status && allowedStatus.includes(status) ? status : null;
-  const where = {
+  const allowedStatus: ComplaintStatus[] = bucket === "HISTORY" ? ["RESOLVED", "DISMISSED"] : ["OPEN"];
+  const effectiveStatus: ComplaintStatus | null = status && allowedStatus.includes(status as ComplaintStatus) ? status as ComplaintStatus : null;
+  const where: Prisma.ComplaintWhereInput = {
     status: effectiveStatus ?? { in: allowedStatus },
     ...(categoryId ? { categoryId } : {}),
   };
