@@ -57,6 +57,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     ...c,
     ...permissionFlags,
     isClosed,
+    canClaim: !isClosed && permissionFlags.canReply,
     canReply: !isClosed && c.claimedById === a.actor.id && permissionFlags.canReply,
     canClose: !isClosed && permissionFlags.canClose,
     canNote: !isClosed && c.claimedById === a.actor.id && canAct(a.actor, c, "reply"),
