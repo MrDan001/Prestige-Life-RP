@@ -1,13 +1,12 @@
 // PATH: app/api/admin/complaints/route.ts
 import { NextResponse } from "next/server";
-import { ComplaintStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { flags, isTop } from "@/lib/permissions";
+import { flags, isTop, claimLocked } from "@/lib/permissions";
 
 /**
  * Everyone with site access sees ALL complaints.
- * Filters: ?status=OPEN  ?categoryId=...  ?claimed=me|none
+ * Returns 15 records per page. Active contains OPEN only; History contains closed records.
  */
 export async function GET(req: Request) {
   const a = await requireAdmin();
@@ -16,42 +15,45 @@ export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const status = sp.get("status");
   const categoryId = sp.get("categoryId");
-  const claimed = sp.get("claimed");
   const bucket = sp.get("bucket") === "HISTORY" ? "HISTORY" : "ACTIVE";
-  const requestedStatus = status && status in ComplaintStatus ? status as ComplaintStatus : null;
-  const allowedStatus = bucket === "HISTORY" ? ["RESOLVED", "DISMISSED"] : ["OPEN", "IN_REVIEW"];
-  const effectiveStatus = requestedStatus && allowedStatus.includes(requestedStatus)
-    ? requestedStatus
-    : null;
-
-  const rows = await db.complaint.findMany({
-    where: {
-      status: effectiveStatus
-        ? effectiveStatus
-        : { in: allowedStatus as ComplaintStatus[] },
-      ...(categoryId ? { categoryId } : {}),
-      ...(claimed === "me" ? { claimedById: a.actor.id } : claimed === "none" ? { claimedById: null } : {}),
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    include: {
-      player: true,
-      category: true,
-      accusedAdmin: { select: { id: true, name: true, kind: true, level: true } },
-      claimedBy: { select: { id: true, name: true } },
-      _count: { select: { responses: true } },
-    },
-  });
-  return NextResponse.json(rows.map((r) => {
+  const limit = Math.min(15, Math.max(1, Number.parseInt(sp.get("limit") ?? "15", 10) || 15));
+  const offset = Math.max(0, Number.parseInt(sp.get("offset") ?? "0", 10) || 0);
+  const allowedStatus = bucket === "HISTORY" ? ["RESOLVED", "DISMISSED"] : ["OPEN"];
+  const effectiveStatus = status && allowedStatus.includes(status) ? status : null;
+  const where = {
+    status: effectiveStatus ?? { in: allowedStatus },
+    ...(categoryId ? { categoryId } : {}),
+  };
+  const [rows, total] = await Promise.all([
+    db.complaint.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: offset,
+      take: limit + 1,
+      include: {
+        player: true,
+        category: true,
+        accusedAdmin: { select: { id: true, name: true, kind: true, level: true } },
+        claimedBy: { select: { id: true, name: true } },
+        _count: { select: { responses: true } },
+      },
+    }),
+    db.complaint.count({ where }),
+  ]);
+  const hasMore = rows.length > limit;
+  const pageRows = rows.slice(0, limit);
+  const items = pageRows.map((r) => {
     const permissionFlags = flags(a.actor, r);
     const isClosed = r.status === "RESOLVED" || r.status === "DISMISSED";
     return {
       ...r,
       ...permissionFlags,
       isClosed,
-      canReply: !isClosed && permissionFlags.canReply,
-      canClose: !isClosed && permissionFlags.canClose,
+      lockedByClaim: claimLocked(a.actor, r.claimedById),
+      canReply: !isClosed && r.claimedById === a.actor.id && permissionFlags.canReply,
+      canClose: !isClosed && r.claimedById === a.actor.id && permissionFlags.canClose,
       canReopen: isTop(a.actor),
     };
-  }));
+  });
+  return NextResponse.json({ items, hasMore, nextOffset: offset + items.length, total });
 }
