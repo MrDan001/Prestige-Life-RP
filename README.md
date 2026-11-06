@@ -70,10 +70,8 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 The built-in top-tier role is displayed as **FOUNDER**. It retains the existing OWNER kind and owner-level permissions and safeguards; only the displayed role name has changed. The additive migration `20261030050000_rename_prm2_to_founder` updates the existing role row and matching staff display titles. No staff accounts or permissions are recreated or changed.
 
 
-## Demo comps training workspace
-- The **Demo Comps** workspace contains 45 synthetic, international player-submitted complaint examples for staff training; these records are stored in the separate `DemoComp` table and never create or modify live `Player` or `Complaint` records.
-- The primary Owner account, identified by immutable Admin ID, is the only account allowed to generate the 45-case demo set. FOUNDER, PRM, Developers, and all other staff cannot generate or regenerate it.
-- The 45 cases are allocated as 25 Group A (admin levels 3–4), 15 Group B (levels 5–6), and 5 Group C (PRM and above).
-- Admin levels 3–4 can close Group A; levels 5–6 can close Groups A and B; top-tier accounts can close all three groups. The API enforces this independently of the UI.
-- Staff can only see their eligible groups and lower groups. Demo closure updates only the demo record and does not send a response to a real player or affect the live complaint history.
-- The additive demo-comps database migration is applied to production and the 45-case set has been seeded: Group A 25, Group B 15, Group C 5 (all initially open). The Owner-only generation endpoint is protected against duplicate seeding.
+## Demo complaints in the normal queue
+- The 45 international training complaints are genuine `Player` and `Complaint` records and appear in the same Active/History workflow as player-submitted complaints.
+- The primary Owner (immutable Admin ID check) can generate the set from the Complaints page. Duplicate generation is blocked.
+- Group A (25) is closable by levels 3–4, Group B (15) by levels 5–6, and Group C (5) by top-tier staff only. The group gate is enforced server-side and applies only to tagged demo complaints; real complaint permissions remain unchanged.
+- Each generated player carries a country field. The previous standalone `DemoComp` queue is retired.
