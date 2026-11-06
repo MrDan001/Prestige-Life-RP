@@ -184,21 +184,6 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Verify the Roles and Staff screens show FOUNDER after the migration and deployment.
 
  
-## Owner-created complaints and queue cleanup — 6 November 2026
-- [x] Remove the bulk synthetic complaint generator and its owner-only endpoint.
-- [x] Replace category headings on complaint cards with the complaint ID.
-- [x] Enforce a fixed 15-record API page size and derive Load more availability from the queue total.
-- [x] Add an owner-only Create comp navigation entry for `officialsafebase@gmail.com`.
-- [x] Add a structured owner form for reporting player identity, reported player identity, category, description generation/editing, and optional evidence.
-- [x] Create owner-entered complaints as OPEN records in the same normal queue, with an audit event identifying the owner-form source.
-- [x] Remove the training-only complaint permission tiers and the `demoGroup` schema field.
-- [x] Add migration `20261106150000_remove_retired_training_complaints` to delete the retired synthetic complaints, their evidence/responses/notes, and only now-unreferenced player records.
-- [x] Update README and this roadmap.
-- [ ] Apply the cleanup migration to production and verify no training-tagged complaints or orphaned synthetic players remain.
-- [ ] Verify owner-only menu/API access, create a comp, confirm it appears in Active, and confirm a different authorized admin can claim and close it.
-- [ ] Run a Vercel preview build and test fixed 15-record pagination in Active and History.
-
-
 ## Production incident — Supabase connection exhaustion on /auth (6 November 2026)
 
 ### Confirmed root cause
