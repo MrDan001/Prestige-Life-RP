@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { hasRight, canGrantStaffPermissions, canManageRules } from "@/lib/permissions";
 import { db } from "@/lib/db";
+import { isPrimaryOwnerAccount } from "@/lib/owner-privacy";
 
 export async function GET() {
   const a = await requireAdmin();
@@ -14,6 +15,7 @@ export async function GET() {
   return NextResponse.json({
     hasPasskey: passkeyCount > 0,
     id: admin.id,
+    isPrimaryOwner: isPrimaryOwnerAccount(admin.id),
     name: admin.name,
     email: admin.email,
     title: admin.title,
