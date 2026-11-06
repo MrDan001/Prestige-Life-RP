@@ -47,12 +47,12 @@ export default function CreateCompPage() {
       : /scam|trade/i.test(selectedCategory?.name ?? "") ? "scamming"
       : /hack|exploit/i.test(selectedCategory?.name ?? "") ? "exploiting" : "default";
     const template = drafts[key];
-    const intro = "Reporting player: " + reporterName + " (" + reporterGameId + ").\\n"
-      + "Reported player: " + accusedName + " (" + (accusedGameId || "game ID not supplied") + ").\\n"
-      + "Category: " + (selectedCategory?.name ?? "Not selected") + ".\\n\\n";
-    setMessage(intro + template + "\\n\\nIncident details:\\n"
+    const intro = "Reporting player: " + reporterName + " (" + reporterGameId + ").\n"
+      + "Reported player: " + accusedName + " (" + (accusedGameId || "game ID not supplied") + ").\n"
+      + "Category: " + (selectedCategory?.name ?? "Not selected") + ".\n\n";
+    setMessage(intro + template + "\n\nIncident details:\n"
       + (facts.trim() || "[Add the date, time, location and exact sequence of events.]")
-      + "\\n\\nRequested review: Please review the relevant records and attached evidence before reaching a decision.");
+      + "\n\nRequested review: Please review the relevant records and attached evidence before reaching a decision.");
     setNotice("Draft generated. Review and edit every detail before submitting.");
   }
 
