@@ -232,4 +232,6 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Remove the judgment-template helper sentence from the UI.
 - [x] Restrict the Add comp control and server endpoint to officialsafebase@gmail.com; all other staff receive no control and are rejected by the API.
 - [x] Update README and this roadmap.
-- [ ] Run production build and verify pagination, claim locking, rank overrides, evidence display, and owner-only Add comp visibility on production.
+- [x] Applied production migration `complaint_queue_refinements` to normalize active statuses, assign 45 distinct reported-player names, and attach simulated evidence to the existing 45 training complaints.
+- [x] Verified production: 45/45 demo complaints have distinct reported-player names, 45/45 are OPEN, and 45/45 have a simulated evidence attachment.
+- [ ] Confirm the latest Vercel production build reaches READY; test pagination, claim locking, rank overrides, evidence display, and owner-only Add comp visibility in an authenticated browser session.
