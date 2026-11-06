@@ -23,17 +23,6 @@ enum ComplaintStatus {
   DISMISSED
 }
 
-enum DemoCompGroup {
-  A
-  B
-  C
-}
-
-enum DemoCompStatus {
-  OPEN
-  CLOSED
-}
-
 enum Verdict {
   COMPLAINANT
   ACCUSED
@@ -92,6 +81,7 @@ model Player {
   id         String      @id @default(cuid())
   gameId     String      @unique
   username   String
+  country    String?
   createdAt  DateTime    @default(now())
   complaints Complaint[]
 }
@@ -104,6 +94,7 @@ model Complaint {
   category       Category        @relation(fields: [categoryId], references: [id])
   accusedName    String?
   accusedGameId  String?
+  demoGroup      String? // A: levels 3-4; B: levels 5-6; C: top tier only
   accusedAdminId String?
   accusedAdmin   Admin?          @relation("Accused", fields: [accusedAdminId], references: [id])
   claimedById    String?
@@ -309,28 +300,4 @@ model AdminPasskeyChallenge {
 
   @@index([adminId, purpose, expiresAt])
   @@index([expiresAt])
-}
-
-
-/// Synthetic player-submitted complaints used only for admin training and workflow demos.
-/// These records are deliberately separate from Player and Complaint so they never enter live game workflows.
-model DemoComp {
-  id             String         @id @default(cuid())
-  reference      String         @unique
-  playerName     String
-  playerGameId   String
-  playerCountry  String
-  category       String
-  subject        String
-  message        String         @db.Text
-  assignedGroup  DemoCompGroup
-  status         DemoCompStatus @default(OPEN)
-  closedById     String?
-  closedByName   String?
-  submittedAt    DateTime
-  closedAt       DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-
-  @@index([assignedGroup, status, submittedAt])
 }
