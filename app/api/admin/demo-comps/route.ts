@@ -18,7 +18,7 @@ export async function POST() {
  if (!isPrimaryOwnerAccount(auth.actor.id)) return NextResponse.json({ error: "Only the primary Owner can generate demo comps." }, { status: 403 });
  const existing = await db.demoComp.count(); if (existing) return NextResponse.json({ error: "The demo set already exists. Existing demo cases were left unchanged.", count: existing }, { status: 409 });
  const now = Date.now();
- const data = players.map((p, i) => { const sc = scenarios[i % scenarios.length]; return { id: randomUUID(), reference: "PL-DEMO-" + String(i+1).padStart(3,"0"), playerName:p[0], playerGameId:"PL-"+p[1], playerCountry:p[2], category:sc[0], subject:sc[1], message:sc[2], assignedGroup:i<25?"A":i<40?"B":"C", status:"OPEN", submittedAt:new Date(now-(i*4+(i%5))*60*60*1000) }; });
+ const data = players.map((p, i) => { const sc = scenarios[i % scenarios.length]; return { id: randomUUID(), reference: "PL-DEMO-" + String(i+1).padStart(3,"0"), playerName:p[0], playerGameId:"PL-"+p[1], playerCountry:p[2], category:sc[0], subject:sc[1], message:sc[2], assignedGroup:(i<25?"A":i<40?"B":"C") as "A"|"B"|"C", status:"OPEN" as const, submittedAt:new Date(now-(i*4+(i%5))*60*60*1000) }; });
  await db.demoComp.createMany({ data });
  return NextResponse.json({ ok:true, created:data.length, allocation:{ A:25, B:15, C:5 } }, { status:201 });
 }
