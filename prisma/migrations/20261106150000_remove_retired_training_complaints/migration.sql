@@ -35,4 +35,7 @@ WHERE p."id" = retired."id"
     WHERE remaining."playerId" = p."id"
   );
 
+DROP TRIGGER IF EXISTS "block_retired_bulk_complaints" ON public."Complaint";
+DROP FUNCTION IF EXISTS public.block_retired_bulk_complaints();
+
 ALTER TABLE public."Complaint" DROP COLUMN "demoGroup";
