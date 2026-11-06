@@ -183,18 +183,20 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Verify the Roles and Staff screens show FOUNDER after the migration and deployment.
 
-
-## International demo complaints — normal complaint workflow
-- [x] Replace the standalone demo queue design with real `Player` and `Complaint` records.
-- [x] Add a nullable demo group marker to Complaint and country metadata to Player; only tagged demo complaints receive the special A/B/C closure rule.
-- [x] Preserve normal complaint list/detail, claim, response, judgment, Active/History, and audit workflows.
-- [x] Restrict generation to the immutable primary Owner account, block duplicate generation, and hide the generation action once the set exists.
-- [x] Remove the standalone Demo Comps navigation entry.
-- [x] Applied production migration `normal_demo_complaints`: removed the old DemoComp table and added Player.country and Complaint.demoGroup.
-- [x] Removed the old 45 DemoComp records with the table; recreated 45 linked Player/Complaint records directly in production.
-- [x] Verified production counts: 45 linked synthetic players, 45 normal Complaint rows; A=25, B=15, C=5; all 45 OPEN.
-- [ ] Test rank closure rules with authenticated level 3/4/5/6, PRM, FOUNDER, and primary Owner accounts.
-- [ ] Confirm ordinary player complaints retain their existing category/target permission behavior.
+ 
+## Owner-created complaints and queue cleanup — 6 November 2026
+- [x] Remove the bulk synthetic complaint generator and its owner-only endpoint.
+- [x] Replace category headings on complaint cards with the complaint ID.
+- [x] Enforce a fixed 15-record API page size and derive Load more availability from the queue total.
+- [x] Add an owner-only Create comp navigation entry for `officialsafebase@gmail.com`.
+- [x] Add a structured owner form for reporting player identity, reported player identity, category, description generation/editing, and optional evidence.
+- [x] Create owner-entered complaints as OPEN records in the same normal queue, with an audit event identifying the owner-form source.
+- [x] Remove the training-only complaint permission tiers and the `demoGroup` schema field.
+- [x] Add migration `20261106150000_remove_retired_training_complaints` to delete the retired synthetic complaints, their evidence/responses/notes, and only now-unreferenced player records.
+- [x] Update README and this roadmap.
+- [ ] Apply the cleanup migration to production and verify no training-tagged complaints or orphaned synthetic players remain.
+- [ ] Verify owner-only menu/API access, create a comp, confirm it appears in Active, and confirm a different authorized admin can claim and close it.
+- [ ] Run a Vercel preview build and test fixed 15-record pagination in Active and History.
 
 
 ## Production incident — Supabase connection exhaustion on /auth (6 November 2026)
