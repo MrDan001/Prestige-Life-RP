@@ -197,7 +197,8 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Seeded and verified exactly 45 open demo records in production: Group A 25, Group B 15, Group C 5. Owner generation endpoint rejects a second seed.
 - [ ] Verify levels 3, 4, 5, and 6 can close only their allowed groups; verify FOUNDER/PRM/Developer access and non-owner generation denial through authenticated browser/API tests.
 - [x] Confirmed the demo records are in a standalone table with no foreign keys to live players or complaints; closure route updates only the demo table. Complete authenticated browser test after deployment.
-- [ ] Confirm the current Vercel production deployment is READY and test the Demo Comps page against production.
+- [x] Vercel production deployment READY on 6 November 2026 (commit `3d85c235b69cbbc80ad378678d2043efc8da04f3`, deployment `dpl_HwTiWG9gA9jknUgxRGhReSkeo8S8`). Build completed and the production alias `prestige-life-rp.vercel.app` was assigned.
+- [ ] Complete authenticated browser/API checks for rank-specific closure permissions and owner-only generation.
 
 
 ### Supabase verification — 6 November 2026
