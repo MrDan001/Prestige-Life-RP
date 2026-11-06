@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   const complaint = await db.$transaction(async tx => {
     const player = await tx.player.upsert({
       where: { gameId: d.reporterGameId },
-      update: { username: d.reporterName },
+      update: {},
       create: { gameId: d.reporterGameId, username: d.reporterName },
     });
     const created = await tx.complaint.create({
@@ -53,16 +53,11 @@ export async function POST(req: Request) {
         status: "OPEN",
       },
     });
-    if (d.evidenceText || d.evidenceUrl) {
-      await tx.evidence.create({
-        data: {
-          complaintId: created.id,
-          kind: d.evidenceUrl ? "LINK" : "TEXT",
-          url: d.evidenceUrl || null,
-          text: d.evidenceText || null,
-          caption: "Evidence supplied with owner-created complaint",
-        },
-      });
+    if (d.evidenceText) {
+      await tx.evidence.create({ data: { complaintId: created.id, kind: "TEXT", text: d.evidenceText, caption: "Evidence supplied with owner-created complaint" } });
+    }
+    if (d.evidenceUrl) {
+      await tx.evidence.create({ data: { complaintId: created.id, kind: "LINK", url: d.evidenceUrl, caption: "Evidence link supplied with owner-created complaint" } });
     }
     return created;
   });
