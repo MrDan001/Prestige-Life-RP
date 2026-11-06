@@ -17,10 +17,9 @@ type Detail = Row & {
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
 
-const ACTIVE_CHIPS: [string, string][] = [["all", "All"], ["OPEN", "Open"], ["IN_REVIEW", "In review"], ["none", "Unclaimed"], ["me", "Mine"]];
+const ACTIVE_CHIPS: [string, string][] = [["all", "All"]];
 const HISTORY_CHIPS: [string, string][] = [["all", "All"], ["RESOLVED", "Resolved"], ["DISMISSED", "Dismissed"]];
 const isClosed = (status: string) => status === "RESOLVED" || status === "DISMISSED";
-const STATUSES = ["OPEN", "IN_REVIEW", "RESOLVED", "DISMISSED"];
 const pill = (s: string) => (s === "OPEN" ? "open" : s === "IN_REVIEW" ? "review" : "done");
 const label = (s: string) => s.replace("_", " ").toLowerCase().replace(/^./, c => c.toUpperCase());
 const tone = (t: Tpl) => (t.closesAs === "DISMISSED" ? "reject" : t.verdict === "COMPLAINANT" ? "approve" : "neutral");
@@ -31,6 +30,9 @@ export default function ComplaintsPage() {
   const [canGenerateDemo, setCanGenerateDemo] = useState(false);
   const [generatingDemo, setGeneratingDemo] = useState(false);
   const [demoAlreadyGenerated, setDemoAlreadyGenerated] = useState(false);
+  const [nextOffset, setNextOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [bucket, setBucket] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
   const [chip, setChip] = useState("all");
   const [q, setQ] = useState("");
@@ -43,24 +45,22 @@ export default function ComplaintsPage() {
   const [msg, setMsg] = useState("");
 
   const loadList = useCallback(async () => {
-    const p = new URLSearchParams({ bucket });
-    if (bucket === "ACTIVE") {
-      if (chip === "OPEN" || chip === "IN_REVIEW") p.set("status", chip);
-      if (chip === "me" || chip === "none") p.set("claimed", chip);
-    } else if (chip === "RESOLVED" || chip === "DISMISSED") {
-      p.set("status", chip);
-    }
+    const p = new URLSearchParams({ bucket, limit: "15", offset: "0" });
+    if (bucket === "HISTORY" && (chip === "RESOLVED" || chip === "DISMISSED")) p.set("status", chip);
     const res = await fetch("/api/admin/complaints?" + p);
     if (res.status === 401) { window.location.href = "/auth"; return; }
-    setRows(await res.json());
+    const data = await res.json();
+    setRows(data.items ?? []);
+    setNextOffset(data.nextOffset ?? 0);
+    setHasMore(!!data.hasMore);
   }, [bucket, chip]);
 
   useEffect(() => { fetch("/api/admin/me").then(async r => {
     if (r.ok) {
       const current = await r.json();
       setMeId(current.id);
-      setCanGenerateDemo(!!current.isPrimaryOwner);
-      if (current.isPrimaryOwner) {
+      setCanGenerateDemo(!!current.canManageDemoComps);
+      if (current.canManageDemoComps) {
         const demoState = await fetch("/api/admin/demo-comps", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
         setDemoAlreadyGenerated(!!demoState?.generated);
       }
@@ -82,6 +82,21 @@ export default function ComplaintsPage() {
       if (!response.ok) setMsg(data.error ?? "Could not generate demo complaints.");
       else { setMsg(`Created ${data.created} demo complaints in the normal queue.`); setBucket("ACTIVE"); setChip("all"); await loadList(); }
     } finally { setGeneratingDemo(false); }
+  }
+
+  async function loadMore() {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const p = new URLSearchParams({ bucket, limit: "15", offset: String(nextOffset) });
+      if (bucket === "HISTORY" && (chip === "RESOLVED" || chip === "DISMISSED")) p.set("status", chip);
+      const res = await fetch("/api/admin/complaints?" + p);
+      if (!res.ok) return;
+      const data = await res.json();
+      setRows(current => [...current, ...(data.items ?? [])]);
+      setNextOffset(data.nextOffset ?? nextOffset);
+      setHasMore(!!data.hasMore);
+    } finally { setLoadingMore(false); }
   }
 
   async function call(url: string, method: string, body?: unknown) {
@@ -107,8 +122,8 @@ export default function ComplaintsPage() {
     const nextBucket = isClosed(d.status) ? "HISTORY" : "ACTIVE";
     setBucket(nextBucket);
     setChip("all");
-    const response = await fetch(`/api/admin/complaints?bucket=${nextBucket}`);
-    if (response.ok) setRows(await response.json());
+    const response = await fetch(`/api/admin/complaints?bucket=${nextBucket}&limit=15&offset=0`);
+    if (response.ok) { const data = await response.json(); setRows(data.items ?? []); setNextOffset(data.nextOffset ?? 0); setHasMore(!!data.hasMore); }
   }
 
   async function pick(t: Tpl) {
@@ -143,8 +158,7 @@ export default function ComplaintsPage() {
     <div>
       <header className="topbar">
         <h1>Complaints</h1>
-        {canGenerateDemo && !demoAlreadyGenerated && <button type="button" className="primary" disabled={generatingDemo} onClick={generateDemoComps}>{generatingDemo ? "Generating…" : "Generate demo complaints"}</button>}
-        {canGenerateDemo && demoAlreadyGenerated && <span className="muted">45 demo complaints are already in the queue</span>}
+        {canGenerateDemo && <button type="button" className="primary" disabled={generatingDemo || demoAlreadyGenerated} onClick={generateDemoComps}>{generatingDemo ? "Adding…" : demoAlreadyGenerated ? "Comps already added" : "Add comp"}</button>}
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
           <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
           <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
@@ -163,11 +177,12 @@ export default function ComplaintsPage() {
               <div className="row-top"><strong>{r.category.name}</strong><span className={`pill ${pill(r.status)}`}>{label(r.status)}</span></div>
               <div style={{ marginTop: 4 }}>{r.player.username} <span className="muted">vs</span> {r.accusedAdmin?.name ?? r.accusedName ?? "unknown"}</div>
               <div className="sub">
-                {r.claimedBy ? (r.claimedById === meId ? "Handled by you" : `Handled by ${r.claimedBy.name}`) : "Unclaimed"}
+                {r.claimedBy ? (r.claimedById === meId ? "Claimed by you" : `Claimed by ${r.claimedBy.name}`) : "Available to claim"}
                 {!r.canReply && !r.lockedByClaim ? " · view only" : ""}{r.accusedAdmin ? " · against staff" : ""} · {fmt(r.createdAt)}
               </div>
             </button>
           ))}
+          {hasMore && <button type="button" className="primary" disabled={loadingMore} onClick={loadMore}>{loadingMore ? "Loading…" : "Load more comps"}</button>}
         </section>
 
         <section className="detail" aria-label="Complaint detail">
@@ -177,7 +192,7 @@ export default function ComplaintsPage() {
 
               <div className="claimbar">
                 <span className={`pill ${pill(open.status)}`}>{label(open.status)}</span>
-                <span className="muted">{open.claimedBy ? <>Handled by <strong>{mine ? "you" : open.claimedBy.name}</strong></> : "Not claimed yet"}</span>
+                <span className="muted">{open.claimedBy ? <>Claimed by <strong>{mine ? "you" : open.claimedBy.name}</strong></> : "Not claimed yet"}</span>
                 {!open.isClosed && !open.claimedById && open.canReply && <button onClick={claim}>Claim</button>}
                 {!open.isClosed && open.claimedById && !mine && !open.lockedByClaim && open.canNote && <button onClick={claim}>Take over</button>}
                 {!open.isClosed && open.claimedById && (mine || !open.lockedByClaim) && <button onClick={release}>Release</button>}
@@ -216,7 +231,7 @@ export default function ComplaintsPage() {
                 <>
                   <div>
                     <div className="judg-title">Issuing judgment</div>
-                    <span className="muted">Pick one. The reply fills in below and you can edit it before sending.</span>
+                    
                     <div className="judg-grid">
                       {tpls.map(t => <button key={t.id} className={`jbtn ${tpl?.id === t.id ? "picked" : tone(t)}`} aria-pressed={tpl?.id === t.id} onClick={() => pick(t)}>{t.name}</button>)}
                     </div>
