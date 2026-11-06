@@ -210,7 +210,7 @@ export default function ComplaintsPage() {
               </div>
 
               <div>
-                <strong>Evidence</strong> <span className="muted">· {open.evidence.length} from the game</span>
+                <strong>Evidence</strong> <span className="muted">· {open.evidence.length} attached</span>
                 {open.evidence.length === 0 ? <p className="muted">No evidence attached.</p> : (
                   <div className="evgrid">
                     {open.evidence.map(ev => (
