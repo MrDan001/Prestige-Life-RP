@@ -188,7 +188,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Replace the standalone demo queue design with real `Player` and `Complaint` records.
 - [x] Add a nullable demo group marker to Complaint and country metadata to Player; only tagged demo complaints receive the special A/B/C closure rule.
 - [x] Preserve normal complaint list/detail, claim, response, judgment, Active/History, and audit workflows.
-- [x] Restrict generation to the immutable primary Owner account and block duplicate generation.
+- [x] Restrict generation to the immutable primary Owner account, block duplicate generation, and hide the generation action once the set exists.
 - [x] Remove the standalone Demo Comps navigation entry.
 - [x] Applied production migration `normal_demo_complaints`: removed the old DemoComp table and added Player.country and Complaint.demoGroup.
 - [x] Removed the old 45 DemoComp records with the table; recreated 45 linked Player/Complaint records directly in production.
