@@ -33,7 +33,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - Prisma uses the private PostgreSQL `DATABASE_URL` from the server environment; do not expose it to browser code.
 - On Vercel, use the Supabase **Transaction pooler** connection string (port `6543`) for runtime traffic. Do not use Supabase session mode (port `5432`) for serverless runtime requests.
 - `lib/db.ts` reuses one Prisma client and PostgreSQL pool per warm serverless instance and caps the local pool at one connection. Keep `connection_limit=1` in the transaction-pooler URL where supported.
-- RLS is enabled on the 14 existing public application tables and the isolated `DemoComp` training table. The legacy `Rule` table remains the one RLS-disabled exception flagged by the current Supabase advisor.
+- RLS is enabled on the existing public application tables. The legacy `Rule` table remains the one RLS-disabled exception flagged by the current Supabase advisor.
 - Direct table privileges are revoked from `PUBLIC`, `anon`, and `authenticated`; browser clients cannot query application tables directly.
 - No broad RLS policies are defined. Application data access is performed by server-side Prisma routes.
 - Keep database and session secrets in Vercel environment variables; never commit their values.
@@ -58,7 +58,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 ## Admin workspace behavior
 - Sign out is available only from **My Profile**; it is no longer shown in the shared admin navigation/account panel.
 - The admin workspace requests a 1200px desktop viewport and retains its desktop sidebar, complaint split view, staff controls, and multi-column layouts on narrow devices. Phones may need horizontal panning or pinch zoom.
-- Complaints in **OPEN** and **IN_REVIEW** appear in the **Active** queue. **RESOLVED** and **DISMISSED** complaints appear in the separate **History** queue.
+- Only **OPEN** complaints appear in the **Active** queue. **RESOLVED** and **DISMISSED** complaints appear in the separate **History** queue.
 - Closed complaints are read-only: staff cannot reply, draft a judgment, add a note, claim, release, or change their status while closed. The owner, PRM/TECH, and Developer top tier can explicitly reopen a closed complaint; it returns to Active, and a new response requires a separate action after reopening.
 
 ## Staff presence and invitation status
@@ -71,10 +71,11 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 ## Built-in FOUNDER role
 The built-in top-tier role is displayed as **FOUNDER**. It retains the existing OWNER kind and owner-level permissions and safeguards; only the displayed role name has changed. The additive migration `20261030050000_rename_prm2_to_founder` updates the existing role row and matching staff display titles. No staff accounts or permissions are recreated or changed.
 
-
-## Demo complaints in the normal queue
-- The 45 international training complaints are genuine `Player` and `Complaint` records and appear in the same Active/History workflow as player-submitted complaints.
-- Only the signed-in account whose email is exactly `officialsafebase@gmail.com` can see or invoke the **Add comp** control. The API enforces the same email check; duplicate generation is blocked.
-- Group A (25) is closable by levels 3–4, Group B (15) by levels 5–6, and Group C (5) by top-tier staff only. The group gate is enforced server-side and applies only to tagged demo complaints; real complaint permissions remain unchanged.
-- Each generated player carries a country field and a distinct reported-player name. Each generated complaint receives a clearly labelled simulated text-evidence attachment for training; it is not presented as real player-submitted proof. The previous standalone `DemoComp` queue is retired.
-- The Active queue contains OPEN complaints only; complaints remain OPEN until resolved or dismissed. Staff must explicitly claim a complaint before drafting a judgment, replying, adding a note, or closing it. Each admin can hold only one OPEN claim at a time. The list loads 15 complaints per page with a Load more control.
+ 
+## Complaint queue and owner-created reports
+- The Active and History lists request 15 records at a time. **Load more comps** appends the next 15 when more records exist.
+- Complaint cards lead with the complaint ID rather than the category label.
+- Only the account signed in as `officialsafebase@gmail.com` sees **Create comp** in the admin navigation and can submit through the matching server-enforced API.
+- The owner form captures the reporting player, reported player, category, incident description and optional evidence. Its **Generate** action creates an editable description draft; the owner reviews it before submission.
+- Owner-created complaints enter the normal OPEN queue and can be claimed, investigated and closed by other authorized administrators. An audit timeline identifies them as created through the owner form; they are not represented as direct player submissions.
+- The retired synthetic complaint set and its training-only permissions are removed by migration `20261106150000_remove_retired_training_complaints`.
