@@ -20,7 +20,7 @@ type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLV
 const ACTIVE_CHIPS: [string, string][] = [["all", "All"]];
 const HISTORY_CHIPS: [string, string][] = [["all", "All"], ["RESOLVED", "Resolved"], ["DISMISSED", "Dismissed"]];
 const isClosed = (status: string) => status === "RESOLVED" || status === "DISMISSED";
-const pill = (s: string) => (s === "OPEN" ? "open" : s === "IN_REVIEW" ? "review" : "done");
+const pill = (s: string) => (s === "OPEN" ? "open" : "done");
 const label = (s: string) => s.replace("_", " ").toLowerCase().replace(/^./, c => c.toUpperCase());
 const tone = (t: Tpl) => (t.closesAs === "DISMISSED" ? "reject" : t.verdict === "COMPLAINANT" ? "approve" : "neutral");
 const fmt = (d: string) => new Date(d).toLocaleString();
@@ -191,10 +191,10 @@ export default function ComplaintsPage() {
               <div className="infocards">{info.map(([k, v]) => <div className="info" key={k}><small>{k}</small><strong>{v}</strong></div>)}</div>
 
               <div className="claimbar">
-                <span className={`pill ${pill(open.status)}`}>{label(open.status)}</span>
+                <span className={`pill ${pill(open.status)}`}>{open.isClosed ? label(open.status) : "Open"}</span>
                 <span className="muted">{open.claimedBy ? <>Claimed by <strong>{mine ? "you" : open.claimedBy.name}</strong></> : "Not claimed yet"}</span>
-                {!open.isClosed && !open.claimedById && open.canReply && <button onClick={claim}>Claim</button>}
-                {!open.isClosed && open.claimedById && !mine && !open.lockedByClaim && open.canNote && <button onClick={claim}>Take over</button>}
+                {!open.isClosed && !open.claimedById && open.canClaim && <button onClick={claim}>Claim</button>}
+                {!open.isClosed && open.claimedById && !mine && !open.lockedByClaim && <button onClick={claim}>Take over</button>}
                 {!open.isClosed && open.claimedById && (mine || !open.lockedByClaim) && <button onClick={release}>Release</button>}
                 {open.isClosed ? (
                   <>
@@ -202,9 +202,10 @@ export default function ComplaintsPage() {
                     {open.canReopen && <button type="button" className="primary" onClick={reopen}>Reopen complaint</button>}
                   </>
                 ) : (
-                  <label style={{ marginLeft: "auto" }}><span className="muted">Status </span>
-                    <select value={open.status} disabled={!open.canReply} onChange={e => setStatus(e.target.value)} aria-label="Status">{STATUSES.map(s => <option key={s} value={s}>{label(s)}</option>)}</select>
-                  </label>
+                  <>
+                    {open.canClose && <button type="button" onClick={() => setStatus("RESOLVED")}>Resolve</button>}
+                    {open.canClose && <button type="button" onClick={() => setStatus("DISMISSED")}>Dismiss</button>}
+                  </>
                 )}
               </div>
 
