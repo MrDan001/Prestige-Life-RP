@@ -13,6 +13,7 @@ export type ComplaintForCheck = {
   category: { minReplyLevel: number; minCloseLevel: number };
   accusedAdmin: Accused;
   claimedById?: string | null;
+  demoGroup?: string | null;
 };
 
 /** Founder (OWNER), PRM (TECH) and developers have full workspace rights. */
@@ -50,6 +51,11 @@ export type Action = "reply" | "close";
 export function canAct(actor: Staff, c: ComplaintForCheck, action: Action) {
   if (c.accusedAdmin?.id === actor.id) return false; // never handle a complaint about yourself
   if (isTop(actor)) return true;
+  if (c.demoGroup) {
+    if (c.demoGroup === "A") return actor.level >= 3 && actor.level <= 4;
+    if (c.demoGroup === "B") return actor.level >= 5 && actor.level <= 6;
+    if (c.demoGroup === "C") return false;
+  }
   const target = levelNeededForTarget(c.accusedAdmin);
   if (target === "TOP") return false;
   const { minReplyLevel, minCloseLevel } = c.category;
