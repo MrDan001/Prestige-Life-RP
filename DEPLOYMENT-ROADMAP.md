@@ -224,10 +224,10 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 
 ## Complaint queue refinement — 6 November 2026
 - [x] Replace the generic "Reported player" label with distinct reported-player names for every generated training complaint.
-- [x] Add clearly labelled simulated text-evidence attachments to generated training complaints; these are not presented as genuine player-submitted proof.
+- [x] Add clearly labelled simulated text-evidence attachments to generated training complaints; these are not presented as genuine player-submitted proof, and the UI labels evidence as attached rather than claiming it came from the game.
 - [x] Paginate Active and History queues at 15 records per request with a Load more control.
 - [x] Keep Active complaints OPEN until resolved or dismissed; remove IN_REVIEW from the admin workflow and normalize existing IN_REVIEW records to OPEN.
-- [x] Require an explicit claim before staff can draft a judgment, reply, add a private note, or close a complaint.
+- [x] Require an explicit claim before staff can draft a judgment, reply, add a private note, or close a complaint; close controls are only exposed to the current claimer with close permission.
 - [x] Limit each admin to one OPEN claimed complaint at a time; preserve rank-based release/takeover rules.
 - [x] Remove the judgment-template helper sentence from the UI.
 - [x] Restrict the Add comp control and server endpoint to officialsafebase@gmail.com; all other staff receive no control and are rejected by the API.
