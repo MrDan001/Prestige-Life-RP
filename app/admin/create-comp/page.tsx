@@ -1,7 +1,7 @@
 // PATH: app/admin/create-comp/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 type Category = { id: string; name: string; active: boolean };
 const drafts: Record<string, string> = {
@@ -47,12 +47,16 @@ export default function CreateCompPage() {
       : /scam|trade/i.test(selectedCategory?.name ?? "") ? "scamming"
       : /hack|exploit/i.test(selectedCategory?.name ?? "") ? "exploiting" : "default";
     const template = drafts[key];
-    const intro = reporterName ? `Reporting player: ${reporterName} (${reporterGameId || "game ID not supplied"}).\nReported player: ${accusedName} (${accusedGameId || "game ID not supplied"}).\n\n` : "";
-    setMessage(intro + template.replace("[date/time]", "the date and time to be confirmed").replace(/\[([^[\]]+)\]/g, (_match, prompt) => facts.trim() || `Add details: ${prompt}`));
+    const intro = "Reporting player: " + reporterName + " (" + reporterGameId + ").\\n"
+      + "Reported player: " + accusedName + " (" + (accusedGameId || "game ID not supplied") + ").\\n"
+      + "Category: " + (selectedCategory?.name ?? "Not selected") + ".\\n\\n";
+    setMessage(intro + template + "\\n\\nIncident details:\\n"
+      + (facts.trim() || "[Add the date, time, location and exact sequence of events.]")
+      + "\\n\\nRequested review: Please review the relevant records and attached evidence before reaching a decision.");
     setNotice("Draft generated. Review and edit every detail before submitting.");
   }
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     if (busy) return;
     setBusy(true); setNotice("");
