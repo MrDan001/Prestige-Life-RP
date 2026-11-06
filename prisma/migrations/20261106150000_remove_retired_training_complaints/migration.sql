@@ -21,6 +21,9 @@ USING public."Complaint" c
 WHERE n."complaintId" = c."id"
   AND c."demoGroup" IS NOT NULL;
 
+DELETE FROM public."AuditLog" a
+WHERE a."targetId" IN (SELECT c."id" FROM public."Complaint" c WHERE c."demoGroup" IS NOT NULL);
+
 DELETE FROM public."Complaint"
 WHERE "demoGroup" IS NOT NULL;
 
