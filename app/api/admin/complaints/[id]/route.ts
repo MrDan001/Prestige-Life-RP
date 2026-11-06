@@ -39,7 +39,7 @@ export async function GET(_req: Request, { params }: Ctx) {
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const events = await db.auditLog.findMany({
-    where: { targetId: id, action: { in: ["COMPLAINT_STATUS", "COMPLAINT_CLAIM", "COMPLAINT_RELEASE", "COMPLAINT_VERDICT"] } },
+    where: { targetId: id, action: { in: ["COMPLAINT_CREATED", "COMPLAINT_STATUS", "COMPLAINT_CLAIM", "COMPLAINT_RELEASE", "COMPLAINT_VERDICT"] } },
     include: { actor: { select: { name: true } } },
     orderBy: { createdAt: "asc" },
   });
