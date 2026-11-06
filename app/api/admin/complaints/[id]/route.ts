@@ -57,9 +57,9 @@ export async function GET(_req: Request, { params }: Ctx) {
     ...c,
     ...permissionFlags,
     isClosed,
-    canReply: !isClosed && permissionFlags.canReply,
+    canReply: !isClosed && c.claimedById === a.actor.id && permissionFlags.canReply,
     canClose: !isClosed && permissionFlags.canClose,
-    canNote: !isClosed && canAct(a.actor, c, "reply"),
+    canNote: !isClosed && c.claimedById === a.actor.id && canAct(a.actor, c, "reply"),
     canReopen: isTop(a.actor),
     respondedAt,
     reviewedByName,
@@ -68,7 +68,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 }
 
 const patch = z.object({
-  status: z.enum(["OPEN", "IN_REVIEW", "RESOLVED", "DISMISSED"]).optional(),
+  status: z.enum(["OPEN", "RESOLVED", "DISMISSED"]).optional(),
   reply: z.string().min(1).max(2000).optional(),
   verdict: z.enum(["COMPLAINANT", "ACCUSED", "INSUFFICIENT"]).optional(),
   templateId: z.string().min(1).optional(), // the judgment button the reply came from
@@ -96,7 +96,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   const currentlyClosed = c.status === "RESOLVED" || c.status === "DISMISSED";
   if (currentlyClosed) {
-    const reopening = (status === "OPEN" || status === "IN_REVIEW") && isTop(a.actor);
+    const reopening = status === "OPEN" && isTop(a.actor);
     if (!reopening) {
       return NextResponse.json({ error: "This complaint is closed and can only be reopened by the owner or a top-tier administrator." }, { status: 409 });
     }
@@ -118,6 +118,8 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
   if (claimLocked(a.actor, c.claimedById))
     return NextResponse.json({ error: `Claimed by ${c.claimedBy?.name ?? "another admin"}. Ask them, or a level 6, to release it.` }, { status: 409 });
+  if (c.claimedById !== a.actor.id)
+    return NextResponse.json({ error: "Claim this complaint before replying, adding a judgment, or closing it." }, { status: 409 });
 
   const tpl = templateId ? await db.responseTemplate.findUnique({ where: { id: templateId } }) : null;
   if (templateId) {
@@ -132,15 +134,13 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if ((newStatus === "RESOLVED" || newStatus === "DISMISSED") && !canAct(a.actor, c, "close")) {
     return NextResponse.json({ error: "You do not have permission to close this complaint." }, { status: 403 });
   }
-  const autoClaim = !c.claimedById;
   const updated = await db.$transaction(async tx => {
     const changed = await tx.complaint.updateMany({
-      where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
+      where: { id, status: "OPEN", claimedById: a.actor.id },
       data: {
         updatedAt: new Date(),
         ...(newStatus ? { status: newStatus } : {}),
         ...(newVerdict ? { verdict: newVerdict } : {}),
-        ...(autoClaim ? { claimedById: a.actor.id, claimedAt: new Date() } : {}),
       },
     });
     if (changed.count !== 1) return null;
@@ -150,7 +150,6 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!updated) {
     return NextResponse.json({ error: "This complaint was closed or changed by another administrator. Refresh the page." }, { status: 409 });
   }
-  if (autoClaim) await audit(a.actor.id, "COMPLAINT_CLAIM", id, "claimed this complaint");
   if (newStatus && newStatus !== c.status) await audit(a.actor.id, "COMPLAINT_STATUS", id, `${c.status} -> ${newStatus}${tpl ? ` (judgment: ${tpl.name})` : ""}`);
   if (newVerdict && newVerdict !== c.verdict) await audit(a.actor.id, "COMPLAINT_VERDICT", id, `${c.verdict ?? "none"} -> ${newVerdict}`);
   return NextResponse.json(updated);
