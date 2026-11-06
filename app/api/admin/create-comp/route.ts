@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { audit } from "@/lib/audit";
 
 const OWNER_EMAIL = "officialsafebase@gmail.com";
 const schema = z.object({
@@ -59,9 +58,10 @@ export async function POST(req: Request) {
     if (d.evidenceUrl) {
       await tx.evidence.create({ data: { complaintId: created.id, kind: "LINK", url: d.evidenceUrl, caption: "Evidence link supplied with owner-created complaint" } });
     }
+    await tx.auditLog.create({
+      data: { actorId: auth.actor.id, action: "COMPLAINT_CREATED", targetId: created.id, detail: "Created through the owner complaint form." },
+    });
     return created;
   });
-
-  await audit(auth.actor.id, "COMPLAINT_CREATED", complaint.id, "Created through the owner complaint form.");
   return NextResponse.json({ id: complaint.id, status: complaint.status }, { status: 201 });
 }
