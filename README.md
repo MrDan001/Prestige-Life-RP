@@ -31,6 +31,8 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 ## Database security
 
 - Prisma uses the private PostgreSQL `DATABASE_URL` from the server environment; do not expose it to browser code.
+- On Vercel, use the Supabase **Transaction pooler** connection string (port `6543`) for runtime traffic. Do not use Supabase session mode (port `5432`) for serverless runtime requests.
+- `lib/db.ts` reuses one Prisma client and PostgreSQL pool per warm serverless instance and caps the local pool at one connection. Keep `connection_limit=1` in the transaction-pooler URL where supported.
 - RLS is enabled on the 14 existing public application tables and the isolated `DemoComp` training table. The legacy `Rule` table remains the one RLS-disabled exception flagged by the current Supabase advisor.
 - Direct table privileges are revoked from `PUBLIC`, `anon`, and `authenticated`; browser clients cannot query application tables directly.
 - No broad RLS policies are defined. Application data access is performed by server-side Prisma routes.
