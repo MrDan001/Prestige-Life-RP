@@ -24,11 +24,13 @@ export async function POST(_req: Request, { params }: Ctx) {
   if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "Closed complaints are view-only. A top-tier administrator must reopen the complaint first." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
   if (c.claimedById === a.actor.id) return NextResponse.json({ ok: true });
+  const existingClaim = await db.complaint.count({ where: { claimedById: a.actor.id, status: "OPEN", id: { not: id } } });
+  if (existingClaim > 0) return NextResponse.json({ error: "You already have an open complaint assigned to you. Complete or release it before claiming another." }, { status: 409 });
   if (claimLocked(a.actor, c.claimedById))
     return NextResponse.json({ error: `Already claimed by ${c.claimedBy?.name ?? "another admin"}` }, { status: 409 });
 
   const claimed = await db.complaint.updateMany({
-    where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
+    where: { id, status: "OPEN" },
     data: { claimedById: a.actor.id, claimedAt: new Date(), updatedAt: new Date() },
   });
   if (claimed.count !== 1) return NextResponse.json({ error: "This complaint is closed. Reopen it before claiming it." }, { status: 409 });
