@@ -52,7 +52,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Only the claimer or a level 6 can release this" }, { status: 403 });
 
   const released = await db.complaint.updateMany({
-    where: { id, status: { in: ["OPEN", "IN_REVIEW"] }, claimedById: c.claimedById },
+    where: { id, status: "OPEN", claimedById: c.claimedById },
     data: { claimedById: null, claimedAt: null, updatedAt: new Date() },
   });
   if (released.count !== 1) return NextResponse.json({ error: "This complaint was closed or changed. Refresh and try again." }, { status: 409 });
