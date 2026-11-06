@@ -26,7 +26,6 @@ export async function POST(req: Request, { params }: Ctx) {
   if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "This complaint is closed. Reopen it before adding a note." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot add notes to this complaint" }, { status: 403 });
   if (c.claimedById !== a.actor.id) return NextResponse.json({ error: "Claim this complaint before adding a private note." }, { status: 409 });
-  if (c.claimedById !== a.actor.id) return NextResponse.json({ error: "Claim this complaint before adding a private note." }, { status: 409 });
 
   const note = await db.$transaction(async tx => {
     const stillActive = await tx.complaint.updateMany({
