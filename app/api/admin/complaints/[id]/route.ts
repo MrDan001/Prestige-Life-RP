@@ -59,7 +59,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     isClosed,
     canClaim: !isClosed && permissionFlags.canReply,
     canReply: !isClosed && c.claimedById === a.actor.id && permissionFlags.canReply,
-    canClose: !isClosed && permissionFlags.canClose,
+    canClose: !isClosed && c.claimedById === a.actor.id && permissionFlags.canClose,
     canNote: !isClosed && c.claimedById === a.actor.id && canAct(a.actor, c, "reply"),
     canReopen: isTop(a.actor),
     respondedAt,
@@ -80,7 +80,7 @@ const patch = z.object({
  * Sending a judgment also needs the judgment's own level, and applies its verdict and outcome (resolve/dismiss).
  * Changing the status by hand to resolved/dismissed needs the category's close level.
  * If someone else claimed the complaint it is locked (409) unless you are level 6+ or top tier.
- * The first action on an unclaimed complaint claims it automatically.
+ * Staff must explicitly claim an OPEN complaint before taking action.
  */
 export async function PATCH(req: Request, { params }: Ctx) {
   const a = await requireAdmin();
