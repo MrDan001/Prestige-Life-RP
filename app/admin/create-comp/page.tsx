@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 
 type Category = { id: string; name: string; active: boolean };
 const drafts: Record<string, string> = {
@@ -13,7 +12,6 @@ const drafts: Record<string, string> = {
 };
 
 export default function CreateCompPage() {
-  const search = useSearchParams();
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [reporterName, setReporterName] = useState("");
