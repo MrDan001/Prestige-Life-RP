@@ -220,3 +220,16 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Monitor Supabase pooler client usage under normal concurrent admin traffic.
 
 **Operational note:** the current Vercel secret is not readable through the available environment-variable metadata endpoint, so its password-bearing URI cannot safely be rewritten in place by this session. The code-side connection fan-out mitigation is committed; switching the production secret to transaction mode is still required for durable serverless scaling.
+
+
+## Complaint queue refinement — 6 November 2026
+- [x] Replace the generic "Reported player" label with distinct reported-player names for every generated training complaint.
+- [x] Add clearly labelled simulated text-evidence attachments to generated training complaints; these are not presented as genuine player-submitted proof.
+- [x] Paginate Active and History queues at 15 records per request with a Load more control.
+- [x] Keep Active complaints OPEN until resolved or dismissed; remove IN_REVIEW from the admin workflow and normalize existing IN_REVIEW records to OPEN.
+- [x] Require an explicit claim before staff can draft a judgment, reply, add a private note, or close a complaint.
+- [x] Limit each admin to one OPEN claimed complaint at a time; preserve rank-based release/takeover rules.
+- [x] Remove the judgment-template helper sentence from the UI.
+- [x] Restrict the Add comp control and server endpoint to officialsafebase@gmail.com; all other staff receive no control and are rejected by the API.
+- [x] Update README and this roadmap.
+- [ ] Run production build and verify pagination, claim locking, rank overrides, evidence display, and owner-only Add comp visibility on production.
