@@ -182,3 +182,19 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update the Prisma seed role name so future seed runs use FOUNDER.
 - [x] Update README and this roadmap.
 - [ ] Verify the Roles and Staff screens show FOUNDER after the migration and deployment.
+
+
+## International demo comps training workspace — 6 November 2026
+- [x] Add a dedicated `DemoComp` Prisma model and additive SQL migration, physically separate from live Player and Complaint records.
+- [x] Add 45 synthetic player reports with international player identities, countries, varied report categories, and realistic descriptions.
+- [x] Allocate 25 Group A cases to levels 3–4, 15 Group B cases to levels 5–6, and 5 Group C cases to PRM/top tier.
+- [x] Restrict generation to the immutable primary Owner Admin ID; FOUNDER and all other staff receive server-side HTTP 403.
+- [x] Enforce closure hierarchy in the API: levels 3–4 close A; levels 5–6 close A+B; top-tier accounts close A+B+C.
+- [x] Filter visible records by the same hierarchy; demo actions never modify live complaints or player accounts.
+- [x] Add the Demo Comps admin workspace, owner-only generation control, case details, status indicators, and closure action.
+- [x] Update README and this roadmap.
+- [ ] Apply migration `20261106090000_demo_complaints` to the production Supabase database before first use.
+- [ ] Verify Owner generation creates exactly 45 records (25/15/5), and duplicate generation is blocked.
+- [ ] Verify levels 3, 4, 5, and 6 can close only their allowed groups; verify FOUNDER/PRM/Developer access and non-owner generation denial.
+- [ ] Verify demo closures leave the live complaints queue, player records, and game integrations unchanged.
+- [ ] Run a clean Prisma/Next.js production build and verify the Vercel deployment.
