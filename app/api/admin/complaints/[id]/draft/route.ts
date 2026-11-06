@@ -26,6 +26,7 @@ export async function POST(req: Request, { params }: Ctx) {
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "This complaint is closed. A top-tier administrator must reopen it before a judgment can be prepared." }, { status: 409 });
   if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
+  if (c.claimedById !== a.actor.id) return NextResponse.json({ error: "Claim this complaint before preparing a judgment." }, { status: 409 });
 
   const t = await db.responseTemplate.findUnique({ where: { id: parsed.data.templateId } });
   if (!t || !t.active) return NextResponse.json({ error: "Template not found" }, { status: 404 });
