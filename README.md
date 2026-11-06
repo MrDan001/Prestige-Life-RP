@@ -74,6 +74,7 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 
 ## Demo complaints in the normal queue
 - The 45 international training complaints are genuine `Player` and `Complaint` records and appear in the same Active/History workflow as player-submitted complaints.
-- The primary Owner (immutable Admin ID check) can generate the set from the Complaints page. Duplicate generation is blocked.
+- Only the signed-in account whose email is exactly `officialsafebase@gmail.com` can see or invoke the **Add comp** control. The API enforces the same email check; duplicate generation is blocked.
 - Group A (25) is closable by levels 3–4, Group B (15) by levels 5–6, and Group C (5) by top-tier staff only. The group gate is enforced server-side and applies only to tagged demo complaints; real complaint permissions remain unchanged.
-- Each generated player carries a country field. The previous standalone `DemoComp` queue is retired.
+- Each generated player carries a country field and a distinct reported-player name. Each generated complaint receives a clearly labelled simulated text-evidence attachment for training; it is not presented as real player-submitted proof. The previous standalone `DemoComp` queue is retired.
+- The Active queue contains OPEN complaints only; complaints remain OPEN until resolved or dismissed. Staff must explicitly claim a complaint before drafting a judgment, replying, adding a note, or closing it. Each admin can hold only one OPEN claim at a time. The list loads 15 complaints per page with a Load more control.
