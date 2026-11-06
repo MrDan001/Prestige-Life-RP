@@ -5,10 +5,10 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 type Category = { id: string; name: string; active: boolean };
 const drafts: Record<string, string> = {
-  default: "On [date/time], an incident occurred involving the reported player.\n\nWhat happened: [describe the actions in the order they occurred].\n\nImpact: [explain how this affected the reporting player or other players].\n\nRequested review: Please review the available records and evidence before reaching a decision.",
-  harassment: "On [date/time], the reported player repeatedly contacted or followed the reporting player after being asked to stop.\n\nDetails: [add the locations, messages or actions and their sequence].\n\nImpact: [describe the effect on the session].\n\nPlease review the relevant chat and activity records before reaching a decision.",
-  scamming: "On [date/time], the reporting player and the reported player agreed to an exchange. The reporting player provided [item/payment], but [explain what was not delivered or returned].\n\nTransaction details: [add the item, amount and approximate time].\n\nPlease review the transaction history and attached evidence.",
-  exploiting: "On [date/time], the reporting player observed behaviour that may indicate an exploit.\n\nObserved behaviour: [describe exactly what happened and where].\n\nWhy it appeared unusual: [explain what normal behaviour would look like].\n\nPlease review the relevant gameplay records before deciding whether a rule was broken.",
+  default: "An incident involving the reported player is being submitted for review.",
+  harassment: "This report concerns repeated unwanted contact or following after a request to stop.",
+  scamming: "This report concerns an exchange or payment that may not have been completed as agreed.",
+  exploiting: "This report concerns gameplay behaviour that may indicate an exploit and requires review of the available records.",
 };
 
 export default function CreateCompPage() {
