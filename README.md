@@ -31,7 +31,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 ## Database security
 
 - Prisma uses the private PostgreSQL `DATABASE_URL` from the server environment; do not expose it to browser code.
-- RLS is enabled on all 14 public application tables.
+- RLS is enabled on the 14 existing public application tables and the isolated `DemoComp` training table. The legacy `Rule` table remains the one RLS-disabled exception flagged by the current Supabase advisor.
 - Direct table privileges are revoked from `PUBLIC`, `anon`, and `authenticated`; browser clients cannot query application tables directly.
 - No broad RLS policies are defined. Application data access is performed by server-side Prisma routes.
 - Keep database and session secrets in Vercel environment variables; never commit their values.
@@ -76,4 +76,4 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The 45 cases are allocated as 25 Group A (admin levels 3–4), 15 Group B (levels 5–6), and 5 Group C (PRM and above).
 - Admin levels 3–4 can close Group A; levels 5–6 can close Groups A and B; top-tier accounts can close all three groups. The API enforces this independently of the UI.
 - Staff can only see their eligible groups and lower groups. Demo closure updates only the demo record and does not send a response to a real player or affect the live complaint history.
-- Apply the additive Prisma migration under `prisma/migrations/20261106090000_demo_complaints` before using the workspace. The Owner then generates the set once from **Admin → Demo Comps**.
+- The additive demo-comps database migration is applied to production and the 45-case set has been seeded: Group A 25, Group B 15, Group C 5 (all initially open). The Owner-only generation endpoint is protected against duplicate seeding.
