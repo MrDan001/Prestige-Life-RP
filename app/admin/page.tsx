@@ -27,6 +27,7 @@ const fmt = (d: string) => new Date(d).toLocaleString();
 
 export default function ComplaintsPage() {
   const [meId, setMeId] = useState("");
+  const [canCreateComp, setCanCreateComp] = useState(false);
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -56,6 +57,7 @@ export default function ComplaintsPage() {
     if (r.ok) {
       const current = await r.json();
       setMeId(current.id);
+      setCanCreateComp(!!current.canCreateComp);
     }
   }); }, []);
   useEffect(() => { loadList(); }, [loadList]);
@@ -140,7 +142,7 @@ export default function ComplaintsPage() {
     <div>
       <header className="topbar">
         <h1>Complaints</h1>
-        <a className="primary" href="/admin/create-comp?generate=1">Generate</a>
+        {canCreateComp && <a className="primary" href="/admin/create-comp?generate=1">Generate</a>}
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
           <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
           <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
