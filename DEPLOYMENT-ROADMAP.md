@@ -270,7 +270,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Validate selected category rank thresholds server-side; preserve category-specific close permissions.
 - [x] Enforce per-row quantity 1–50, up to 20 rows and 100 complaints per batch.
 - [x] Keep generated complaints OPEN, unassigned, and in the normal Active queue with two clearly marked simulated exhibits each.
-- [x] Correct advisory-lock result typing by casting PostgreSQL's void lock result to text before Prisma deserializes it.
+- [x] Correct advisory-lock result typing by wrapping PostgreSQL's void lock call in a subquery while returning an integer column to Prisma.
 - [x] Keep the complete batch atomic; serialize generation and reject invalid/inactive categories before writing.
 - [x] Update README and deployment roadmap.
 - [ ] Run Vercel Preview build and inspect build logs for the new branch.
