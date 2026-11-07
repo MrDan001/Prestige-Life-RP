@@ -148,3 +148,10 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 ### Complaint judgment build type fix — 7 November 2026
 - The complaint PATCH lookup now selects the accused administrator's display name, matching the upheld-judgment message formatter and Prisma's inferred query type.
 - The complainant username remains selected explicitly for the same formatter.
+
+
+## Production roles database state — 7 November 2026
+- The unused, manually-created custom **PR Manager** role was removed from the production database after confirming it had zero staff assignments.
+- The built-in **PRM** role was renamed to **PR Manager** in production; its underlying `TECH` kind and both existing staff assignments were preserved.
+- All other production roles and their assignments were verified unchanged.
+- PR #32 contains the matching Roles page cleanup and the complaint judgment TypeScript build correction. The remaining release step is one successful Vercel Production deployment from the merged PR.
