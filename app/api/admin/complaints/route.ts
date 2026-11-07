@@ -52,6 +52,7 @@ export async function GET(req: Request) {
       isClosed,
       lockedByClaim: claimLocked(a.actor, r.claimedById),
       canReply: !isClosed && r.claimedById === a.actor.id && permissionFlags.canReply,
+      canClaim: !isClosed && !r.claimedById && permissionFlags.canReply,
       canClose: !isClosed && r.claimedById === a.actor.id && permissionFlags.canClose,
       canReopen: isTop(a.actor),
     };

@@ -9,10 +9,10 @@ type Row = {
   player: { username: string }; category: { id: string; name: string };
   claimedBy: { name: string } | null; claimedById: string | null;
   accusedName: string | null; accusedAdmin: { name: string } | null;
-  canReply: boolean; canClose: boolean; lockedByClaim: boolean; isClosed: boolean; canReopen: boolean;
+  canReply: boolean; canClaim: boolean; canClose: boolean; lockedByClaim: boolean; isClosed: boolean; canReopen: boolean;
 };
 type Detail = Row & {
-  player: { username: string; gameId: string }; canClaim: boolean; canNote: boolean; verdict: string | null;
+  player: { username: string; gameId: string }; canNote: boolean; verdict: string | null;
   evidence: Ev[]; timeline: Item[]; respondedAt: string | null; reviewedByName: string | null;
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
@@ -157,12 +157,12 @@ export default function ComplaintsPage() {
         <section className="list" aria-label="Complaint list">
           {shown.length === 0 && <p className="muted">No complaints found.</p>}
           {shown.map(r => (
-            <button key={r.id} className={`card${open?.id === r.id ? " sel" : ""}${r.canReply ? "" : " dim"}`} onClick={() => select(r.id)}>
+            <button key={r.id} className={`card${open?.id === r.id ? " sel" : ""}${r.canReply || r.canClaim || (r.claimedById && !r.lockedByClaim) ? "" : " dim"}`} onClick={() => select(r.id)}>
               <div className="row-top"><strong>#{r.id.slice(-6).toUpperCase()}</strong><span className={`pill ${pill(r.status)}`}>{label(r.status)}</span></div>
               <div style={{ marginTop: 4 }}>{r.player.username} <span className="muted">vs</span> {r.accusedAdmin?.name ?? r.accusedName ?? "unknown"}</div>
               <div className="sub">
                 {r.claimedBy ? (r.claimedById === meId ? "Claimed by you" : `Claimed by ${r.claimedBy.name}`) : "Available to claim"}
-                {!r.canReply && !r.lockedByClaim ? " · view only" : ""}{r.accusedAdmin ? " · against staff" : ""} · {fmt(r.createdAt)}
+                {!r.canReply && !r.canClaim && !r.lockedByClaim ? " · view only" : ""}{r.accusedAdmin ? " · against staff" : ""} · {fmt(r.createdAt)}
               </div>
             </button>
           ))}
@@ -231,9 +231,9 @@ export default function ComplaintsPage() {
                     </div>
                   </div>
                 </>
-              ) : <p className="muted">{open.isClosed
+              ) : open.canClaim ? null : <p className="muted">{open.isClosed
                 ? (open.canReopen ? "This complaint is closed. Reopen it to return it to the active queue before replying." : "This complaint is closed and read-only. Only the owner or a top-tier administrator can reopen it.")
-                : open.lockedByClaim ? `${open.claimedBy?.name ?? "Another admin"} is handling this complaint.` : "You can view this complaint but you cannot answer it."}</p>}
+                : open.lockedByClaim ? `${open.claimedBy?.name ?? "Another admin"} is handling this complaint.` : "Your rank does not meet the minimum reply level for this complaint."}</p>}
 
               {open.canNote && (
                 <div className="panel" style={{ display: "grid", gap: 8 }}>
