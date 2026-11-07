@@ -59,112 +59,148 @@ function scenarioFor(categoryName: string, index: number): Scenario {
   return pool[index % pool.length];
 }
 
-export async function POST() {
+
+type RankGroup = "LEVEL_3_TO_5" | "LEVEL_6_PLUS";
+type GenerationRow = { categoryId: string; quantity: number; rankGroup: RankGroup };
+
+export async function GET() {
+  const auth = await requireAdmin();
+  if (auth.error) return auth.error;
+  if (auth.admin.email.trim().toLowerCase() !== OWNER_EMAIL) {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+  const categories = await db.category.findMany({
+    where: { active: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, minReplyLevel: true, minCloseLevel: true },
+  });
+  return NextResponse.json({ categories });
+}
+
+export async function POST(request: Request) {
   const auth = await requireAdmin();
   if (auth.error) return auth.error;
   if (auth.admin.email.trim().toLowerCase() !== OWNER_EMAIL) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 
+  let rows: GenerationRow[];
+  try {
+    const body = await request.json();
+    if (!Array.isArray(body?.rows) || body.rows.length < 1 || body.rows.length > 20) {
+      return NextResponse.json({ error: "Add between 1 and 20 category rows." }, { status: 400 });
+    }
+    rows = body.rows.map((row: any) => ({
+      categoryId: String(row?.categoryId ?? ""),
+      quantity: Number(row?.quantity),
+      rankGroup: row?.rankGroup,
+    }));
+    if (rows.some(row =>
+      !row.categoryId ||
+      !Number.isInteger(row.quantity) || row.quantity < 1 || row.quantity > 50 ||
+      !["LEVEL_3_TO_5", "LEVEL_6_PLUS"].includes(row.rankGroup)
+    )) {
+      return NextResponse.json({ error: "Each row needs an active category, a quantity from 1 to 50, and a valid admin rank group." }, { status: 400 });
+    }
+    const total = rows.reduce((sum, row) => sum + row.quantity, 0);
+    if (total > 100) {
+      return NextResponse.json({ error: "A single batch can contain at most 100 complaints." }, { status: 400 });
+    }
+  } catch {
+    return NextResponse.json({ error: "Invalid generation request." }, { status: 400 });
+  }
+
   const batchId = randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase();
   try {
     const created = await db.$transaction(async (tx) => {
-      // Serialize generation requests so concurrent clicks cannot interleave a batch.
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(72110520261107)`;
+      // Cast PostgreSQL's void return to text so Prisma never has to deserialize a void column.
+      await tx.$queryRaw\`SELECT pg_advisory_xact_lock(72110520261107)::text AS lock_acquired\`;
 
+      const categoryIds = [...new Set(rows.map(row => row.categoryId))];
       const categories = await tx.category.findMany({
-        where: { active: true },
+        where: { active: true, id: { in: categoryIds } },
         orderBy: { name: "asc" },
       });
-      const rankThreeToFive = categories.filter(c => c.minReplyLevel <= 3);
-      const rankSixPlus = categories.filter(c => c.minReplyLevel === 6 && c.minCloseLevel <= 6);
-      if (!rankThreeToFive.length || !rankSixPlus.length) {
-        throw new Error(
-          !rankThreeToFive.length
-            ? "No active category currently allows rank 3 admins to claim and close complaints. Review category minimum levels first."
-            : "No active category has a rank-6 reply requirement. At least one category must have minimum reply level 6 and close level 6 or lower for the five senior-tier cases."
-        );
+      const categoryById = new Map(categories.map(category => [category.id, category]));
+      for (const row of rows) {
+        const category = categoryById.get(row.categoryId);
+        if (!category) throw new Error("One of the selected categories is no longer active. Refresh the page and try again.");
+        if (row.rankGroup === "LEVEL_3_TO_5" && category.minReplyLevel > 3) {
+          throw new Error(\`\${category.name} does not allow rank 3–5 administrators to claim complaints. Choose a category with a minimum reply level of 3 or lower.\`);
+        }
+        if (row.rankGroup === "LEVEL_6_PLUS" && category.minReplyLevel !== 6) {
+          throw new Error(\`\${category.name} is not configured for rank 6 and above. Choose a category with a minimum reply level of 6.\`);
+        }
       }
 
-      const results: { id: string; eligibility: string }[] = [];
-      for (let i = 0; i < 20; i++) {
-        const seniorTier = i >= 15;
-        const eligibleCategories = seniorTier ? rankSixPlus : rankThreeToFive;
-        const category = eligibleCategories[i % eligibleCategories.length];
-        const scenario = scenarioFor(category.name, i);
-        const [reporterName, accusedName] = names[i];
-        const reporterGameId = `SIM-R-${batchId}-${String(i + 1).padStart(2, "0")}`;
-        const accusedGameId = `SIM-A-${batchId}-${String(i + 1).padStart(2, "0")}`;
-        const player = await tx.player.create({
-          data: { gameId: reporterGameId, username: reporterName },
-        });
-        const message = [
-          `INCIDENT: ${scenario.title}`,
-          `CATEGORY: ${category.name}`,
-          `REPORTING PLAYER: ${reporterName} (${reporterGameId})`,
-          `REPORTED PLAYER: ${accusedName} (${accusedGameId})`,
-          "",
-          "SUMMARY",
-          scenario.summary,
-          "",
-          "TIMELINE",
-          scenario.timeline,
-          "",
-          "IMPACT / CONTEXT",
-          scenario.impact,
-          "",
-          "REQUESTED REVIEW",
-          "Please review the attached scenario exhibits and determine whether the reported conduct is supported. No finding or sanction is pre-decided.",
-          "",
-          "PROVENANCE",
-          "This is a generated simulation case. The names, player IDs, incident and exhibits are fictional and are not a real player-submitted allegation.",
-        ].join("\n");
+      const results: { id: string; rankGroup: RankGroup; categoryName: string }[] = [];
+      let sequence = 0;
+      for (const row of rows) {
+        const category = categoryById.get(row.categoryId)!;
+        for (let item = 0; item < row.quantity; item++) {
+          const i = sequence++;
+          const scenario = scenarioFor(category.name, i);
+          const [reporterName, accusedName] = names[i % names.length];
+          const reporterGameId = \`SIM-R-\${batchId}-\${String(i + 1).padStart(3, "0")}\`;
+          const accusedGameId = \`SIM-A-\${batchId}-\${String(i + 1).padStart(3, "0")}\`;
+          const player = await tx.player.create({
+            data: { gameId: reporterGameId, username: reporterName },
+          });
+          const message = [
+            \`INCIDENT: \${scenario.title}\`,
+            \`CATEGORY: \${category.name}\`,
+            \`REPORTING PLAYER: \${reporterName} (\${reporterGameId})\`,
+            \`REPORTED PLAYER: \${accusedName} (\${accusedGameId})\`,
+            "",
+            "SUMMARY", scenario.summary, "",
+            "TIMELINE", scenario.timeline, "",
+            "IMPACT / CONTEXT", scenario.impact, "",
+            "REQUESTED REVIEW",
+            "Please review the attached scenario exhibits and determine whether the reported conduct is supported. No finding or sanction is pre-decided.",
+            "",
+            "PROVENANCE",
+            "This is a generated simulation case. The names, player IDs, incident and exhibits are fictional and are not a real player-submitted allegation.",
+          ].join("\\n");
 
-        const complaint = await tx.complaint.create({
-          data: {
-            playerId: player.id,
-            categoryId: category.id,
-            accusedName,
-            accusedGameId,
-            message,
-            status: "OPEN",
-            evidence: {
-              create: [
-                {
-                  kind: "TEXT",
-                  text: `SIMULATED EXHIBIT A\n${scenario.exhibitA}\n\nScenario batch: ${batchId}`,
-                  caption: "Simulated evidence — generated scenario, not verified player-submitted material.",
-                },
-                {
-                  kind: "TEXT",
-                  text: `SIMULATED EXHIBIT B\n${scenario.exhibitB}\n\nScenario batch: ${batchId}`,
-                  caption: "Simulated supporting evidence — generated scenario, not a live system record.",
-                },
-              ],
+          const complaint = await tx.complaint.create({
+            data: {
+              playerId: player.id,
+              categoryId: category.id,
+              accusedName,
+              accusedGameId,
+              message,
+              status: "OPEN",
+              evidence: {
+                create: [
+                  { kind: "TEXT", text: \`SIMULATED EXHIBIT A\\n\${scenario.exhibitA}\\n\\nScenario batch: \${batchId}\`, caption: "Simulated evidence — generated scenario, not verified player-submitted material." },
+                  { kind: "TEXT", text: \`SIMULATED EXHIBIT B\\n\${scenario.exhibitB}\\n\\nScenario batch: \${batchId}\`, caption: "Simulated supporting evidence — generated scenario, not a live system record." },
+                ],
+              },
             },
-          },
-        });
-        await tx.auditLog.create({
-          data: {
-            actorId: auth.actor.id,
-            action: "COMPLAINT_CREATED",
-            targetId: complaint.id,
-            detail: `Generated simulation batch ${batchId}; eligible claim ranks: ${seniorTier ? "level 6 and top tier" : "levels 3–5"}; no admin pre-assigned.`,
-          },
-        });
-        results.push({ id: complaint.id, eligibility: seniorTier ? "LEVEL_6_PLUS" : "LEVEL_3_TO_5" });
+          });
+          await tx.auditLog.create({
+            data: {
+              actorId: auth.actor.id,
+              action: "COMPLAINT_CREATED",
+              targetId: complaint.id,
+              detail: \`Generated simulation batch \${batchId}; category: \${category.name}; eligible claim ranks: \${row.rankGroup === "LEVEL_6_PLUS" ? "level 6 and top tier" : "levels 3–5"}; no admin pre-assigned.\`,
+            },
+          });
+          results.push({ id: complaint.id, rankGroup: row.rankGroup, categoryName: category.name });
+        }
       }
       return results;
-    }, { timeout: 30000 });
+    }, { timeout: 60000 });
 
     return NextResponse.json({
       ok: true,
       batchId,
       created: created.length,
-      rankThreeToFive: created.filter(c => c.eligibility === "LEVEL_3_TO_5").length,
-      rankSixPlus: created.filter(c => c.eligibility === "LEVEL_6_PLUS").length,
+      rankThreeToFive: created.filter(item => item.rankGroup === "LEVEL_3_TO_5").length,
+      rankSixPlus: created.filter(item => item.rankGroup === "LEVEL_6_PLUS").length,
       assigned: 0,
-      ids: created.map(c => c.id),
+      categories: [...new Set(created.map(item => item.categoryName))],
+      ids: created.map(item => item.id),
     }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The batch could not be generated.";
