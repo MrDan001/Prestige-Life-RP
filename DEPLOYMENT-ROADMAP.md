@@ -364,3 +364,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Save the reporter's country on the generated Player record; no schema migration is required because Player.country already exists.
 - [x] Update README and this deployment roadmap.
 - [ ] Verify the next owner-approved generated batch visually in the admin complaint queue.
+
+
+## Mixed full names and letter-only generated identities — 7 November 2026
+- [x] Mix realistic international full names with game-style handles in the same shuffled identity pool.
+- [x] Remove digits and underscores from every generated identity; names contain letters only, with spaces permitted between full-name parts.
+- [x] Keep every reporter/reported-player matchup cross-country.
+- [x] Preserve the global country mix and shuffled batch selection.
+- [x] Update README and this roadmap.
+- [ ] Verify a later owner-approved generated batch displays both name styles and contains no numeric characters.
