@@ -121,7 +121,7 @@ export default function ComplaintsPage() {
     ["Complaint about", open.accusedAdmin?.name ?? open.accusedName ?? "Unknown"],
     ["Time created", fmt(open.createdAt)],
     ["Time resolved", open.closedAt ? fmt(open.closedAt) : open.isClosed ? "Not recorded" : "Not resolved"],
-    ["Closed By", open.isClosed ? open.latestJudgment?.admin?.name ?? open.closedBy?.name ?? "Not recorded" : "—"],
+    ["Closed By", open.isClosed ? open.latestJudgment?.admin?.name ?? open.closedBy?.name ?? "—" : "—"],
   ];
 
   return (
