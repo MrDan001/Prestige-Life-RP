@@ -20,7 +20,7 @@ const include = {
 
 const eventText = (action: string, detail: string) =>
   action === "COMPLAINT_CREATED"
-    ? "created this complaint through the owner form"
+    ? (detail.startsWith("Generated simulation batch") ? detail : "created this complaint through the owner form")
     : action === "COMPLAINT_STATUS"
     ? `changed status: ${detail}`
     : action === "COMPLAINT_VERDICT"
