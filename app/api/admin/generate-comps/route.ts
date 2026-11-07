@@ -60,7 +60,7 @@ function scenarioFor(categoryName: string, index: number): Scenario {
 }
 
 
-type RankGroup = "LEVEL_3_TO_5" | "LEVEL_6_PLUS";
+type RankGroup = "MIN_LEVEL_3" | "MIN_LEVEL_6";
 type GenerationRow = { categoryId: string; quantity: number; rankGroup: RankGroup };
 
 export async function GET() {
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     if (rows.some(row =>
       !row.categoryId ||
       !Number.isInteger(row.quantity) || row.quantity < 1 || row.quantity > 50 ||
-      !["LEVEL_3_TO_5", "LEVEL_6_PLUS"].includes(row.rankGroup)
+      !["MIN_LEVEL_3", "MIN_LEVEL_6"].includes(row.rankGroup)
     )) {
       return NextResponse.json({ error: "Each row needs an active category, a quantity from 1 to 50, and a valid admin rank group." }, { status: 400 });
     }
@@ -125,11 +125,11 @@ export async function POST(request: Request) {
       for (const row of rows) {
         const category = categoryById.get(row.categoryId);
         if (!category) throw new Error("One of the selected categories is no longer active. Refresh the page and try again.");
-        if (row.rankGroup === "LEVEL_3_TO_5" && category.minReplyLevel > 3) {
-          throw new Error(`${category.name} does not allow rank 3–5 administrators to claim complaints. Choose a category with a minimum reply level of 3 or lower.`);
+        if (row.rankGroup === "MIN_LEVEL_3" && category.minReplyLevel > 3) {
+          throw new Error(`${category.name} does not support a minimum reply rank of 3. Choose a category with a minimum reply level of 3 or lower. Rank 6 and top-tier admins can also reply because higher ranks inherit access to lower-rank complaints.`);
         }
-        if (row.rankGroup === "LEVEL_6_PLUS" && category.minReplyLevel !== 6) {
-          throw new Error(`${category.name} is not configured for rank 6 and above. Choose a category with a minimum reply level of 6.`);
+        if (row.rankGroup === "MIN_LEVEL_6" && category.minReplyLevel !== 6) {
+          throw new Error(`${category.name} is not configured for a minimum reply rank of 6. Choose a category with a minimum reply level of 6.`);
         }
       }
 
@@ -183,7 +183,7 @@ export async function POST(request: Request) {
               actorId: auth.actor.id,
               action: "COMPLAINT_CREATED",
               targetId: complaint.id,
-              detail: `Generated simulation batch ${batchId}; category: ${category.name}; eligible claim ranks: ${row.rankGroup === "LEVEL_6_PLUS" ? "level 6 and top tier" : "levels 3–5"}; no admin pre-assigned.`,
+              detail: `Generated simulation batch ${batchId}; category: ${category.name}; minimum reply rank: ${row.rankGroup === "MIN_LEVEL_6" ? "6 (rank 6 and top tier)" : "3 (rank 3 and above, including rank 6 and top tier)"}; no admin pre-assigned.`,
             },
           });
           results.push({ id: complaint.id, rankGroup: row.rankGroup, categoryName: category.name });
@@ -196,8 +196,8 @@ export async function POST(request: Request) {
       ok: true,
       batchId,
       created: created.length,
-      rankThreeToFive: created.filter(item => item.rankGroup === "LEVEL_3_TO_5").length,
-      rankSixPlus: created.filter(item => item.rankGroup === "LEVEL_6_PLUS").length,
+      minimumRankThreePlus: created.filter(item => item.rankGroup === "MIN_LEVEL_3").length,
+      minimumRankSixPlus: created.filter(item => item.rankGroup === "MIN_LEVEL_6").length,
       assigned: 0,
       categories: [...new Set(created.map(item => item.categoryName))],
       ids: created.map(item => item.id),

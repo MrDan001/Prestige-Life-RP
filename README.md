@@ -83,8 +83,8 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 
 ## Owner-configurable category complaint batches
 - The owner-only **Generate comps** page lets the owner add multiple category rows in one batch and set a separate quantity and claim-eligibility group for each row.
-- Each row selects an active category, a quantity from 1–50, and either ranks 3–5 or rank 6 and top tier. A batch supports up to 100 complaints across up to 20 rows.
-- Rank-group selection is validated against the category’s minimum reply level on the server; closing remains governed by the category’s normal close threshold.
+- Each row selects an active category, a quantity from 1–50, and a minimum reply rank: rank 3+ or rank 6+. A minimum rank of 3 includes ranks 3, 4, 5, rank 6 and top-tier admins; higher ranks inherit reply access to lower-rank complaints. A minimum rank of 6 is limited to rank 6 and top-tier admins. A batch supports up to 100 complaints across up to 20 rows.
+- Minimum-rank selection is validated against the category’s minimum reply level on the server. An admin may reply when their rank is at least the complaint category’s minimum reply rank; lower ranks cannot reply upward. Existing safeguards for complaints against staff still apply, and closing remains governed by the category’s normal close threshold.
 - All generated cases enter the normal OPEN/Active queue unassigned. Eligible staff claim them through the existing complaint workflow; the generator never assigns a case to an administrator.
 - Each case includes reporter/reported-player identities, a structured incident summary and timeline, impact/context, requested review, and two attached text evidence exhibits.
 - Generated names, IDs, incidents, and exhibits are explicitly identified as simulations. They are not real player reports or verified evidence.

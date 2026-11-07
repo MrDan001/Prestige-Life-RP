@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Category = { id: string; name: string; minReplyLevel: number; minCloseLevel: number };
-type RankGroup = "LEVEL_3_TO_5" | "LEVEL_6_PLUS";
+type RankGroup = "MIN_LEVEL_3" | "MIN_LEVEL_6";
 type Row = { key: number; categoryId: string; quantity: number; rankGroup: RankGroup };
-type Result = { batchId: string; created: number; rankThreeToFive: number; rankSixPlus: number; assigned: number; categories: string[] };
+type Result = { batchId: string; created: number; minimumRankThreePlus: number; minimumRankSixPlus: number; assigned: number; categories: string[] };
 
 export default function GenerateCompsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [rows, setRows] = useState<Row[]>([{ key: 1, categoryId: "", quantity: 5, rankGroup: "LEVEL_3_TO_5" }]);
+  const [rows, setRows] = useState<Row[]>([{ key: 1, categoryId: "", quantity: 5, rankGroup: "MIN_LEVEL_3" }]);
   const [nextKey, setNextKey] = useState(2);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -22,14 +22,14 @@ export default function GenerateCompsPage() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error ?? "Could not load complaint categories.");
         setCategories(data.categories ?? []);
-        if (data.categories?.length) setRows([{ key: 1, categoryId: data.categories[0].id, quantity: 5, rankGroup: data.categories[0].minReplyLevel === 6 ? "LEVEL_6_PLUS" : "LEVEL_3_TO_5" }]);
+        if (data.categories?.length) setRows([{ key: 1, categoryId: data.categories[0].id, quantity: 5, rankGroup: data.categories[0].minReplyLevel === 6 ? "MIN_LEVEL_6" : "MIN_LEVEL_3" }]);
       })
       .catch(e => setError(e instanceof Error ? e.message : "Could not load categories."))
       .finally(() => setLoading(false));
   }, []);
 
   const total = useMemo(() => rows.reduce((sum, row) => sum + (Number(row.quantity) || 0), 0), [rows]);
-  const eligible = (rank: RankGroup) => categories.filter(category => rank === "LEVEL_3_TO_5" ? category.minReplyLevel <= 3 : category.minReplyLevel === 6);
+  const eligible = (rank: RankGroup) => categories.filter(category => rank === "MIN_LEVEL_3" ? category.minReplyLevel <= 3 : category.minReplyLevel === 6);
 
   function update(key: number, patch: Partial<Row>) {
     setRows(current => current.map(row => row.key === key ? { ...row, ...patch } : row));
@@ -37,7 +37,7 @@ export default function GenerateCompsPage() {
   }
   function addRow() {
     const first = categories[0];
-    setRows(current => [...current, { key: nextKey, categoryId: first?.id ?? "", quantity: 5, rankGroup: first?.minReplyLevel === 6 ? "LEVEL_6_PLUS" : "LEVEL_3_TO_5" }]);
+    setRows(current => [...current, { key: nextKey, categoryId: first?.id ?? "", quantity: 5, rankGroup: first?.minReplyLevel === 6 ? "MIN_LEVEL_6" : "MIN_LEVEL_3" }]);
     setNextKey(key => key + 1);
   }
   function removeRow(key: number) {
@@ -71,7 +71,7 @@ export default function GenerateCompsPage() {
     <section className="panel" style={{ maxWidth: 900, display: "grid", gap: 16 }}>
       <div>
         <h2 style={{ margin: "0 0 8px" }}>Build a complaint batch</h2>
-        <p className="muted">Choose the complaint category, quantity and admin rank group. Add as many category rows as you need in one batch.</p>
+        <p className="muted">Choose the category, quantity and minimum reply rank. Admins can answer complaints at their own rank and below. Higher ranks inherit access to lower-rank complaints — for example, rank 6 can answer rank 3–5 complaints.</p>
       </div>
       {loading ? <p className="muted">Loading active categories…</p> : categories.length === 0 ? <p role="alert">There are no active complaint categories available.</p> : <>
         {rows.map((row, index) => {
@@ -94,8 +94,8 @@ export default function GenerateCompsPage() {
                   const nextCategory = eligible(rankGroup)[0];
                   update(row.key, { rankGroup, categoryId: nextCategory?.id ?? "" });
                 }}>
-                  <option value="LEVEL_3_TO_5">Ranks 3–5</option>
-                  <option value="LEVEL_6_PLUS">Rank 6 and top tier</option>
+                  <option value="MIN_LEVEL_3">Minimum rank 3 (rank 3+)</option>
+                  <option value="MIN_LEVEL_6">Minimum rank 6 (rank 6+)</option>
                 </select>
               </label>
               <label style={{ display: "grid", gap: 6 }}>Quantity
@@ -103,7 +103,7 @@ export default function GenerateCompsPage() {
               </label>
             </div>
             {!options.length && <p role="alert">No active category supports this rank group. Update category permissions first.</p>}
-            <small className="muted">{row.rankGroup === "LEVEL_3_TO_5" ? "Claimable by ranks 3, 4 and 5, subject to the category's minimum reply level." : "Claimable by rank 6 and top-tier admins."} Closing permissions remain governed by the category's normal close threshold.</small>
+            <small className="muted">{row.rankGroup === "MIN_LEVEL_3" ? "Minimum rank 3: ranks 3, 4, 5, rank 6 and top-tier admins can reply. Higher ranks inherit access to this lower-rank case." : "Minimum rank 6: rank 6 and top-tier admins can reply."} Category minimums and safeguards for complaints against staff still apply; closing remains governed by the category's normal close threshold.</small>
           </div>;
         })}
         <button type="button" className="chip" onClick={addRow} disabled={rows.length >= 20}>+ Add another category</button>
@@ -118,7 +118,7 @@ export default function GenerateCompsPage() {
       {error && <p role="alert" style={{ color: "#ff7777" }}>{error}</p>}
       {result && <div role="status" className="panel">
         <strong>Batch {result.batchId} created.</strong>
-        <p>{result.created} complaints: {result.rankThreeToFive} for ranks 3–5 and {result.rankSixPlus} for rank 6 and top tier.</p>
+        <p>{result.created} complaints: {result.minimumRankThreePlus} with minimum rank 3 (all rank 3+ admins eligible) and {result.minimumRankSixPlus} with minimum rank 6 (rank 6+ admins eligible).</p>
         <p className="muted">All remain unassigned in the normal Active queue. Categories: {result.categories.join(", ")}.</p>
         <a className="primary" href="/admin">Open Active complaints</a>
       </div>}

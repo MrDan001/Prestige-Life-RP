@@ -253,20 +253,20 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 
 ## Owner-generated rank-tier complaint batches — 7 November 2026
 - [x] Add an owner-only **Generate 20 comps** item to the admin navigation and complaints header.
-- [x] Generate exactly 15 OPEN cases claimable by ranks 3–5 and 5 OPEN cases claimable by rank 6 and top-tier staff, using existing category permission thresholds.
+- [x] Generate exactly 15 OPEN cases with minimum reply rank 3 (claimable by ranks 3 and above, including rank 6 and top tier) and 5 OPEN cases with minimum reply rank 6 (claimable by rank 6 and top tier), using existing category permission thresholds.
 - [x] Leave every generated complaint unassigned in the normal Active queue so eligible administrators claim them themselves.
 - [x] Include structured reporter/reported-player identities, incident summary, timeline, impact, requested review, and two evidence exhibits per case.
 - [x] Mark all generated names, IDs, scenarios, and evidence as simulated so they cannot be mistaken for real player allegations or verified exhibits.
 - [x] Create all 20 complaints, players, evidence records, and audit entries atomically; reject the batch before writing if eligible categories are unavailable.
 - [x] Keep the existing production schema unchanged; no migration or cleanup operation is part of this feature.
 - [ ] Run a Vercel Preview build and inspect the build logs.
-- [ ] Verify Owner-only UI/API access, exactly 20 records per successful run, two evidence records per complaint, no pre-assignment, rank 3/4/5 claim access, rank 5 denial on rank-6 cases, and rank 6/top-tier access.
+- [ ] Verify Owner-only UI/API access, exactly 20 records per successful run, two evidence records per complaint, no pre-assignment, ranks 3–6 and top tier claiming the minimum-rank-3 cases, rank 5 denial on minimum-rank-6 cases, and rank 6/top-tier access to minimum-rank-6 cases.
 - [ ] Verify a missing category threshold causes a clean failure with zero partial records.
 
 
 ## Owner-configurable category complaint batches — 7 November 2026
 - [x] Replace the fixed 20-complaint action with a configurable **Generate comps** page.
-- [x] Allow multiple category rows per batch, each with its own active category, quantity and rank group (ranks 3–5 or rank 6+).
+- [x] Allow multiple category rows per batch, each with its own active category, quantity and minimum reply rank (rank 3+ or rank 6+); higher ranks inherit reply access to lower-rank complaints.
 - [x] Validate selected category rank thresholds server-side; preserve category-specific close permissions.
 - [x] Enforce per-row quantity 1–50, up to 20 rows and 100 complaints per batch.
 - [x] Keep generated complaints OPEN, unassigned, and in the normal Active queue with two clearly marked simulated exhibits each.
@@ -274,5 +274,18 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Keep the complete batch atomic; serialize generation and reject invalid/inactive categories before writing.
 - [x] Update README and deployment roadmap.
 - [ ] Run Vercel Preview build and inspect build logs for the new branch.
-- [ ] Verify owner-only category loading and generation, multiple category rows, quantity limits, rank-group validation, no partial writes on failure, and normal queue claiming.
+- [ ] Verify owner-only category loading and generation, multiple category rows, quantity limits, minimum-rank validation, no partial writes on failure, and normal queue claiming.
 - [ ] Do not run a generation batch against Production until the owner explicitly requests it after Preview validation.
+
+
+## Complaint reply rank inheritance — 7 November 2026
+- [x] Make generator selections explicit minimum-rank thresholds rather than exclusive rank bands.
+- [x] A rank 3 minimum allows ranks 3, 4, 5, rank 6 and top-tier admins to claim and reply, subject to category thresholds and protections for complaints against staff.
+- [x] A rank 6 minimum remains restricted to rank 6 and top-tier admins.
+- [x] Preserve the server-side rule that an admin can reply only when their rank is at least the complaint's minimum reply rank; higher ranks inherit access to lower-rank cases.
+- [x] Keep category close thresholds separate from reply thresholds.
+- [x] Update the generator UI, audit wording, README and this roadmap to remove the misleading implication that rank 6+ cannot answer rank 3–5 complaints.
+- [ ] Run a Vercel Preview build and inspect the latest build logs.
+- [ ] With non-production test accounts, verify rank 3 can answer minimum-rank-3 complaints; ranks 4, 5 and 6 can also answer them; rank 3 cannot answer minimum-rank-6 complaints; and rank 6 can answer minimum-rank-6 complaints.
+- [ ] Verify claim takeover/release rules, accused-staff safeguards, judgment-template level checks and category close thresholds remain intact.
+- [ ] Do not generate complaints against the Production database for testing.
