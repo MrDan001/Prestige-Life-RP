@@ -47,7 +47,7 @@ export default async function PublicComplaintPage({ params }: Props) {
       <Header />
       <main style={{ minHeight: "65vh", maxWidth: 860, margin: "0 auto", padding: "52px 22px 70px", color: "#f4f1ff" }}>
         <p style={{ letterSpacing: ".16em", fontSize: 11, color: "#d6a8ff", fontWeight: 700 }}>PRESTIGE LIFE RP · PLAYER CASE</p>
-        <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.4rem)", margin: "10px 0" }}>Complaint <span style={{ color: "#d6a8ff" }}>#{caseNumber(complaint.id)}</span></h1>
+        <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.4rem)", margin: "10px 0" }}>Complaint <span style={{ color: "#d6a8ff" }}>#{complaint.publicId}</span></h1>
         <p style={{ color: "#aaa4bf", marginBottom: 28 }}>A shareable case reference. Private report details and submitted evidence are not displayed on this page.</p>
 
         <section style={{ border: "1px solid #342b4b", borderRadius: 16, background: "#151222", padding: 24, display: "grid", gap: 16 }}>
