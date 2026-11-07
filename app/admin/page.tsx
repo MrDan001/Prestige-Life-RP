@@ -192,7 +192,7 @@ export default function ComplaintsPage() {
                   </div>
                   <div className="panel" style={{ display: "grid", gap: 10 }}>
                     <strong>Judgment</strong>
-                    {tpl && <span className="muted">Filled from “{tpl.name}”{tpl.closesAs ? ` · will ${tpl.closesAs === "RESOLVED" ? "resolve" : "dismiss"} the complaint` : ""}</span>}
+                    {tpl && <span className="muted">Filled from “{tpl.name}”</span>}
                     <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Pick a judgment above, or write the judgment here" aria-label="Judgment" />
                     <div className="claimbar">
                       <button className="primary" disabled={!reply.trim()} onClick={send}>Issue judgment</button>
