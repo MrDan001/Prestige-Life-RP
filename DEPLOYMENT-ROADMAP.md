@@ -419,3 +419,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Align judgment-message validation with configured template sizes and the added punishment section.
 - [x] Update README and this roadmap.
 - [ ] Run a clean production build and verify the preview, issued judgment record, public case page and game-delivery response with a test upheld complaint before production promotion.
+
+
+## PR #28 production build correction — 7 November 2026
+- [x] Triggered a production-target Vercel build for the exact PR #28 merge commit (`5033276757028a5327337aed389a252471124e85`).
+- [x] Confirmed the build reached Next.js compilation and TypeScript validation; it failed because the PATCH route used `c.player.username` without including the related `player` record in that query.
+- [x] Corrected the PATCH query to select the complainant username required by the shared upheld-judgment formatter.
+- [x] Updated README and this roadmap; correction is isolated in PR #29.
+- [ ] Verify PR #29 preview build, merge the correction, and confirm the production deployment is READY on the merged commit.
+- [ ] Smoke-test the public site and the admin judgment flow without issuing a real player punishment.
