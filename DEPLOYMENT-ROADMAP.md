@@ -354,3 +354,13 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Leave the older complaint records and pre-existing History items untouched.
 - [x] Update README and this deployment roadmap.
 - [ ] Confirm the main-branch Vercel deployment completes and inspect the generated-name mix in a subsequent owner-approved test batch.
+
+
+## Cross-country game-style generated identities — 7 November 2026
+- [x] Use familiar roleplay usernames/handles such as `Ngozi_B` and `Kelz_77`, rather than only formal first-and-last names.
+- [x] Make every generated reporter/reported-player pair cross-country; Nigeria-versus-Nigeria pairings are excluded.
+- [x] Include a broad mix of countries and regions, with Nigerian players appearing alongside players from other countries.
+- [x] Shuffle identity pairings for each generation cycle and reshuffle when a batch exceeds the pool.
+- [x] Save the reporter's country on the generated Player record; no schema migration is required because Player.country already exists.
+- [x] Update README and this deployment roadmap.
+- [ ] Verify the next owner-approved generated batch visually in the admin complaint queue.

@@ -87,7 +87,7 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - Minimum-rank selection is validated against the category’s minimum reply level on the server. An admin may reply when their rank is at least the complaint category’s minimum reply rank; lower ranks cannot reply upward. Existing safeguards for complaints against staff still apply, and closing remains governed by the category’s normal close threshold.
 - Configured complaint batches enter the same OPEN/Active queue unassigned and use the same presentation and workflow as player-submitted complaints.
 - Configured complaint descriptions use the standard **Problem** and **Reporter's complaint** sections. Reporter/reported-player identities remain in the normal complaint metadata.
-- Generated reporter and accused identities are drawn from a shuffled international name pool spanning multiple regions. Nigerian names remain represented, but generated cases are not Nigeria-only.
+- Generated complaint identities use game-style handles (for example, `Ngozi_B` and `Kelz_77`) from a shuffled international pool. Every generated reporter/reported-player pairing uses different countries, so a generated case is never Nigeria-versus-Nigeria. Nigerian handles remain part of the global mix.
 - Complaint origin does not create a separate queue, label, badge, evidence caption or player-facing distinction.
 - The batch is atomic, serialized with a transaction advisory lock, and fails without partial records if a category is inactive or does not support the selected rank group. No schema migration is required.
 

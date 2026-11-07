@@ -9,76 +9,83 @@ const OWNER_EMAIL = "officialsafebase@gmail.com";
 type Scenario = { title: string; summary: string; complaint: string; exhibitA: string; exhibitB: string };
 
 // A broad sample of names from multiple regions keeps generated identities representative of a global community.
-const globalNamePairs: ReadonlyArray<readonly [string, string]> = [
-  ["Olivia Carter", "Ethan Brooks"],
-  ["Ava Mitchell", "Noah Bennett"],
-  ["Isla Morgan", "Oliver Clarke"],
-  ["Grace O'Connor", "Liam Murphy"],
-  ["Emily Chen", "Lucas Martin"],
-  ["Freya Larsen", "Emil Jensen"],
-  ["Camille Laurent", "Theo Moreau"],
-  ["Ines Bernard", "Lucas Dubois"],
-  ["Hannah Weber", "Lukas Fischer"],
-  ["Mia Schneider", "Felix Wagner"],
-  ["Giulia Romano", "Lorenzo Bianchi"],
-  ["Lucia Garcia", "Mateo Ruiz"],
-  ["Sofia Costa", "Tiago Ferreira"],
-  ["Valentina Hernandez", "Santiago Lopez"],
-  ["Mariana Oliveira", "Gabriel Santos"],
-  ["Lucia Fernandez", "Tomas Gonzalez"],
-  ["Camila Rojas", "Nicolas Munoz"],
-  ["Aisha Khan", "Zain Ahmed"],
-  ["Priya Mehta", "Rohan Kapoor"],
-  ["Ananya Patel", "Aarav Sharma"],
-  ["Nusrat Rahman", "Arif Hossain"],
-  ["Lin Wei", "Zhang Min"],
-  ["Yuki Tanaka", "Haruto Sato"],
-  ["Kim Min-seo", "Park Ji-hoon"],
-  ["Maria Santos", "Juan Reyes"],
-  ["Dewi Putri", "Budi Santoso"],
-  ["Nguyen Anh", "Tran Minh"],
-  ["Nicha Srisai", "Krit Chaiyaporn"],
-  ["Nour Hassan", "Omar Farouk"],
-  ["Salma El Amrani", "Youssef Benali"],
-  ["Achieng Otieno", "Kamau Mwangi"],
-  ["Lerato Mokoena", "Thabo Nkosi"],
-  ["Ama Owusu", "Kojo Mensah"],
-  ["Hana Bekele", "Dawit Tesfaye"],
-  ["Aminata Diallo", "Mamadou Ndiaye"],
-  ["Zanele Dlamini", "Sibusiso Khumalo"],
-  ["Tomi Adeyemi", "Kelechi Nwosu"],
-  ["Zara Bello", "Daniel Okafor"],
-  ["Tunde Balogun", "Aisha Sani"],
-  ["Elif Demir", "Emir Yilmaz"],
-  ["Maya Haddad", "Karim Nassar"],
-  ["Fatima Al-Sayed", "Omar Al-Mansour"],
-  ["Sofia Ivanova", "Dmitri Petrov"],
-  ["Olena Shevchenko", "Andriy Kovalenko"],
-  ["Emilia Kowalska", "Jakub Nowak"],
-  ["Zara Williams", "Mason Taylor"],
-  ["Maia Thompson", "Leo Campbell"],
-  ["Valeria Gomez", "Andres Rodriguez"],
-  ["Camila Castillo", "Sebastian Vega"],
-  ["Priyanka Fernando", "Dilan Perera"],
-  ["Farah Al-Mutairi", "Khalid Al-Harbi"],
-  ["Mariam Abdalla", "Yusuf Osman"],
-  ["Chloe Dubois", "Antoine Lefevre"],
-  ["Eva Jansen", "Daan de Vries"],
-  ["Sara Lindberg", "Erik Nyström"],
-  ["Katerina Papadopoulos", "Nikos Georgiou"],
-  ["Mila Petrescu", "Andrei Popescu"],
-  ["Ivana Horvat", "Luka Kovacic"],
-  ["Siti Nurhaliza", "Amir Hakim"],
-  ["Mina Park", "Seo-jun Choi"],
-  ["Ravi Perera", "Nimali Jayasinghe"],
-  ["Carlos Mendoza", "Daniela Torres"],
-  ["Renata Silva", "Pedro Almeida"],
-  ["Leila Ndlovu", "Sipho Dube"],
-  ["Kwame Boateng", "Abena Asante"],
+type GeneratedIdentityPair = {
+  reporter: { username: string; country: string };
+  accused: { username: string; country: string };
+};
+
+// Game-style handles, with every matchup intentionally crossing country boundaries.
+// This prevents generated cases from reading as Nigeria-versus-Nigeria by default.
+const globalIdentityPairs: ReadonlyArray<GeneratedIdentityPair> = [
+  { reporter: { username: "Ngozi_B", country: "Nigeria" }, accused: { username: "Kelz_77", country: "Ghana" } },
+  { reporter: { username: "Adaeze_21", country: "Nigeria" }, accused: { username: "Achieng_90", country: "Kenya" } },
+  { reporter: { username: "Tunde_X", country: "Nigeria" }, accused: { username: "Mason_44", country: "United States" } },
+  { reporter: { username: "Chuks_09", country: "Nigeria" }, accused: { username: "Liam_B", country: "United Kingdom" } },
+  { reporter: { username: "Zara_N", country: "Nigeria" }, accused: { username: "Thabo_88", country: "South Africa" } },
+  { reporter: { username: "Amaka_J", country: "Nigeria" }, accused: { username: "Sophie_16", country: "France" } },
+  { reporter: { username: "Kene_05", country: "Nigeria" }, accused: { username: "Haruto_7", country: "Japan" } },
+  { reporter: { username: "Boma_23", country: "Nigeria" }, accused: { username: "Ravi_91", country: "India" } },
+  { reporter: { username: "Ife_O", country: "Nigeria" }, accused: { username: "Lucas_32", country: "Brazil" } },
+  { reporter: { username: "Dami_77", country: "Nigeria" }, accused: { username: "Nora_K", country: "Germany" } },
+  { reporter: { username: "Chidi_4", country: "Nigeria" }, accused: { username: "Mia_18", country: "Canada" } },
+  { reporter: { username: "Efe_B", country: "Nigeria" }, accused: { username: "Yuki_55", country: "Japan" } },
+  { reporter: { username: "Nneka_10", country: "Nigeria" }, accused: { username: "Omar_66", country: "Egypt" } },
+  { reporter: { username: "Femi_Z", country: "Nigeria" }, accused: { username: "Elif_24", country: "Türkiye" } },
+  { reporter: { username: "Tomi_8", country: "Nigeria" }, accused: { username: "Kai_30", country: "Australia" } },
+  { reporter: { username: "Kwame_45", country: "Ghana" }, accused: { username: "Lina_12", country: "Sweden" } },
+  { reporter: { username: "Ama_G", country: "Ghana" }, accused: { username: "Diego_81", country: "Spain" } },
+  { reporter: { username: "Kojo_19", country: "Ghana" }, accused: { username: "Mila_07", country: "Poland" } },
+  { reporter: { username: "Abena_4", country: "Ghana" }, accused: { username: "Noah_62", country: "United States" } },
+  { reporter: { username: "Kofi_88", country: "Ghana" }, accused: { username: "Ava_M", country: "Ireland" } },
+  { reporter: { username: "Achieng_3", country: "Kenya" }, accused: { username: "Felix_72", country: "Germany" } },
+  { reporter: { username: "Njeri_11", country: "Kenya" }, accused: { username: "Camila_29", country: "Mexico" } },
+  { reporter: { username: "Kamau_99", country: "Kenya" }, accused: { username: "Theo_15", country: "France" } },
+  { reporter: { username: "Wanjiku_8", country: "Kenya" }, accused: { username: "Siti_61", country: "Malaysia" } },
+  { reporter: { username: "Otieno_5", country: "Kenya" }, accused: { username: "Luca_20", country: "Italy" } },
+  { reporter: { username: "Lerato_26", country: "South Africa" }, accused: { username: "Ethan_17", country: "United Kingdom" } },
+  { reporter: { username: "Zanele_3", country: "South Africa" }, accused: { username: "Priya_88", country: "India" } },
+  { reporter: { username: "Sipho_71", country: "South Africa" }, accused: { username: "Ines_14", country: "Portugal" } },
+  { reporter: { username: "Naledi_9", country: "South Africa" }, accused: { username: "Jae_42", country: "South Korea" } },
+  { reporter: { username: "Thando_18", country: "South Africa" }, accused: { username: "Mariam_5", country: "Morocco" } },
+  { reporter: { username: "Mason_04", country: "United States" }, accused: { username: "Valeria_7", country: "Argentina" } },
+  { reporter: { username: "Ava_22", country: "United States" }, accused: { username: "Kenji_16", country: "Japan" } },
+  { reporter: { username: "Jordan_91", country: "United States" }, accused: { username: "Nadia_33", country: "Lebanon" } },
+  { reporter: { username: "Chloe_6", country: "United Kingdom" }, accused: { username: "Dewi_27", country: "Indonesia" } },
+  { reporter: { username: "Oliver_12", country: "United Kingdom" }, accused: { username: "Rico_58", country: "Philippines" } },
+  { reporter: { username: "Freya_19", country: "United Kingdom" }, accused: { username: "Andrei_8", country: "Romania" } },
+  { reporter: { username: "Zed_71", country: "Canada" }, accused: { username: "Sofia_25", country: "Portugal" } },
+  { reporter: { username: "Maple_04", country: "Canada" }, accused: { username: "Nico_31", country: "Chile" } },
+  { reporter: { username: "Emil_7", country: "Denmark" }, accused: { username: "Leila_88", country: "Tunisia" } },
+  { reporter: { username: "Lukas_13", country: "Germany" }, accused: { username: "Ana_06", country: "Croatia" } },
+  { reporter: { username: "Giulia_5", country: "Italy" }, accused: { username: "Mateo_90", country: "Colombia" } },
+  { reporter: { username: "Lucia_18", country: "Spain" }, accused: { username: "Amir_36", country: "Pakistan" } },
+  { reporter: { username: "Tiago_8", country: "Portugal" }, accused: { username: "Aminata_44", country: "Senegal" } },
+  { reporter: { username: "Mila_51", country: "Poland" }, accused: { username: "Yusuf_23", country: "Turkey" } },
+  { reporter: { username: "Eva_29", country: "Netherlands" }, accused: { username: "Dara_17", country: "Sri Lanka" } },
+  { reporter: { username: "Erik_66", country: "Sweden" }, accused: { username: "Mina_39", country: "Singapore" } },
+  { reporter: { username: "Nikos_12", country: "Greece" }, accused: { username: "Linh_07", country: "Vietnam" } },
+  { reporter: { username: "Sasha_28", country: "Ukraine" }, accused: { username: "Salma_62", country: "Algeria" } },
+  { reporter: { username: "Yuki_11", country: "Japan" }, accused: { username: "Arif_21", country: "Bangladesh" } },
+  { reporter: { username: "Min_08", country: "South Korea" }, accused: { username: "Rani_77", country: "Nepal" } },
+  { reporter: { username: "Wei_33", country: "China" }, accused: { username: "Nicha_20", country: "Thailand" } },
+  { reporter: { username: "Putri_15", country: "Indonesia" }, accused: { username: "Aroha_9", country: "New Zealand" } },
+  { reporter: { username: "Carlos_7", country: "Mexico" }, accused: { username: "Ayo_48", country: "Nigeria" } },
+  { reporter: { username: "Jamal_31", country: "Jamaica" }, accused: { username: "Mariam_09", country: "Egypt" } },
+  { reporter: { username: "Nour_23", country: "Morocco" }, accused: { username: "Kwesi_67", country: "Ghana" } },
+  { reporter: { username: "Hana_14", country: "Ethiopia" }, accused: { username: "Ben_52", country: "Australia" } },
+  { reporter: { username: "Musa_90", country: "Uganda" }, accused: { username: "Zara_61", country: "United Arab Emirates" } },
+  { reporter: { username: "Kofi_5", country: "Ghana" }, accused: { username: "Sibusiso_18", country: "South Africa" } },
+  { reporter: { username: "Rosa_72", country: "Brazil" }, accused: { username: "Tariq_15", country: "Jordan" } },
+  { reporter: { username: "Dilan_09", country: "Sri Lanka" }, accused: { username: "Sora_22", country: "Japan" } },
+  { reporter: { username: "Laila_3", country: "Egypt" }, accused: { username: "Kwame_11", country: "Ghana" } },
+  { reporter: { username: "Neo_54", country: "Botswana" }, accused: { username: "Olivia_08", country: "United States" } },
+  { reporter: { username: "Amina_27", country: "Tanzania" }, accused: { username: "Leo_63", country: "France" } },
+  { reporter: { username: "Chika_16", country: "Nigeria" }, accused: { username: "Rafael_40", country: "Brazil" } },
+  { reporter: { username: "Bisi_72", country: "Nigeria" }, accused: { username: "Nour_13", country: "Jordan" } },
 ];
 
-function shuffleGlobalNamePairs(): Array<readonly [string, string]> {
-  const shuffled = [...globalNamePairs];
+function shuffleGlobalIdentityPairs(): GeneratedIdentityPair[] {
+  const shuffled = [...globalIdentityPairs];
   for (let index = shuffled.length - 1; index > 0; index--) {
     const swapIndex = randomInt(index + 1);
     [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
@@ -202,20 +209,22 @@ export async function POST(request: Request) {
 
       const results: { id: string; rankGroup: RankGroup; categoryName: string }[] = [];
       let sequence = 0;
-      let shuffledNamePairs = shuffleGlobalNamePairs();
+      let shuffledIdentityPairs = shuffleGlobalIdentityPairs();
       for (const row of rows) {
         const category = categoryById.get(row.categoryId)!;
         for (let item = 0; item < row.quantity; item++) {
           const i = sequence++;
-          if (i > 0 && i % globalNamePairs.length === 0) {
-            shuffledNamePairs = shuffleGlobalNamePairs();
+          if (i > 0 && i % globalIdentityPairs.length === 0) {
+            shuffledIdentityPairs = shuffleGlobalIdentityPairs();
           }
           const scenario = scenarioFor(category.name, i);
-          const [reporterName, accusedName] = shuffledNamePairs[i % shuffledNamePairs.length];
+          const identityPair = shuffledIdentityPairs[i % shuffledIdentityPairs.length];
+          const reporterName = identityPair.reporter.username;
+          const accusedName = identityPair.accused.username;
           const reporterGameId = `PL-${randomUUID().slice(0, 12).toUpperCase()}`;
           const accusedGameId = `PL-${randomUUID().slice(0, 12).toUpperCase()}`;
           const player = await tx.player.create({
-            data: { gameId: reporterGameId, username: reporterName },
+            data: { gameId: reporterGameId, username: reporterName, country: identityPair.reporter.country },
           });
           const message = [
             "PROBLEM",
