@@ -443,3 +443,13 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Keep the manually-created unused PR Manager role cleanup separate; its migration runs before this built-in-role rename.
 - [x] Update README and this deployment roadmap.
 - [ ] Apply both roles migrations to Production in timestamp order and verify the Roles page shows one built-in **PR Manager** role, with all other roles unchanged.
+
+
+## Vercel failed build correction — 7 November 2026
+- [x] Inspected the latest failed Preview build for the Roles cleanup branch and the failed Production build.
+- [x] Identified the current TypeScript failure: the complaint judgment formatter reads `accusedAdmin.name`, but the PATCH query selected only ID, kind and level.
+- [x] Added the accused administrator name to the PATCH query selection; retained the complainant username selection.
+- [x] Updated README and this deployment roadmap.
+- [ ] Confirm a fresh branch Preview build reaches READY.
+- [ ] After merge, confirm a fresh Production build reaches READY and verify the production domain serves the merged commit.
+- [ ] Apply the two role migrations in timestamp order and verify the final role list; deployment alone does not apply these database migrations.
