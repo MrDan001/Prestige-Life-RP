@@ -12,7 +12,10 @@ export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const limit = Math.min(50, Math.max(1, Number.parseInt(sp.get("limit") ?? "15", 10) || 15));
   const offset = Math.max(0, Number.parseInt(sp.get("offset") ?? "0", 10) || 0);
-  const where: Prisma.ComplaintWhereInput = {};
+  const queue = sp.get("queue") === "history" ? "history" : "active";
+  const where: Prisma.ComplaintWhereInput = queue === "history"
+    ? { status: { in: ["RESOLVED", "DISMISSED"] } }
+    : { status: { in: ["OPEN", "IN_REVIEW"] } };
   const [rows, total] = await Promise.all([
     db.complaint.findMany({
       where, orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
