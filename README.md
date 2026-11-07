@@ -134,3 +134,7 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The live preview and server-side saved message use the same shared formatter, so the message delivered to the game matches the preview.
 - The redundant free-text editor is hidden for upheld judgments because the message is generated from the complaint and required punishment fields; custom judgment text remains available for other verdicts.
 - Judgment API validation now reports the actual field problem instead of the generic “Send a status, judgment or verdict” response, and accepts messages up to 5,000 characters to cover configured templates plus formatting.
+
+
+## Upheld judgment build note
+- The admin complaint PATCH handler explicitly selects the complainant username when loading a complaint for judgment, which is required to construct the standardized upheld-judgment message. The matching deployment/build verification is tracked in [DEPLOYMENT-ROADMAP.md](./DEPLOYMENT-ROADMAP.md).

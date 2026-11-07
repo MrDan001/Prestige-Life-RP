@@ -67,7 +67,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     return NextResponse.json({ error: "Choose a judgment template or enter a judgment message before submitting." }, { status: 400 });
   const c = await db.complaint.findUnique({
     where: { id },
-    include: { category: true, accusedAdmin: { select: { id: true, kind: true, level: true } } },
+    include: { player: { select: { username: true } }, category: true, accusedAdmin: { select: { id: true, kind: true, level: true } } },
   });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
