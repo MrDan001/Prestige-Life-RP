@@ -401,3 +401,11 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Apply `20261107210000_short_complaint_public_ids` to production after merge.
 - [ ] Confirm Vercel preview build succeeds, then merge and verify live punishment choices and public short links.
+
+
+## Complaint ID, rule-code validation and punishment-in-message fix — 7 November 2026
+- [x] Use the public six-character complaint ID consistently on queue cards, complaint details, copied URLs and judgment-template variables.
+- [x] Accept dotted community rule codes such as `3.1GR`; validate against the Rules Manager when it is populated, and allow well-formed manual codes while that catalogue is empty.
+- [x] Add a live final judgment-message preview that updates when the rule code, punishment or duration changes.
+- [x] Save the punishment details inside the judgment message as well as the structured judgment fields.
+- [ ] Verify PR preview build and test a complete approved judgment with rule code `3.1GR`, punishment and duration before production promotion.
