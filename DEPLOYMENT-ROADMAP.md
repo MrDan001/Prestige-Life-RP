@@ -384,5 +384,19 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Add owner-only punishment catalogue management for `officialsafebase@gmail.com`, including adding/editing/switching off punishment types and duration choices.
 - [x] Seed Ban (3/7/30/60/90 days), Jailed (30/60/120/180 minutes), and Mute (30/60/120/180 minutes); owner can adjust the catalogue later.
 - [x] Update README and this roadmap.
-- [ ] Apply the additive migration in a non-production environment and verify Prisma migration/client generation.
+- [x] Applied the additive migration to the production Supabase database on 7 November 2026 after Vercel runtime logs identified missing `Response.ruleCode` (`P2022`) on complaint detail requests.
 - [ ] Run the build and test owner-only catalogue access, rule-code uniqueness/validation, approved-judgment required fields, non-approved judgments without punishment, public link behavior, and history snapshots after catalogue edits.
+
+
+## Production complaint detail load failure — 7 November 2026
+
+### Root cause
+- [x] Checked production Vercel runtime logs for complaint detail requests.
+- [x] Confirmed Prisma error `P2022`: `Response.ruleCode` did not exist in the production database. The same migration also supplies `Response.punishmentType`, `Response.punishmentDuration`, `Rule.code`, and `PunishmentOption`.
+- [x] Confirmed migration `complaint_links_and_punishments` was present in `main` but absent from the production Supabase migration history.
+
+### Recovery
+- [x] Applied the existing additive migration `complaint_links_and_punishments` to production Supabase; no complaint records were deleted or rewritten.
+- [x] Verified the migration is recorded in Supabase history.
+- [x] Verified all three judgment snapshot columns now exist and all three seeded punishment options are active.
+- [ ] Re-test opening a complaint in the live admin workspace and opening its public `/complaint/<id>` reference page.
