@@ -138,3 +138,8 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 
 ## Upheld judgment build note
 - The admin complaint PATCH handler explicitly selects the complainant username when loading a complaint for judgment, which is required to construct the standardized upheld-judgment message. The matching deployment/build verification is tracked in [DEPLOYMENT-ROADMAP.md](./DEPLOYMENT-ROADMAP.md).
+
+
+## Roles administration
+- The owner Roles page supports creating custom roles and switching custom roles on/off; editing existing role details is not exposed in the interface.
+- The unused manually-created **PR Manager** custom role is retired by migration `20261107220000_remove_unused_pr_manager_role`. The migration removes only the non-system PR Manager row and aborts if any staff account is still assigned to it. All built-in roles and other custom roles are preserved.
