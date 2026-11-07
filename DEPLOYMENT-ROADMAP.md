@@ -308,7 +308,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Disable new claim creation; permit the primary owner to clear legacy claims.
 - [x] Display the primary owner as **PR.BOT** without changing the account's immutable identity or OWNER permissions.
 - [x] Remove the post-send confirmation sentence.
-- [x] Replace visible “generated” wording with **Practice case** / practice evidence wording, retaining clear simulation markers.
+- [x] Earlier presentation used Practice/simulation markers; this was superseded by the 7 November 2026 uniform player-case presentation update below.
 - [ ] Run the Preview build and verify direct unclaimed judgments, rank restrictions, owner-only lifecycle actions, the unified queue and latest-judgment display.
 
 
