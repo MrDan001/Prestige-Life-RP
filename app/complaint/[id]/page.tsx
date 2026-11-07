@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ id: string }> };
 
 async function getCase(id: string) {
-  return db.complaint.findUnique({
-    where: { id },
+  return db.complaint.findFirst({
+    where: { OR: [{ id }, { publicId: id.toUpperCase() }] },
     select: {
       id: true, status: true, verdict: true, createdAt: true,
       category: { select: { name: true } },
