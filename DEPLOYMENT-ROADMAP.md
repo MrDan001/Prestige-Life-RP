@@ -436,3 +436,10 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Added migration `20261107220000_remove_unused_pr_manager_role`, which deletes only that manually-created role and aborts if it has assigned staff. Built-in roles and all other roles are untouched.
 - [x] Updated README and this roadmap.
 - [ ] Apply the migration to the production database, then verify the Roles page lists every existing role except PR Manager and has no Edit button.
+
+
+## Built-in PR Manager display name — 7 November 2026
+- [x] Rename the built-in TECH role label from **PRM** to **PR Manager** without changing its underlying TECH permission kind or staff assignments.
+- [x] Keep the manually-created unused PR Manager role cleanup separate; its migration runs before this built-in-role rename.
+- [x] Update README and this deployment roadmap.
+- [ ] Apply both roles migrations to Production in timestamp order and verify the Roles page shows one built-in **PR Manager** role, with all other roles unchanged.
