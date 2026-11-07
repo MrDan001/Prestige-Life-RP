@@ -76,7 +76,7 @@ export async function POST() {
         where: { active: true },
         orderBy: { name: "asc" },
       });
-      const rankThreeToFive = categories.filter(c => c.minReplyLevel <= 3 && c.minCloseLevel <= 5);
+      const rankThreeToFive = categories.filter(c => c.minReplyLevel <= 3);
       const rankSixPlus = categories.filter(c => c.minReplyLevel === 6 && c.minCloseLevel <= 6);
       if (!rankThreeToFive.length || !rankSixPlus.length) {
         throw new Error(
