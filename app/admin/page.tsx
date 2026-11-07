@@ -12,7 +12,7 @@ type Row = {
   canReply: boolean; canClaim: boolean; canClose: boolean; lockedByClaim: boolean; isClosed: boolean; canReopen: boolean;
 };
 type Detail = Row & {
-  player: { username: string; gameId: string }; canClaim: boolean; canNote: boolean; verdict: string | null;
+  player: { username: string; gameId: string }; canNote: boolean; verdict: string | null;
   evidence: Ev[]; timeline: Item[]; respondedAt: string | null; reviewedByName: string | null;
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
