@@ -48,3 +48,20 @@ export async function PATCH(req: Request, { params }: Ctx) {
   await audit(a.actor.id, "ROLE_UPDATE", id, `${role.name}: ${JSON.stringify(d)}`);
   return NextResponse.json(updated);
 }
+
+/** Permanently remove only the retired, manually-created PR Manager role. */
+export async function DELETE(_req: Request, { params }: Ctx) {
+  const a = await requireAdmin("MANAGE_STAFF");
+  if (a.error) return a.error;
+  if (a.actor.kind !== "OWNER") return NextResponse.json({ error: "Only the owner can delete this role" }, { status: 403 });
+  const { id } = await params;
+  const role = await db.role.findUnique({ where: { id }, include: { _count: { select: { admins: true } } } });
+  if (!role) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (role.system || role.name.trim().toLowerCase() !== "pr manager")
+    return NextResponse.json({ error: "Only the manually-created PR Manager role can be deleted" }, { status: 403 });
+  if (role._count.admins !== 0)
+    return NextResponse.json({ error: "Move staff assigned to this role before deleting it" }, { status: 409 });
+  await db.role.delete({ where: { id } });
+  await audit(a.actor.id, "ROLE_DELETE", id, "Deleted unused manually-created PR Manager role");
+  return NextResponse.json({ ok: true });
+}
