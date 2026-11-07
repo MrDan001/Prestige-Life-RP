@@ -428,3 +428,11 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Updated README and this roadmap; correction is isolated in PR #29.
 - [ ] Verify PR #29 preview build, merge the correction, and confirm the production deployment is READY on the merged commit.
 - [ ] Smoke-test the public site and the admin judgment flow without issuing a real player punishment.
+
+
+## Roles page cleanup — 7 November 2026
+- [x] Removed the Edit action and edit mode from the owner Roles page; custom role creation and switch on/off remain available.
+- [x] Added an owner-only, narrowly scoped API deletion guard for the unused non-system role named **PR Manager**; it refuses deletion if any staff account is assigned.
+- [x] Added migration `20261107220000_remove_unused_pr_manager_role`, which deletes only that manually-created role and aborts if it has assigned staff. Built-in roles and all other roles are untouched.
+- [x] Updated README and this roadmap.
+- [ ] Apply the migration to the production database, then verify the Roles page lists every existing role except PR Manager and has no Edit button.
