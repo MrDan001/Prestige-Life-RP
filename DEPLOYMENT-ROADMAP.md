@@ -262,3 +262,17 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Run a Vercel Preview build and inspect the build logs.
 - [ ] Verify Owner-only UI/API access, exactly 20 records per successful run, two evidence records per complaint, no pre-assignment, rank 3/4/5 claim access, rank 5 denial on rank-6 cases, and rank 6/top-tier access.
 - [ ] Verify a missing category threshold causes a clean failure with zero partial records.
+
+
+## Owner-configurable category complaint batches — 7 November 2026
+- [x] Replace the fixed 20-complaint action with a configurable **Generate comps** page.
+- [x] Allow multiple category rows per batch, each with its own active category, quantity and rank group (ranks 3–5 or rank 6+).
+- [x] Validate selected category rank thresholds server-side; preserve category-specific close permissions.
+- [x] Enforce per-row quantity 1–50, up to 20 rows and 100 complaints per batch.
+- [x] Keep generated complaints OPEN, unassigned, and in the normal Active queue with two clearly marked simulated exhibits each.
+- [x] Correct advisory-lock result typing by wrapping PostgreSQL's void lock call in a subquery while returning an integer column to Prisma.
+- [x] Keep the complete batch atomic; serialize generation and reject invalid/inactive categories before writing.
+- [x] Update README and deployment roadmap.
+- [ ] Run Vercel Preview build and inspect build logs for the new branch.
+- [ ] Verify owner-only category loading and generation, multiple category rows, quantity limits, rank-group validation, no partial writes on failure, and normal queue claiming.
+- [ ] Do not run a generation batch against Production until the owner explicitly requests it after Preview validation.
