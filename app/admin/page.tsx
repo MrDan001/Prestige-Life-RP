@@ -1,6 +1,7 @@
 // PATH: app/admin/page.tsx
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildUpheldJudgmentMessage } from "@/lib/templates";
 
 type Ev = { id: string; kind: "IMAGE" | "VIDEO" | "LINK" | "TEXT"; url: string | null; text: string | null; caption: string | null };
 type Row = {
@@ -27,8 +28,6 @@ const pill = (s: string) => (s === "OPEN" ? "open" : "done");
 const label = (s: string) => s.replace("_", " ").toLowerCase().replace(/^./, c => c.toUpperCase());
 const tone = (t: Tpl) => (t.closesAs === "DISMISSED" ? "reject" : t.verdict === "COMPLAINANT" ? "approve" : "neutral");
 const fmt = (d: string) => new Date(d).toLocaleString();
-const buildJudgmentMessage = (base: string, ruleCode: string, punishment: string, duration: string) =>
-  [base.trim(), "", "Punishment details:", `Violated rule: ${ruleCode.trim().toUpperCase()}`, `Punishment: ${punishment}`, `Duration: ${duration}`].join("\n");
 
 export default function ComplaintsPage() {
   const [isPrimaryOwner, setIsPrimaryOwner] = useState(false);
@@ -137,8 +136,19 @@ export default function ComplaintsPage() {
       return;
     }
     const judgmentText = approved && selected
-      ? buildJudgmentMessage(reply, ruleCode, selected.name, punishmentDuration)
-      : reply;
+      ? buildUpheldJudgmentMessage({
+          complainant: open.player.username,
+          complaintId: open.publicId,
+          accused: open.accusedAdmin?.name ?? open.accusedName ?? "the accused player",
+          ruleCode,
+          punishment: selected.name,
+          duration: punishmentDuration,
+        })
+      : reply.trim();
+    if (!judgmentText) {
+      setMsg("Enter the judgment message before issuing this verdict.");
+      return;
+    }
     const body = {
       reply: judgmentText,
       templateId: tpl?.id,
@@ -164,9 +174,16 @@ export default function ComplaintsPage() {
 
   const isApprovedJudgment = !!open && (tpl?.verdict ?? open.verdict) === "COMPLAINANT";
   const selectedPunishment = punishmentOptions.find(option => option.id === punishmentOptionId);
-  const judgmentPreview = isApprovedJudgment && selectedPunishment && ruleCode.trim() && punishmentDuration
-    ? buildJudgmentMessage(reply, ruleCode, selectedPunishment.name, punishmentDuration)
-    : reply;
+  const judgmentPreview = isApprovedJudgment && open && selectedPunishment && ruleCode.trim() && punishmentDuration
+    ? buildUpheldJudgmentMessage({
+        complainant: open.player.username,
+        complaintId: open.publicId,
+        accused: open.accusedAdmin?.name ?? open.accusedName ?? "the accused player",
+        ruleCode,
+        punishment: selectedPunishment.name,
+        duration: punishmentDuration,
+      })
+    : "";
   const info = open && [
     ["Complaint", `#${open.publicId}`],
     ["Complaint from", open.player.username],
@@ -261,15 +278,20 @@ export default function ComplaintsPage() {
                     </div>
                   </div>
                   <div className="panel" style={{ display: "grid", gap: 10 }}>
-                    <strong>Judgment</strong>
                     {tpl && <span className="muted">Filled from “{tpl.name}”</span>}
-                    <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Pick a judgment above, or write the judgment here" aria-label="Judgment" />
-                    {isApprovedJudgment && (
+                    {isApprovedJudgment ? (
                       <div className="panel" aria-live="polite" style={{ display: "grid", gap: 6, background: "#171321" }}>
                         <strong>Final judgment message preview</strong>
-                        <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{judgmentPreview}</p>
-                        <small className="muted">This exact message, including the punishment details, will be saved when you issue the judgment.</small>
+                        {judgmentPreview
+                          ? <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{judgmentPreview}</p>
+                          : <p className="muted" style={{ margin: 0 }}>Enter the violated rule code, choose a punishment and select its duration to generate the final judgment message.</p>}
+                        <small className="muted">This exact message will be saved and sent when you issue the judgment.</small>
                       </div>
+                    ) : (
+                      <>
+                        <strong>Judgment message</strong>
+                        <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Write the judgment message…" aria-label="Judgment message" />
+                      </>
                     )}
                     {isApprovedJudgment && (
                       <div style={{ display: "grid", gap: 10, border: "1px solid #342b4b", borderRadius: 10, padding: 12 }}>
@@ -293,7 +315,9 @@ export default function ComplaintsPage() {
                       </div>
                     )}
                     <div className="claimbar">
-                      <button className="primary" disabled={!reply.trim() || (isApprovedJudgment && (!ruleCode.trim() || !selectedPunishment || !selectedPunishment.durationOptions.includes(punishmentDuration)))} onClick={send}>Issue judgment</button>
+                      <button className="primary" disabled={isApprovedJudgment
+                        ? (!ruleCode.trim() || !selectedPunishment || !selectedPunishment.durationOptions.includes(punishmentDuration))
+                        : !reply.trim()} onClick={send}>Issue judgment</button>
                     </div>
                   </div>
                 </>

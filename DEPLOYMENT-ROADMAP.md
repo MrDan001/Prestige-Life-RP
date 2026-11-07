@@ -409,3 +409,13 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Add a live final judgment-message preview that updates when the rule code, punishment or duration changes.
 - [x] Save the punishment details inside the judgment message as well as the structured judgment fields.
 - [ ] Verify PR preview build and test a complete approved judgment with rule code `3.1GR`, punishment and duration before production promotion.
+
+
+## Standard upheld judgment message and submission validation — 7 November 2026
+- [x] Use the agreed official format for upheld complaints, including the reporter greeting, public complaint ID, explicit UPHELD decision, disciplinary action, rule code, punishment, duration and PR.BOT sign-off.
+- [x] Generate the live preview from the same shared formatter used by the server to save and deliver the exact judgment message.
+- [x] Remove the redundant free-text composer from the upheld-judgment path; retain custom judgment text for other verdicts.
+- [x] Replace the generic “Send a status, judgment or verdict” API response with actionable validation details.
+- [x] Align judgment-message validation with configured template sizes and the added punishment section.
+- [x] Update README and this roadmap.
+- [ ] Run a clean production build and verify the preview, issued judgment record, public case page and game-delivery response with a test upheld complaint before production promotion.

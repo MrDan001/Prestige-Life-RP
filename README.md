@@ -127,3 +127,10 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - Complaint IDs in the Active/History cards and judgment-template messages use the same six-character public ID as the complaint detail and share URL; internal database IDs are not displayed as complaint references.
 - Approved judgment drafts show a live final-message preview. The preview automatically includes the violated rule code, punishment and duration as soon as the administrator enters/selects them; issuing the judgment saves that exact combined message and the structured punishment fields.
 - Rule codes accept dots and hyphens (for example, `3.1GR`). When the Rules Manager catalogue contains entries, entered codes must match it. If the catalogue is empty, a syntactically valid manually entered code is accepted so externally maintained community rulebooks remain usable.
+
+
+## Standard upheld judgment messages — 7 November 2026
+- Upheld complaints use the official player-facing judgment format: greeting and public complaint reference, an explicit **UPHELD** decision, a disciplinary-action section with rule, punishment and duration, and the PR.BOT / Prestige Life Staff sign-off.
+- The live preview and server-side saved message use the same shared formatter, so the message delivered to the game matches the preview.
+- The redundant free-text editor is hidden for upheld judgments because the message is generated from the complaint and required punishment fields; custom judgment text remains available for other verdicts.
+- Judgment API validation now reports the actual field problem instead of the generic “Send a status, judgment or verdict” response, and accepts messages up to 5,000 characters to cover configured templates plus formatting.
