@@ -47,7 +47,7 @@ export default function GenerateCompsPage() {
 
   async function generate() {
     if (busy || total < 1 || total > 100 || rows.some(row => !row.categoryId || !Number.isInteger(Number(row.quantity)) || Number(row.quantity) < 1 || Number(row.quantity) > 50)) return;
-    const confirmed = window.confirm(`Generate ${total} simulated complaints across ${rows.length} category row(s)?\n\nAll complaints enter the normal Active queue unassigned. Each receives two clearly labelled simulated evidence exhibits.\n\nThis does not create real player allegations or verified evidence.`);
+    const confirmed = window.confirm(`Create ${total} complaints across ${rows.length} category row(s)?\n\nAll complaints enter the normal Active queue unassigned and follow the same workflow and presentation as player-submitted complaints.`);
     if (!confirmed) return;
     setBusy(true); setError(""); setResult(null);
     try {
@@ -110,8 +110,8 @@ export default function GenerateCompsPage() {
         <div className="panel" style={{ background: "rgba(255,255,255,.025)" }}>
           <strong>Batch summary</strong>
           <p>{total} complaint(s) across {rows.length} category row(s).</p>
-          <p className="muted">All complaints are OPEN, unassigned, and enter the normal Active queue. Each includes a structured incident, timeline, impact, requested review and two simulated text exhibits.</p>
-          <p className="muted">Generated names, IDs, scenarios and exhibits are fictional simulations — never genuine player reports or verified evidence.</p>
+          <p className="muted">Complaints are OPEN, unassigned, and enter the normal Active queue. They use the same player complaint format and workflow as reports submitted in game.</p>
+          
           <small className="muted">Maximum 100 complaints per batch; maximum 50 per category row.</small>
         </div>
       </>}

@@ -24,25 +24,18 @@ export async function GET(_req: Request, { params }: Ctx) {
   const c = await db.complaint.findUnique({ where: { id }, include });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const isClosed = c.status === "RESOLVED" || c.status === "DISMISSED";
-  const [createdAudit, closedAudit] = await Promise.all([
-    db.auditLog.findFirst({
-      where: { targetId: id, action: "COMPLAINT_CREATED", detail: { startsWith: "Generated simulation batch" } },
-      select: { id: true },
-    }),
-    isClosed ? db.auditLog.findFirst({
+  const closedAudit = isClosed ? await db.auditLog.findFirst({
       where: { targetId: id, action: "COMPLAINT_STATUS", detail: { endsWith: "-> " + c.status } },
-      orderBy: { createdAt: "desc" }, include: { actor: { select: { name: true } } },
-    }) : Promise.resolve(null),
-  ]);
+      orderBy: { createdAt: "desc" }, select: { createdAt: true },
+    }) : null;
   return NextResponse.json({
     ...c,
     isClosed,
-    isPractice: !!createdAudit,
     canReply: !isClosed && canAct(a.actor, c, "reply"),
     canManageStatus: isPrimaryOwnerAccount(a.admin.id),
     latestJudgment: c.responses[0] ?? null,
     closedAt: closedAudit?.createdAt ?? (isClosed ? c.responses[0]?.createdAt ?? null : null),
-    closedBy: closedAudit?.actor ?? null,
+    closedBy: c.responses[0]?.admin ?? null,
   });
 }
 
@@ -96,6 +89,12 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   // Template outcomes that close a complaint apply automatically only to the primary owner.
   const newStatus = status ?? (owner ? tpl?.closesAs ?? undefined : undefined);
+  if (newStatus === "RESOLVED" || newStatus === "DISMISSED") {
+    const existingJudgment = reply ? null : await db.response.findFirst({ where: { complaintId: id }, select: { id: true } });
+    if (!reply && !existingJudgment) {
+      return NextResponse.json({ error: "Issue a judgment before closing this complaint." }, { status: 409 });
+    }
+  }
   const newVerdict = verdict ?? tpl?.verdict ?? undefined;
   if ((newStatus === "RESOLVED" || newStatus === "DISMISSED") && !owner)
     return NextResponse.json({ error: "Only the primary owner can close a complaint." }, { status: 403 });

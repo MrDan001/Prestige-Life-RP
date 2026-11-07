@@ -8,7 +8,7 @@ type Row = {
   player: { username: string }; category: { id: string; name: string };
   claimedBy: { name: string } | null; claimedById: string | null;
   accusedName: string | null; accusedAdmin: { name: string } | null;
-  canReply: boolean; isClosed: boolean; isPractice: boolean;
+  canReply: boolean; isClosed: boolean;
 };
 type Detail = Row & {
   player: { username: string; gameId: string }; verdict: string | null;
@@ -120,8 +120,8 @@ export default function ComplaintsPage() {
     ["Complaint from", open.player.username],
     ["Complaint about", open.accusedAdmin?.name ?? open.accusedName ?? "Unknown"],
     ["Time created", fmt(open.createdAt)],
-    ["Time settled / resolved", open.closedAt ? fmt(open.closedAt) : open.isClosed ? "Not recorded" : "Not settled"],
-    ["Admin resolved / attended", open.latestJudgment?.admin?.name ?? open.closedBy?.name ?? open.claimedBy?.name ?? "Not recorded"],
+    ["Time resolved", open.closedAt ? fmt(open.closedAt) : open.isClosed ? "Not recorded" : "Not resolved"],
+    ["Closed By", open.isClosed ? open.latestJudgment?.admin?.name ?? open.closedBy?.name ?? "—" : "—"],
   ];
 
   return (
@@ -141,7 +141,7 @@ export default function ComplaintsPage() {
               <div className="row-top"><strong>#{r.id.slice(-6).toUpperCase()}</strong><span className={`pill ${pill(r.status)}`}>{label(r.status)}</span></div>
               <div style={{ marginTop: 4 }}>{r.player.username} <span className="muted">vs</span> {r.accusedAdmin?.name ?? r.accusedName ?? "unknown"}</div>
               <div className="sub">
-                {r.isPractice ? "Practice case" : "Player complaint"} · {fmt(r.createdAt)}
+                Player complaint · {fmt(r.createdAt)}
               </div>
             </button>
           ))}
@@ -178,7 +178,6 @@ export default function ComplaintsPage() {
               </div>
 
               <div className="panel"><strong>Problem</strong><p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.message}</p></div>
-              {open.isPractice && <small className="muted">Practice case · simulated scenario</small>}
               {open.latestJudgment && (
                 <div className="panel">
                   <strong>Judgment</strong>

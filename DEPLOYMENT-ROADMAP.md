@@ -308,7 +308,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Disable new claim creation; permit the primary owner to clear legacy claims.
 - [x] Display the primary owner as **PR.BOT** without changing the account's immutable identity or OWNER permissions.
 - [x] Remove the post-send confirmation sentence.
-- [x] Replace visible “generated” wording with **Practice case** / practice evidence wording, retaining clear simulation markers.
+- [x] Earlier presentation used Practice/simulation markers; this was superseded by the 7 November 2026 uniform player-case presentation update below.
 - [ ] Run the Preview build and verify direct unclaimed judgments, rank restrictions, owner-only lifecycle actions, the unified queue and latest-judgment display.
 
 
@@ -333,3 +333,14 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Run the Vercel Preview build and inspect TypeScript/build logs.
 - [ ] Verify Active/History filters, pagination, close/reopen movement, and metadata on both recent and legacy closed cases before production promotion.
+
+
+## Complaint closure attribution and uniform player-case presentation — 7 November 2026
+- [x] Replace “Admin resolved / attended” with the exact label **Closed By** after the resolution timestamp.
+- [x] Attribute Closed By to the administrator who issued the latest judgment, never to a claim/attendance owner or unrelated status actor.
+- [x] Leave Closed By blank for open complaints; reject attempts to resolve/dismiss a complaint before at least one judgment exists.
+- [x] Remove visible Practice/Practice scenario/Simulated/Generated provenance markers from complaint cards, details, generated descriptions, evidence text and evidence captions.
+- [x] Give generated and owner-created cases the same player complaint labels, neutral exhibit captions, normal player-style IDs, Active/History routing and detail presentation as in-game player submissions.
+- [x] Keep provenance out of the player-facing complaint experience and retain only operational rank/category audit details.
+- [x] Update README and this roadmap.
+- [ ] Build and inspect the Vercel deployment; verify Closed By attribution for judged cases, blank attribution and OPEN state before judgment, and identical presentation across player-, owner- and generated-origin complaints.

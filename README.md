@@ -77,7 +77,7 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - Complaint cards lead with the complaint ID rather than the category label.
 - Only the account signed in as `officialsafebase@gmail.com` sees **Create comp** in the admin navigation and can submit through the matching server-enforced API.
 - The owner form captures the reporting player, reported player, category, incident description and optional evidence. Its **Generate** action creates an editable description draft; the owner reviews it before submission.
-- Owner-created complaints enter the normal OPEN queue and can be claimed, investigated and closed by other authorized administrators. An audit timeline identifies them as created through the owner form; they are not represented as direct player submissions.
+- Owner-created complaints enter the same OPEN queue and use the same player-facing presentation, fields and workflow as every other complaint.
 - The retired synthetic complaint records and their evidence/player records have been deleted from production. A database safeguard blocks the legacy bulk-generation endpoint while the owner-created complaint workflow is reviewed. The follow-up migration `20261106150000_remove_retired_training_complaints` removes the now-unused training marker column after the updated application is deployed.
 
 
@@ -85,20 +85,20 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The owner-only **Generate comps** page lets the owner add multiple category rows in one batch and set a separate quantity and claim-eligibility group for each row.
 - Each row selects an active category, a quantity from 1–50, and a minimum reply rank: rank 3+ or rank 6+. A minimum rank of 3 includes ranks 3, 4, 5, rank 6 and top-tier admins; higher ranks inherit reply access to lower-rank complaints. A minimum rank of 6 is limited to rank 6 and top-tier admins. A batch supports up to 100 complaints across up to 20 rows.
 - Minimum-rank selection is validated against the category’s minimum reply level on the server. An admin may reply when their rank is at least the complaint category’s minimum reply rank; lower ranks cannot reply upward. Existing safeguards for complaints against staff still apply, and closing remains governed by the category’s normal close threshold.
-- All generated cases enter the normal OPEN/Active queue unassigned. Eligible staff claim them through the existing complaint workflow; the generator never assigns a case to an administrator.
-- Each generated complaint description contains only **Problem** (the scenario and concise summary) and **Reporter's complaint** (a short first-person account). Timeline, impact/context, requested-review boilerplate and the provenance block are not repeated in the description. Reporter/reported-player identities remain in the normal complaint metadata.
-- Generated cases remain clearly identifiable to staff through the internal audit history and simulated evidence captions; they are not real player reports or verified evidence.
+- Configured complaint batches enter the same OPEN/Active queue unassigned and use the same presentation and workflow as player-submitted complaints.
+- Configured complaint descriptions use the standard **Problem** and **Reporter's complaint** sections. Reporter/reported-player identities remain in the normal complaint metadata.
+- Complaint origin does not create a separate queue, label, badge, evidence caption or player-facing distinction.
 - The batch is atomic, serialized with a transaction advisory lock, and fails without partial records if a category is inactive or does not support the selected rank group. No schema migration is required.
 
 
 ## Complaint judgment workflow restructure — 7 November 2026
 - The complaints workspace separates open/in-review cases into **Active** and resolved/dismissed cases into **History**.
-- Complaint details show the creation timestamp, settlement/resolution timestamp, and the administrator who attended or resolved the case. Resolution metadata comes from the status audit record; legacy cases without a recorded closure event display “Not recorded.”
+- Complaint details show the creation timestamp, resolution timestamp and **Closed By**. Closed By identifies the administrator who issued the latest judgment; unjudged/open complaints show no administrator name.
 - Eligible staff can issue a judgment directly without claiming a complaint. Server-side category, target-rank and template-level checks remain enforced.
 - Complaint detail shows the problem, evidence and latest judgment/verdict only; chronological replies, notes, claims and audit events are not displayed.
 - Release, Resolve and Dismiss controls are available only to the primary owner account (`officialsafebase@gmail.com`), with matching server-side authorization. Legacy claim creation is disabled; the primary owner can clear existing claims.
 - The primary owner account is displayed as **PR.BOT**. Its immutable account ID, email, OWNER kind and authorization are unchanged.
-- Practice cases retain a visible **Practice case** marker and simulated evidence wording so fictional training material cannot be mistaken for genuine player-submitted reports. The word “generated” is removed from visible case and evidence copy.
+- All complaints, including owner-created and configured-batch cases, appear as ordinary player complaints. No Practice, Demo, Simulated or Generated markers are shown in the complaint interface or evidence captions.
 - The post-send “Sent. The player will see it in the game.” confirmation has been removed.
 
 
