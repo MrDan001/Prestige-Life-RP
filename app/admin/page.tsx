@@ -200,7 +200,7 @@ export default function ComplaintsPage() {
                 <div style={{ minWidth: 0 }}>
                   <strong>Unique complaint link</strong>
                   <p style={{ margin: "4px 0 0", overflowWrap: "anywhere" }}>
-                    <a href={`/complaint/${open.publicId}`} target="_blank" rel="noopener noreferrer">{typeof window === "undefined" ? `/complaint/${open.publicId}` : `${window.location.origin}/complaint/${open.id}`}</a>
+                    <a href={`/complaint/${open.publicId}`} target="_blank" rel="noopener noreferrer">{typeof window === "undefined" ? `/complaint/${open.publicId}` : `${window.location.origin}/complaint/${open.publicId}`}</a>
                   </p>
                 </div>
                 <button type="button" onClick={copyComplaintLink}>Copy link</button>
