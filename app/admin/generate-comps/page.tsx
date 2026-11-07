@@ -47,7 +47,7 @@ export default function GenerateCompsPage() {
 
   async function generate() {
     if (busy || total < 1 || total > 100 || rows.some(row => !row.categoryId || !Number.isInteger(Number(row.quantity)) || Number(row.quantity) < 1 || Number(row.quantity) > 50)) return;
-    const confirmed = window.confirm(\`Generate \${total} simulated complaints across \${rows.length} category row(s)?\\n\\nAll complaints enter the normal Active queue unassigned. Each receives two clearly labelled simulated evidence exhibits.\\n\\nThis does not create real player allegations or verified evidence.\`);
+    const confirmed = window.confirm(\`Generate \${total} simulated complaints across \${rows.length} category row(s)?\n\nAll complaints enter the normal Active queue unassigned. Each receives two clearly labelled simulated evidence exhibits.\n\nThis does not create real player allegations or verified evidence.\`);
     if (!confirmed) return;
     setBusy(true); setError(""); setResult(null);
     try {
