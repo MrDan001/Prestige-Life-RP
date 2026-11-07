@@ -47,7 +47,7 @@ export default function GenerateCompsPage() {
 
   async function generate() {
     if (busy || total < 1 || total > 100 || rows.some(row => !row.categoryId || !Number.isInteger(Number(row.quantity)) || Number(row.quantity) < 1 || Number(row.quantity) > 50)) return;
-    const confirmed = window.confirm(\`Generate \${total} simulated complaints across \${rows.length} category row(s)?\n\nAll complaints enter the normal Active queue unassigned. Each receives two clearly labelled simulated evidence exhibits.\n\nThis does not create real player allegations or verified evidence.\`);
+    const confirmed = window.confirm(`Generate ${total} simulated complaints across ${rows.length} category row(s)?\n\nAll complaints enter the normal Active queue unassigned. Each receives two clearly labelled simulated evidence exhibits.\n\nThis does not create real player allegations or verified evidence.`);
     if (!confirmed) return;
     setBusy(true); setError(""); setResult(null);
     try {
@@ -123,7 +123,7 @@ export default function GenerateCompsPage() {
         <a className="primary" href="/admin">Open Active complaints</a>
       </div>}
       <button type="button" className="primary" onClick={generate} disabled={busy || loading || !categories.length || total < 1 || total > 100 || rows.some(row => !row.categoryId || !eligible(row.rankGroup).length || !Number.isInteger(Number(row.quantity)) || Number(row.quantity) < 1 || Number(row.quantity) > 50)}>
-        {busy ? "Generating batch…" : \`Generate \${total} comp(s)\`}
+        {busy ? "Generating batch…" : `Generate ${total} comp(s)`}
       </button>
     </section>
   </div>;
