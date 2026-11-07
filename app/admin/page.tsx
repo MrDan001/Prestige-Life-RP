@@ -3,22 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Ev = { id: string; kind: "IMAGE" | "VIDEO" | "LINK" | "TEXT"; url: string | null; text: string | null; caption: string | null };
-type Item = { type: "reply" | "note" | "event"; at: string; by: string; text: string; delivered: boolean };
 type Row = {
   id: string; message: string; status: string; createdAt: string;
   player: { username: string }; category: { id: string; name: string };
   claimedBy: { name: string } | null; claimedById: string | null;
   accusedName: string | null; accusedAdmin: { name: string } | null;
-  canReply: boolean; canClaim: boolean; canClose: boolean; lockedByClaim: boolean; isClosed: boolean; canReopen: boolean;
+  canReply: boolean; isClosed: boolean; isPractice: boolean;
 };
 type Detail = Row & {
-  player: { username: string; gameId: string }; canNote: boolean; verdict: string | null;
-  evidence: Ev[]; timeline: Item[]; respondedAt: string | null; reviewedByName: string | null;
+  player: { username: string; gameId: string }; verdict: string | null;
+  evidence: Ev[]; latestJudgment: { message: string; createdAt: string; admin: { name: string } } | null;
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
 
-const ACTIVE_CHIPS: [string, string][] = [["all", "All"]];
-const HISTORY_CHIPS: [string, string][] = [["all", "All"], ["RESOLVED", "Resolved"], ["DISMISSED", "Dismissed"]];
 const isClosed = (status: string) => status === "RESOLVED" || status === "DISMISSED";
 const pill = (s: string) => (s === "OPEN" ? "open" : "done");
 const label = (s: string) => s.replace("_", " ").toLowerCase().replace(/^./, c => c.toUpperCase());
@@ -26,37 +23,33 @@ const tone = (t: Tpl) => (t.closesAs === "DISMISSED" ? "reject" : t.verdict === 
 const fmt = (d: string) => new Date(d).toLocaleString();
 
 export default function ComplaintsPage() {
-  const [meId, setMeId] = useState("");
+  const [isPrimaryOwner, setIsPrimaryOwner] = useState(false);
   const [canCreateComp, setCanCreateComp] = useState(false);
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [bucket, setBucket] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
-  const [chip, setChip] = useState("all");
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<Detail | null>(null);
   const [tpls, setTpls] = useState<Tpl[]>([]);
   const [tpl, setTpl] = useState<Tpl | null>(null);
   const [reply, setReply] = useState("");
-  const [note, setNote] = useState("");
   const [msg, setMsg] = useState("");
 
   const loadList = useCallback(async () => {
-    const p = new URLSearchParams({ bucket, limit: "15", offset: "0" });
-    if (bucket === "HISTORY" && (chip === "RESOLVED" || chip === "DISMISSED")) p.set("status", chip);
+    const p = new URLSearchParams({ limit: "15", offset: "0" });
     const res = await fetch("/api/admin/complaints?" + p);
     if (res.status === 401) { window.location.href = "/auth"; return; }
     const data = await res.json();
     setRows(data.items ?? []);
     setNextOffset(data.nextOffset ?? 0);
     setHasMore(!!data.hasMore);
-  }, [bucket, chip]);
+  }, []);
 
   useEffect(() => { fetch("/api/admin/me").then(async r => {
     if (r.ok) {
       const current = await r.json();
-      setMeId(current.id);
+      setIsPrimaryOwner(!!current.isPrimaryOwner);
       setCanCreateComp(!!current.canCreateComp);
     }
   }); }, []);
@@ -72,8 +65,7 @@ export default function ComplaintsPage() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const p = new URLSearchParams({ bucket, limit: "15", offset: String(nextOffset) });
-      if (bucket === "HISTORY" && (chip === "RESOLVED" || chip === "DISMISSED")) p.set("status", chip);
+      const p = new URLSearchParams({ limit: "15", offset: String(nextOffset) });
       const res = await fetch("/api/admin/complaints?" + p);
       if (!res.ok) return;
       const data = await res.json();
@@ -94,8 +86,7 @@ export default function ComplaintsPage() {
     const response = await fetch(`/api/admin/complaints/${id}`);
     if (!response.ok) { setMsg((await response.json().catch(() => ({}))).error ?? "Could not load complaint."); return null; }
     const d: Detail = await response.json();
-    setOpen(d); setTpl(null); setReply(""); setNote(""); setMsg("");
-    setBucket(isClosed(d.status) ? "HISTORY" : "ACTIVE");
+    setOpen(d); setTpl(null); setReply(""); setMsg("");
     const t = await fetch(`/api/admin/templates?categoryId=${d.category.id}`);
     setTpls(t.ok ? ((await t.json()) as Tpl[]).filter(x => x.canUse) : []);
     return d;
@@ -103,10 +94,7 @@ export default function ComplaintsPage() {
   async function refresh(id: string) {
     const d = await select(id);
     if (!d) return;
-    const nextBucket = isClosed(d.status) ? "HISTORY" : "ACTIVE";
-    setBucket(nextBucket);
-    setChip("all");
-    const response = await fetch(`/api/admin/complaints?bucket=${nextBucket}&limit=15&offset=0`);
+    const response = await fetch("/api/admin/complaints?limit=15&offset=0");
     if (response.ok) { const data = await response.json(); setRows(data.items ?? []); setNextOffset(data.nextOffset ?? 0); setHasMore(!!data.hasMore); }
   }
 
@@ -117,25 +105,16 @@ export default function ComplaintsPage() {
     if (res.ok) { setTpl(t); setReply(d.text); setMsg(""); } else setMsg(d.error ?? "Could not fill that judgment");
   }
   async function send() {
-    if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { reply, templateId: tpl?.id }))) { await refresh(open.id); setMsg("Sent. The player will see it in the game."); }
+    if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { reply, templateId: tpl?.id, verdict: tpl?.verdict ?? open.verdict ?? undefined }))) { await refresh(open.id); setMsg(""); }
   }
   async function setStatus(status: string) { if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status }))) await refresh(open.id); }
-  async function reopen() { if (open?.isClosed && open.canReopen && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status: "OPEN" }))) await refresh(open.id); }
-  async function changeBucket(next: "ACTIVE" | "HISTORY") {
-    setBucket(next); setChip("all"); setOpen(null); setTpl(null); setReply(""); setNote(""); setMsg("");
-  }
-  async function claim() { if (open && (await call(`/api/admin/complaints/${open.id}/claim`, "POST"))) await refresh(open.id); }
-  async function release() { if (open && (await call(`/api/admin/complaints/${open.id}/claim`, "DELETE"))) await refresh(open.id); }
-  async function addNote() { if (open && (await call(`/api/admin/complaints/${open.id}/notes`, "POST", { message: note }))) { setNote(""); await refresh(open.id); } }
+  async function reopen() { if (open?.isClosed && isPrimaryOwner && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status: "OPEN" }))) await refresh(open.id); }
+  async function release() { if (open && isPrimaryOwner && (await call(`/api/admin/complaints/${open.id}/claim`, "DELETE"))) await refresh(open.id); }
 
-  const mine = open?.claimedById === meId;
   const info = open && [
     ["Complaint", `#${open.id.slice(-6).toUpperCase()}`],
     ["Complaint from", open.player.username],
     ["Complaint about", open.accusedAdmin?.name ?? open.accusedName ?? "Unknown"],
-    ["Submitted", fmt(open.createdAt)],
-    ["Responded", open.respondedAt ? fmt(open.respondedAt) : "Not yet"],
-    ["Reviewed by", open.reviewedByName ?? "Not yet"],
   ];
 
   return (
@@ -143,13 +122,6 @@ export default function ComplaintsPage() {
       <header className="topbar">
         <h1>Complaints</h1>
         {canCreateComp && <a className="primary" href="/admin/generate-comps">Generate comps</a>}
-        <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
-          <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
-          <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
-        </div>
-        <div className="chips">
-          {(bucket === "ACTIVE" ? ACTIVE_CHIPS : HISTORY_CHIPS).map(([k, l]) => <button key={k} className={`chip${chip === k ? " on" : ""}`} onClick={() => setChip(k)}>{l}</button>)}
-        </div>
         <input className="search" type="search" placeholder="Search player or case number…" aria-label="Search complaints" value={q} onChange={e => setQ(e.target.value)} />
       </header>
 
@@ -157,12 +129,11 @@ export default function ComplaintsPage() {
         <section className="list" aria-label="Complaint list">
           {shown.length === 0 && <p className="muted">No complaints found.</p>}
           {shown.map(r => (
-            <button key={r.id} className={`card${open?.id === r.id ? " sel" : ""}${r.canReply || r.canClaim || (r.claimedById && !r.lockedByClaim) ? "" : " dim"}`} onClick={() => select(r.id)}>
+            <button key={r.id} className={`card${open?.id === r.id ? " sel" : ""}`} onClick={() => select(r.id)}>
               <div className="row-top"><strong>#{r.id.slice(-6).toUpperCase()}</strong><span className={`pill ${pill(r.status)}`}>{label(r.status)}</span></div>
               <div style={{ marginTop: 4 }}>{r.player.username} <span className="muted">vs</span> {r.accusedAdmin?.name ?? r.accusedName ?? "unknown"}</div>
               <div className="sub">
-                {r.claimedBy ? (r.claimedById === meId ? "Claimed by you" : `Claimed by ${r.claimedBy.name}`) : "Available to claim"}
-                {!r.canReply && !r.canClaim && !r.lockedByClaim ? " · view only" : ""}{r.accusedAdmin ? " · against staff" : ""} · {fmt(r.createdAt)}
+                {r.isPractice ? "Practice case" : "Player complaint"} · {fmt(r.createdAt)}
               </div>
             </button>
           ))}
@@ -176,21 +147,9 @@ export default function ComplaintsPage() {
 
               <div className="claimbar">
                 <span className={`pill ${pill(open.status)}`}>{open.isClosed ? label(open.status) : "Open"}</span>
-                <span className="muted">{open.claimedBy ? <>Claimed by <strong>{mine ? "you" : open.claimedBy.name}</strong></> : "Not claimed yet"}</span>
-                {!open.isClosed && !open.claimedById && open.canClaim && <button onClick={claim}>Claim</button>}
-                {!open.isClosed && open.claimedById && !mine && !open.lockedByClaim && <button onClick={claim}>Take over</button>}
-                {!open.isClosed && open.claimedById && (mine || !open.lockedByClaim) && <button onClick={release}>Release</button>}
-                {open.isClosed ? (
-                  <>
-                    <span className="muted">Closed · moved to History</span>
-                    {open.canReopen && <button type="button" className="primary" onClick={reopen}>Reopen complaint</button>}
-                  </>
-                ) : (
-                  <>
-                    {open.canClose && <button type="button" onClick={() => setStatus("RESOLVED")}>Resolve</button>}
-                    {open.canClose && <button type="button" onClick={() => setStatus("DISMISSED")}>Dismiss</button>}
-                  </>
-                )}
+                {isPrimaryOwner && open.claimedById && <button onClick={release}>Release</button>}
+                {isPrimaryOwner && !open.isClosed && <><button type="button" onClick={() => setStatus("RESOLVED")}>Resolve</button><button type="button" onClick={() => setStatus("DISMISSED")}>Dismiss</button></>}
+                {isPrimaryOwner && open.isClosed && <button type="button" className="primary" onClick={reopen}>Reopen</button>}
               </div>
 
               <div>
@@ -210,52 +169,40 @@ export default function ComplaintsPage() {
                 )}
               </div>
 
-              <div className="panel"><strong>Complaint description</strong><p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.message}</p></div>
+              <div className="panel"><strong>Problem</strong><p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.message}</p></div>
+              {open.isPractice && <small className="muted">Practice case · simulated scenario</small>}
+              {open.latestJudgment && (
+                <div className="panel">
+                  <strong>Judgment</strong>
+                  <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.latestJudgment.message}</p>
+                  <small className="muted">{open.latestJudgment.admin.name} · {fmt(open.latestJudgment.createdAt)}</small>
+                  {open.verdict && <p><strong>Verdict:</strong> {label(open.verdict)}</p>}
+                </div>
+              )}
 
-              {open.canReply ? (
+              {!open.isClosed && open.canReply ? (
                 <>
                   <div>
-                    <div className="judg-title">Issuing judgment</div>
+                    <div className="judg-title">Issue judgment</div>
                     
                     <div className="judg-grid">
                       {tpls.map(t => <button key={t.id} className={`jbtn ${tpl?.id === t.id ? "picked" : tone(t)}`} aria-pressed={tpl?.id === t.id} onClick={() => pick(t)}>{t.name}</button>)}
                     </div>
                   </div>
                   <div className="panel" style={{ display: "grid", gap: 10 }}>
-                    <strong>Reply to player</strong>
-                    {tpl && <span className="muted">Filled from “{tpl.name}”{tpl.closesAs ? ` · will ${tpl.closesAs === "RESOLVED" ? "resolve" : "dismiss"} the complaint` : ""}</span>}
-                    <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Pick a judgment above, or write your own reply" aria-label="Reply to player" />
+                    <strong>Judgment</strong>
+                    {tpl && <span className="muted">Filled from “{tpl.name}”</span>}
+                    <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Pick a judgment above, or write the judgment here" aria-label="Judgment" />
                     <div className="claimbar">
-                      <button className="primary" disabled={!reply.trim()} onClick={send}>{tpl?.closesAs ? "Send judgment" : "Send reply"}</button>
-                      <span className="muted">The player sees this in the game</span>
+                      <button className="primary" disabled={!reply.trim()} onClick={send}>Issue judgment</button>
                     </div>
                   </div>
                 </>
-              ) : open.canClaim ? null : <p className="muted">{open.isClosed
-                ? (open.canReopen ? "This complaint is closed. Reopen it to return it to the active queue before replying." : "This complaint is closed and read-only. Only the owner or a top-tier administrator can reopen it.")
-                : open.lockedByClaim ? `${open.claimedBy?.name ?? "Another admin"} is handling this complaint.` : "Your rank does not meet the minimum reply level for this complaint."}</p>}
+              ) : !open.isClosed ? <p className="muted">Your rank does not meet the minimum reply level for this complaint.</p> : null}
 
-              {open.canNote && (
-                <div className="panel" style={{ display: "grid", gap: 8 }}>
-                  <strong>Private note</strong>
-                  <textarea rows={2} value={note} onChange={e => setNote(e.target.value)} placeholder="Visible to staff only, never sent to the player" aria-label="Private note" />
-                  <div><button disabled={!note.trim()} onClick={addNote}>Add note</button></div>
-                </div>
-              )}
 
-              {open.timeline.length > 0 && (
-                <div className="timeline">
-                  <strong>History</strong>
-                  {open.timeline.map((t, i) => t.type === "event" ? (
-                    <div className="tl-event" key={i}>{fmt(t.at)} · {t.by} {t.text}</div>
-                  ) : (
-                    <div className={t.type === "note" ? "tl-note" : "tl-reply"} key={i}>
-                      <small className="muted">{t.by} · {fmt(t.at)} · {t.type === "note" ? "private note" : t.delivered ? "delivered to game" : "waiting for game"}</small>
-                      <p>{t.text}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+
+
             </>
           )}
           {msg && <p role="status">{msg}</p>}

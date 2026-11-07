@@ -17,7 +17,7 @@ export async function GET() {
     id: admin.id,
     isPrimaryOwner: isPrimaryOwnerAccount(admin.id),
     canCreateComp: admin.email.trim().toLowerCase() === "officialsafebase@gmail.com",
-    name: admin.name,
+    name: isPrimaryOwnerAccount(admin.id) ? "PR.BOT" : admin.name,
     email: admin.email,
     title: admin.title,
     gameId: admin.gameId,
