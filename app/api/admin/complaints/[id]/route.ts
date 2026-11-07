@@ -24,10 +24,16 @@ export async function GET(_req: Request, { params }: Ctx) {
   const c = await db.complaint.findUnique({ where: { id }, include });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const isClosed = c.status === "RESOLVED" || c.status === "DISMISSED";
-  const createdAudit = await db.auditLog.findFirst({
-    where: { targetId: id, action: "COMPLAINT_CREATED", detail: { startsWith: "Generated simulation batch" } },
-    select: { id: true },
-  });
+  const [createdAudit, closedAudit] = await Promise.all([
+    db.auditLog.findFirst({
+      where: { targetId: id, action: "COMPLAINT_CREATED", detail: { startsWith: "Generated simulation batch" } },
+      select: { id: true },
+    }),
+    isClosed ? db.auditLog.findFirst({
+      where: { targetId: id, action: "COMPLAINT_STATUS", detail: { endsWith: "-> " + c.status } },
+      orderBy: { createdAt: "desc" }, include: { actor: { select: { name: true } } },
+    }) : Promise.resolve(null),
+  ]);
   return NextResponse.json({
     ...c,
     isClosed,
@@ -35,6 +41,8 @@ export async function GET(_req: Request, { params }: Ctx) {
     canReply: !isClosed && canAct(a.actor, c, "reply"),
     canManageStatus: isPrimaryOwnerAccount(a.admin.id),
     latestJudgment: c.responses[0] ?? null,
+    closedAt: closedAudit?.createdAt ?? (isClosed ? c.responses[0]?.createdAt ?? null : null),
+    closedBy: closedAudit?.actor ?? null,
   });
 }
 
