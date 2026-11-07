@@ -134,3 +134,8 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The live preview and server-side saved message use the same shared formatter, so the message delivered to the game matches the preview.
 - The redundant free-text editor is hidden for upheld judgments because the message is generated from the complaint and required punishment fields; custom judgment text remains available for other verdicts.
 - Judgment API validation now reports the actual field problem instead of the generic “Send a status, judgment or verdict” response, and accepts messages up to 5,000 characters to cover configured templates plus formatting.
+
+
+## Production build correction — 7 November 2026
+- The upheld-judgment API query explicitly selects the complainant username along with the complaint category and accused administrator. This keeps the server-generated judgment message grounded in the reporter record and satisfies Prisma’s inferred query type during the production build.
+- The correction addresses the TypeScript failure at `app/api/admin/complaints/[id]/route.ts` where the PATCH handler accessed `c.player.username` without selecting the `player` relation.
