@@ -1,6 +1,6 @@
 # Prestige Life RP — Deployment Reliability Roadmap
 
-Updated: 6 November 2026
+Updated: 7 November 2026
 
 ## Incident: failed Vercel builds during admin authentication changes
 
@@ -344,3 +344,13 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Keep provenance out of the player-facing complaint experience and retain only operational rank/category audit details.
 - [x] Update README and this roadmap.
 - [ ] Build and inspect the Vercel deployment; verify Closed By attribution for judged cases, blank attribution and OPEN state before judgment, and identical presentation across player-, owner- and generated-origin complaints.
+
+
+## Global generated complaint identities and latest-batch cleanup — 7 November 2026
+- [x] Replace the Nigeria-only generated reporter/accused name list with a shuffled international pool spanning Africa, Europe, the Americas, Asia, Oceania and the Middle East; Nigerian names remain included as one part of the global mix.
+- [x] Shuffle the complete pool for each generation cycle so a generated batch does not always begin with the same names or repeatedly overrepresent one region.
+- [x] Delete the latest 50 owner-generated complaints requested for cleanup, including their 100 evidence rows, 50 creation-audit rows and 50 now-unreferenced reporter records.
+- [x] Verify that no complaint from that latest batch remains and that the 3 complaints already in the Active queue before the batch remain.
+- [x] Leave the older complaint records and pre-existing History items untouched.
+- [x] Update README and this deployment roadmap.
+- [ ] Confirm the main-branch Vercel deployment completes and inspect the generated-name mix in a subsequent owner-approved test batch.

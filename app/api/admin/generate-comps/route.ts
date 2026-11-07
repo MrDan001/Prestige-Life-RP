@@ -1,5 +1,5 @@
 // PATH: app/api/admin/generate-comps/route.ts
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -8,16 +8,83 @@ const OWNER_EMAIL = "officialsafebase@gmail.com";
 
 type Scenario = { title: string; summary: string; complaint: string; exhibitA: string; exhibitB: string };
 
-const names = [
-  ["Tomi Adeyemi", "Kelechi Nwosu"], ["Zara Bello", "Daniel Okafor"], ["Musa Ibrahim", "Amaka Eze"],
-  ["Chiamaka Obi", "Femi Adebayo"], ["Aisha Sani", "Tunde Balogun"], ["David Etim", "Nneka Umeh"],
-  ["Ruth James", "Emeka Nnamdi"], ["Ibrahim Yusuf", "Dara Ojo"], ["Mariam Lawal", "Victor Udo"],
-  ["Samuel Peters", "Ifunanya Chukwu"], ["Boma Briggs", "Lara Hassan"], ["Chisom Eke", "Yusuf Garba"],
-  ["Adaora Nwankwo", "Michael Danjuma"], ["Tariq Sule", "Grace Ibe"], ["Olu Martins", "Nora Akpan"],
-  ["Efe Okon", "Seyi Ajayi"], ["Fatima Bello", "Chuka Obi"], ["Benedict John", "Hauwa Musa"],
-  ["Nnamdi Kalu", "Precious Edet"], ["Moyo Akin", "Ifeoma Daniel"],
+// A broad sample of names from multiple regions keeps generated identities representative of a global community.
+const globalNamePairs: ReadonlyArray<readonly [string, string]> = [
+  ["Olivia Carter", "Ethan Brooks"],
+  ["Ava Mitchell", "Noah Bennett"],
+  ["Isla Morgan", "Oliver Clarke"],
+  ["Grace O'Connor", "Liam Murphy"],
+  ["Emily Chen", "Lucas Martin"],
+  ["Freya Larsen", "Emil Jensen"],
+  ["Camille Laurent", "Theo Moreau"],
+  ["Ines Bernard", "Lucas Dubois"],
+  ["Hannah Weber", "Lukas Fischer"],
+  ["Mia Schneider", "Felix Wagner"],
+  ["Giulia Romano", "Lorenzo Bianchi"],
+  ["Lucia Garcia", "Mateo Ruiz"],
+  ["Sofia Costa", "Tiago Ferreira"],
+  ["Valentina Hernandez", "Santiago Lopez"],
+  ["Mariana Oliveira", "Gabriel Santos"],
+  ["Lucia Fernandez", "Tomas Gonzalez"],
+  ["Camila Rojas", "Nicolas Munoz"],
+  ["Aisha Khan", "Zain Ahmed"],
+  ["Priya Mehta", "Rohan Kapoor"],
+  ["Ananya Patel", "Aarav Sharma"],
+  ["Nusrat Rahman", "Arif Hossain"],
+  ["Lin Wei", "Zhang Min"],
+  ["Yuki Tanaka", "Haruto Sato"],
+  ["Kim Min-seo", "Park Ji-hoon"],
+  ["Maria Santos", "Juan Reyes"],
+  ["Dewi Putri", "Budi Santoso"],
+  ["Nguyen Anh", "Tran Minh"],
+  ["Nicha Srisai", "Krit Chaiyaporn"],
+  ["Nour Hassan", "Omar Farouk"],
+  ["Salma El Amrani", "Youssef Benali"],
+  ["Achieng Otieno", "Kamau Mwangi"],
+  ["Lerato Mokoena", "Thabo Nkosi"],
+  ["Ama Owusu", "Kojo Mensah"],
+  ["Hana Bekele", "Dawit Tesfaye"],
+  ["Aminata Diallo", "Mamadou Ndiaye"],
+  ["Zanele Dlamini", "Sibusiso Khumalo"],
+  ["Tomi Adeyemi", "Kelechi Nwosu"],
+  ["Zara Bello", "Daniel Okafor"],
+  ["Tunde Balogun", "Aisha Sani"],
+  ["Elif Demir", "Emir Yilmaz"],
+  ["Maya Haddad", "Karim Nassar"],
+  ["Fatima Al-Sayed", "Omar Al-Mansour"],
+  ["Sofia Ivanova", "Dmitri Petrov"],
+  ["Olena Shevchenko", "Andriy Kovalenko"],
+  ["Emilia Kowalska", "Jakub Nowak"],
+  ["Zara Williams", "Mason Taylor"],
+  ["Maia Thompson", "Leo Campbell"],
+  ["Valeria Gomez", "Andres Rodriguez"],
+  ["Camila Castillo", "Sebastian Vega"],
+  ["Priyanka Fernando", "Dilan Perera"],
+  ["Farah Al-Mutairi", "Khalid Al-Harbi"],
+  ["Mariam Abdalla", "Yusuf Osman"],
+  ["Chloe Dubois", "Antoine Lefevre"],
+  ["Eva Jansen", "Daan de Vries"],
+  ["Sara Lindberg", "Erik Nyström"],
+  ["Katerina Papadopoulos", "Nikos Georgiou"],
+  ["Mila Petrescu", "Andrei Popescu"],
+  ["Ivana Horvat", "Luka Kovacic"],
+  ["Siti Nurhaliza", "Amir Hakim"],
+  ["Mina Park", "Seo-jun Choi"],
+  ["Ravi Perera", "Nimali Jayasinghe"],
+  ["Carlos Mendoza", "Daniela Torres"],
+  ["Renata Silva", "Pedro Almeida"],
+  ["Leila Ndlovu", "Sipho Dube"],
+  ["Kwame Boateng", "Abena Asante"],
 ];
 
+function shuffleGlobalNamePairs(): Array<readonly [string, string]> {
+  const shuffled = [...globalNamePairs];
+  for (let index = shuffled.length - 1; index > 0; index--) {
+    const swapIndex = randomInt(index + 1);
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
 const harassment: Scenario[] = [
   { title: "Repeated unwanted contact", summary: "The reported player continued sending direct messages after the reporting player clearly asked them to stop. The contact resumed in a later session.", complaint: "I asked this player to stop messaging me, but they continued contacting me and approached me again later. I am reporting this because I want the repeated contact reviewed.", exhibitA: "CHAT EXTRACT: 19:47 — reporting player: “Please stop messaging me.” 20:06 — reported player: “I am not finished talking to you.”", exhibitB: "SESSION LOG: two further proximity interactions recorded after the stop request. The interaction was recorded after the reporting player asked for contact to stop." },
   { title: "Targeted following between locations", summary: "The reporting player alleges that the same player repeatedly followed them between separate public locations after being asked to leave them alone.", complaint: "I moved to different public areas after asking for space, but this player kept appearing where I went. I felt followed and could not use those areas comfortably.", exhibitA: "LOCATION TRACE: Central Plaza 14:10; Market 14:22; Waterfront 14:31. The entries show the reported player's movements between the listed locations.", exhibitB: "CHAT EXTRACT: 14:19 — reporting player asked for space; no acknowledgement was recorded before the next location encounter." },
@@ -135,12 +202,16 @@ export async function POST(request: Request) {
 
       const results: { id: string; rankGroup: RankGroup; categoryName: string }[] = [];
       let sequence = 0;
+      let shuffledNamePairs = shuffleGlobalNamePairs();
       for (const row of rows) {
         const category = categoryById.get(row.categoryId)!;
         for (let item = 0; item < row.quantity; item++) {
           const i = sequence++;
+          if (i > 0 && i % globalNamePairs.length === 0) {
+            shuffledNamePairs = shuffleGlobalNamePairs();
+          }
           const scenario = scenarioFor(category.name, i);
-          const [reporterName, accusedName] = names[i % names.length];
+          const [reporterName, accusedName] = shuffledNamePairs[i % shuffledNamePairs.length];
           const reporterGameId = `PL-${randomUUID().slice(0, 12).toUpperCase()}`;
           const accusedGameId = `PL-${randomUUID().slice(0, 12).toUpperCase()}`;
           const player = await tx.player.create({
