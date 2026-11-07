@@ -79,3 +79,12 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The owner form captures the reporting player, reported player, category, incident description and optional evidence. Its **Generate** action creates an editable description draft; the owner reviews it before submission.
 - Owner-created complaints enter the normal OPEN queue and can be claimed, investigated and closed by other authorized administrators. An audit timeline identifies them as created through the owner form; they are not represented as direct player submissions.
 - The retired synthetic complaint records and their evidence/player records have been deleted from production. A database safeguard blocks the legacy bulk-generation endpoint while the owner-created complaint workflow is reviewed. The follow-up migration `20261106150000_remove_retired_training_complaints` removes the now-unused training marker column after the updated application is deployed.
+
+
+## Owner-generated rank-tier complaint batches
+- The owner-only **Generate 20 comps** menu action creates exactly 20 structured simulation complaints in one atomic database transaction.
+- 15 cases use category reply thresholds that allow level 3–5 administrators to claim them; closing still follows each category’s normal close threshold. Five use a level-6 minimum reply threshold so only level 6 and top-tier administrators can claim them.
+- All cases enter the normal OPEN/Active queue unassigned. Eligible staff claim them through the existing complaint workflow; the generator never assigns a case to an administrator.
+- Each case includes reporter/reported-player identities, a structured incident summary and timeline, impact/context, requested review, and two attached text evidence exhibits.
+- Generated names, IDs, incidents, and exhibits are explicitly identified as simulated. They are not real player reports or verified evidence.
+- The generator requires at least one active category meeting each rank threshold and fails the entire batch if either group cannot be supported. It does not change category settings or require a database migration.

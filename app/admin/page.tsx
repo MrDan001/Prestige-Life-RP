@@ -142,7 +142,7 @@ export default function ComplaintsPage() {
     <div>
       <header className="topbar">
         <h1>Complaints</h1>
-        {canCreateComp && <a className="primary" href="/admin/create-comp?generate=1">Generate</a>}
+        {canCreateComp && <a className="primary" href="/admin/generate-comps">Generate 20 comps</a>}
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
           <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
           <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
