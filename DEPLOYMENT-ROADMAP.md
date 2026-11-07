@@ -419,3 +419,19 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Align judgment-message validation with configured template sizes and the added punishment section.
 - [x] Update README and this roadmap.
 - [ ] Run a clean production build and verify the preview, issued judgment record, public case page and game-delivery response with a test upheld complaint before production promotion.
+
+
+## Vercel production build failure — 7 November 2026
+
+### Confirmed root cause
+- [x] Latest Production deployment for main commit `5033276757028a5327337aed389a252471124e85` failed during TypeScript validation, not dependency installation or a Vercel quota limit.
+- [x] Build error: `app/api/admin/complaints/[id]/route.ts:154` accessed `c.player.username`, but the PATCH handler's Prisma lookup did not include the related `player` record.
+- [x] The shared GET include already loaded `player`; the separate PATCH lookup omitted it.
+
+### Fix
+- [x] Add `player: true` to the PATCH handler's complaint lookup so the reporter username required by the upheld-judgment message formatter is loaded and correctly typed.
+- [x] Keep the change scoped to the query; no schema, migration, or production data changes are required.
+- [x] Update README and this roadmap.
+- [ ] Confirm the Vercel Preview build for the fix reaches READY.
+- [ ] Merge the fix to main and verify the Production deployment reaches READY on the new commit.
+- [ ] Confirm the public site and admin judgment flow after deployment.
