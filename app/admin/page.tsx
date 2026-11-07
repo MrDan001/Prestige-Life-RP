@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Ev = { id: string; kind: "IMAGE" | "VIDEO" | "LINK" | "TEXT"; url: string | null; text: string | null; caption: string | null };
 type Row = {
-  id: string; message: string; status: string; createdAt: string;
+  id: string; publicId: string; message: string; status: string; createdAt: string;
   player: { username: string }; category: { id: string; name: string };
   claimedBy: { name: string } | null; claimedById: string | null;
   accusedName: string | null; accusedAdmin: { name: string } | null;
@@ -160,7 +160,7 @@ export default function ComplaintsPage() {
   const isApprovedJudgment = !!open && (tpl?.verdict ?? open.verdict) === "COMPLAINANT";
   const selectedPunishment = punishmentOptions.find(option => option.id === punishmentOptionId);
   const info = open && [
-    ["Complaint", `#${open.id.slice(-6).toUpperCase()}`],
+    ["Complaint", `#${open.publicId}`],
     ["Complaint from", open.player.username],
     ["Complaint about", open.accusedAdmin?.name ?? open.accusedName ?? "Unknown"],
     ["Time created", fmt(open.createdAt)],
