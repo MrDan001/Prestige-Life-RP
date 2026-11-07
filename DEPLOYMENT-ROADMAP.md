@@ -442,7 +442,9 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Rename the built-in TECH role label from **PRM** to **PR Manager** without changing its underlying TECH permission kind or staff assignments.
 - [x] Keep the manually-created unused PR Manager role cleanup separate; its migration runs before this built-in-role rename.
 - [x] Update README and this deployment roadmap.
-- [ ] Apply both roles migrations to Production in timestamp order and verify the Roles page shows one built-in **PR Manager** role, with all other roles unchanged.
+- [x] Applied the manual-role removal migration and built-in-role rename to the Production database in order.
+- [x] Verified Production now has exactly one **PR Manager** role: built-in `TECH`, active, with both existing assignments preserved; the unused custom role is gone and all other roles/assignments remain unchanged.
+- [ ] Merge PR #32 and confirm the single Vercel Production deployment reaches READY; verify the Roles page has no Edit action.
 
 
 ## Vercel failed build correction — 7 November 2026
@@ -453,3 +455,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Confirm a fresh branch Preview build reaches READY.
 - [ ] After merge, confirm a fresh Production build reaches READY and verify the production domain serves the merged commit.
 - [ ] Apply the two role migrations in timestamp order and verify the final role list; deployment alone does not apply these database migrations.
+
+
+## Single-deployment release preparation — 7 November 2026
+- [x] Consolidate the Roles page edit-button removal, safe custom-role deletion guard, built-in PRM → PR Manager display rename, and complaint judgment TypeScript build correction into PR #32.
+- [x] Apply the two narrowly scoped role data migrations to the Production database in order; verify all remaining roles and staff assignments.
+- [x] Confirm the current failed build's missing accused-admin name selection is corrected on the PR branch.
+- [x] Update README and this deployment roadmap.
+- [ ] Wait for Vercel's free daily deployment API quota to reset; the previous create-deployment request was rejected with HTTP 402 and a 24-hour retry window.
+- [ ] Merge PR #32, allow its single automatic Production deployment, and verify the production domain and Roles page.
