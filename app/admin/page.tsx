@@ -27,6 +27,7 @@ const fmt = (d: string) => new Date(d).toLocaleString();
 
 export default function ComplaintsPage() {
   const [meId, setMeId] = useState("");
+  const [isPrimaryOwner, setIsPrimaryOwner] = useState(false);
   const [canCreateComp, setCanCreateComp] = useState(false);
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -57,6 +58,7 @@ export default function ComplaintsPage() {
     if (r.ok) {
       const current = await r.json();
       setMeId(current.id);
+      setIsPrimaryOwner(!!current.isPrimaryOwner);
       setCanCreateComp(!!current.canCreateComp);
     }
   }); }, []);
@@ -95,7 +97,7 @@ export default function ComplaintsPage() {
     if (!response.ok) { setMsg((await response.json().catch(() => ({}))).error ?? "Could not load complaint."); return null; }
     const d: Detail = await response.json();
     setOpen(d); setTpl(null); setReply(""); setNote(""); setMsg("");
-    setBucket(isClosed(d.status) ? "HISTORY" : "ACTIVE");
+    setBucket("ACTIVE");
     const t = await fetch(`/api/admin/templates?categoryId=${d.category.id}`);
     setTpls(t.ok ? ((await t.json()) as Tpl[]).filter(x => x.canUse) : []);
     return d;
@@ -103,7 +105,7 @@ export default function ComplaintsPage() {
   async function refresh(id: string) {
     const d = await select(id);
     if (!d) return;
-    const nextBucket = isClosed(d.status) ? "HISTORY" : "ACTIVE";
+    const nextBucket = "ACTIVE";
     setBucket(nextBucket);
     setChip("all");
     const response = await fetch(`/api/admin/complaints?bucket=${nextBucket}&limit=15&offset=0`);
@@ -117,7 +119,7 @@ export default function ComplaintsPage() {
     if (res.ok) { setTpl(t); setReply(d.text); setMsg(""); } else setMsg(d.error ?? "Could not fill that judgment");
   }
   async function send() {
-    if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { reply, templateId: tpl?.id }))) { await refresh(open.id); setMsg("Sent. The player will see it in the game."); }
+    if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { reply, templateId: tpl?.id, verdict: tpl?.verdict ?? open.verdict ?? undefined }))) { await refresh(open.id); setMsg(""); }
   }
   async function setStatus(status: string) { if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status }))) await refresh(open.id); }
   async function reopen() { if (open?.isClosed && open.canReopen && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status: "OPEN" }))) await refresh(open.id); }
@@ -133,9 +135,6 @@ export default function ComplaintsPage() {
     ["Complaint", `#${open.id.slice(-6).toUpperCase()}`],
     ["Complaint from", open.player.username],
     ["Complaint about", open.accusedAdmin?.name ?? open.accusedName ?? "Unknown"],
-    ["Submitted", fmt(open.createdAt)],
-    ["Responded", open.respondedAt ? fmt(open.respondedAt) : "Not yet"],
-    ["Reviewed by", open.reviewedByName ?? "Not yet"],
   ];
 
   return (
@@ -145,11 +144,9 @@ export default function ComplaintsPage() {
         {canCreateComp && <a className="primary" href="/admin/generate-comps">Generate comps</a>}
         <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
           <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
-          <button type="button" role="tab" aria-selected={bucket === "HISTORY"} className={bucket === "HISTORY" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("HISTORY")}>HISTORY</button>
+
         </div>
-        <div className="chips">
-          {(bucket === "ACTIVE" ? ACTIVE_CHIPS : HISTORY_CHIPS).map(([k, l]) => <button key={k} className={`chip${chip === k ? " on" : ""}`} onClick={() => setChip(k)}>{l}</button>)}
-        </div>
+
         <input className="search" type="search" placeholder="Search player or case number…" aria-label="Search complaints" value={q} onChange={e => setQ(e.target.value)} />
       </header>
 
@@ -177,20 +174,9 @@ export default function ComplaintsPage() {
               <div className="claimbar">
                 <span className={`pill ${pill(open.status)}`}>{open.isClosed ? label(open.status) : "Open"}</span>
                 <span className="muted">{open.claimedBy ? <>Claimed by <strong>{mine ? "you" : open.claimedBy.name}</strong></> : "Not claimed yet"}</span>
-                {!open.isClosed && !open.claimedById && open.canClaim && <button onClick={claim}>Claim</button>}
-                {!open.isClosed && open.claimedById && !mine && !open.lockedByClaim && <button onClick={claim}>Take over</button>}
-                {!open.isClosed && open.claimedById && (mine || !open.lockedByClaim) && <button onClick={release}>Release</button>}
-                {open.isClosed ? (
-                  <>
-                    <span className="muted">Closed · moved to History</span>
-                    {open.canReopen && <button type="button" className="primary" onClick={reopen}>Reopen complaint</button>}
-                  </>
-                ) : (
-                  <>
-                    {open.canClose && <button type="button" onClick={() => setStatus("RESOLVED")}>Resolve</button>}
-                    {open.canClose && <button type="button" onClick={() => setStatus("DISMISSED")}>Dismiss</button>}
-                  </>
-                )}
+                {isPrimaryOwner && open.claimedById && <button onClick={release}>Release</button>}
+                {isPrimaryOwner && !open.isClosed && <><button type="button" onClick={() => setStatus("RESOLVED")}>Resolve</button><button type="button" onClick={() => setStatus("DISMISSED")}>Dismiss</button></>}
+                {isPrimaryOwner && open.isClosed && <button type="button" className="primary" onClick={reopen}>Reopen</button>}
               </div>
 
               <div>
@@ -212,7 +198,7 @@ export default function ComplaintsPage() {
 
               <div className="panel"><strong>Complaint description</strong><p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.message}</p></div>
 
-              {open.canReply ? (
+              {!open.isClosed && open.canReply ? (
                 <>
                   <div>
                     <div className="judg-title">Issuing judgment</div>
@@ -222,12 +208,11 @@ export default function ComplaintsPage() {
                     </div>
                   </div>
                   <div className="panel" style={{ display: "grid", gap: 10 }}>
-                    <strong>Reply to player</strong>
+                    <strong>Judgment</strong>
                     {tpl && <span className="muted">Filled from “{tpl.name}”{tpl.closesAs ? ` · will ${tpl.closesAs === "RESOLVED" ? "resolve" : "dismiss"} the complaint` : ""}</span>}
-                    <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Pick a judgment above, or write your own reply" aria-label="Reply to player" />
+                    <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Pick a judgment above, or write the judgment here" aria-label="Judgment" />
                     <div className="claimbar">
-                      <button className="primary" disabled={!reply.trim()} onClick={send}>{tpl?.closesAs ? "Send judgment" : "Send reply"}</button>
-                      <span className="muted">The player sees this in the game</span>
+                      <button className="primary" disabled={!reply.trim()} onClick={send}>Issue judgment</button>
                     </div>
                   </div>
                 </>
@@ -235,27 +220,9 @@ export default function ComplaintsPage() {
                 ? (open.canReopen ? "This complaint is closed. Reopen it to return it to the active queue before replying." : "This complaint is closed and read-only. Only the owner or a top-tier administrator can reopen it.")
                 : open.lockedByClaim ? `${open.claimedBy?.name ?? "Another admin"} is handling this complaint.` : "Your rank does not meet the minimum reply level for this complaint."}</p>}
 
-              {open.canNote && (
-                <div className="panel" style={{ display: "grid", gap: 8 }}>
-                  <strong>Private note</strong>
-                  <textarea rows={2} value={note} onChange={e => setNote(e.target.value)} placeholder="Visible to staff only, never sent to the player" aria-label="Private note" />
-                  <div><button disabled={!note.trim()} onClick={addNote}>Add note</button></div>
-                </div>
-              )}
 
-              {open.timeline.length > 0 && (
-                <div className="timeline">
-                  <strong>History</strong>
-                  {open.timeline.map((t, i) => t.type === "event" ? (
-                    <div className="tl-event" key={i}>{fmt(t.at)} · {t.by} {t.text}</div>
-                  ) : (
-                    <div className={t.type === "note" ? "tl-note" : "tl-reply"} key={i}>
-                      <small className="muted">{t.by} · {fmt(t.at)} · {t.type === "note" ? "private note" : t.delivered ? "delivered to game" : "waiting for game"}</small>
-                      <p>{t.text}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+
+
             </>
           )}
           {msg && <p role="status">{msg}</p>}
