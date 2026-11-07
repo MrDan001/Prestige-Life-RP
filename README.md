@@ -89,3 +89,13 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - Each generated complaint description contains only **Problem** (the scenario and concise summary) and **Reporter's complaint** (a short first-person account). Timeline, impact/context, requested-review boilerplate and the provenance block are not repeated in the description. Reporter/reported-player identities remain in the normal complaint metadata.
 - Generated cases remain clearly identifiable to staff through the internal audit history and simulated evidence captions; they are not real player reports or verified evidence.
 - The batch is atomic, serialized with a transaction advisory lock, and fails without partial records if a category is inactive or does not support the selected rank group. No schema migration is required.
+
+
+## Complaint judgment workflow restructure — 7 November 2026
+- The complaints workspace uses one unified queue for open and closed complaints; there is no separate History tab or visible event timeline.
+- Eligible staff can issue a judgment directly without claiming a complaint. Server-side category, target-rank and template-level checks remain enforced.
+- Complaint detail shows the problem, evidence and latest judgment/verdict only; chronological replies, notes, claims and audit events are not displayed.
+- Release, Resolve and Dismiss controls are available only to the primary owner account (`officialsafebase@gmail.com`), with matching server-side authorization. Legacy claim creation is disabled; the primary owner can clear existing claims.
+- The primary owner account is displayed as **PR.BOT**. Its immutable account ID, email, OWNER kind and authorization are unchanged.
+- Practice cases retain a visible **Practice case** marker and simulated evidence wording so fictional training material cannot be mistaken for genuine player-submitted reports. The word “generated” is removed from visible case and evidence copy.
+- The post-send “Sent. The player will see it in the game.” confirmation has been removed.
