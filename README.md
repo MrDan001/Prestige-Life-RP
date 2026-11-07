@@ -83,7 +83,7 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 
 ## Owner-generated rank-tier complaint batches
 - The owner-only **Generate 20 comps** menu action creates exactly 20 structured simulation complaints in one atomic database transaction.
-- 15 cases use category thresholds that allow level 3–5 administrators to claim and close them; 5 use a level-6 minimum reply threshold so only level 6 and top-tier administrators can claim them.
+- 15 cases use category reply thresholds that allow level 3–5 administrators to claim them; closing still follows each category’s normal close threshold. Five use a level-6 minimum reply threshold so only level 6 and top-tier administrators can claim them.
 - All cases enter the normal OPEN/Active queue unassigned. Eligible staff claim them through the existing complaint workflow; the generator never assigns a case to an administrator.
 - Each case includes reporter/reported-player identities, a structured incident summary and timeline, impact/context, requested review, and two attached text evidence exhibits.
 - Generated names, IDs, incidents, and exhibits are explicitly identified as simulated. They are not real player reports or verified evidence.
