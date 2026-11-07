@@ -118,7 +118,7 @@ export default function ComplaintsPage() {
   ];
 
   return (
-    <div>
+    <div className="complaints-page">
       <header className="topbar">
         <h1>Complaints</h1>
         {canCreateComp && <a className="primary" href="/admin/generate-comps">Generate comps</a>}
