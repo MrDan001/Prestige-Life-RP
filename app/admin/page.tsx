@@ -142,11 +142,6 @@ export default function ComplaintsPage() {
       <header className="topbar">
         <h1>Complaints</h1>
         {canCreateComp && <a className="primary" href="/admin/generate-comps">Generate comps</a>}
-        <div className="queue-tabs" role="tablist" aria-label="Complaint queues">
-          <button type="button" role="tab" aria-selected={bucket === "ACTIVE"} className={bucket === "ACTIVE" ? "queue-tab on" : "queue-tab"} onClick={() => changeBucket("ACTIVE")}>ACTIVE</button>
-
-        </div>
-
         <input className="search" type="search" placeholder="Search player or case number…" aria-label="Search complaints" value={q} onChange={e => setQ(e.target.value)} />
       </header>
 
