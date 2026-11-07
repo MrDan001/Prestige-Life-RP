@@ -12,10 +12,15 @@ type Row = {
 };
 type Detail = Row & {
   player: { username: string; gameId: string }; verdict: string | null;
-  evidence: Ev[]; latestJudgment: { message: string; createdAt: string; admin: { name: string } } | null;
+  evidence: Ev[]; latestJudgment: {
+    message: string; createdAt: string; admin: { name: string };
+    ruleCode: string | null; punishmentType: string | null; punishmentDuration: string | null;
+  } | null;
   closedAt: string | null; closedBy: { name: string } | null;
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
+type PunishmentOption = { id: string; name: string; durationOptions: string[] };
+type RuleCode = { code: string; title: string };
 
 const isClosed = (status: string) => status === "RESOLVED" || status === "DISMISSED";
 const pill = (s: string) => (s === "OPEN" ? "open" : "done");
@@ -36,6 +41,11 @@ export default function ComplaintsPage() {
   const [tpls, setTpls] = useState<Tpl[]>([]);
   const [tpl, setTpl] = useState<Tpl | null>(null);
   const [reply, setReply] = useState("");
+  const [punishmentOptions, setPunishmentOptions] = useState<PunishmentOption[]>([]);
+  const [ruleCodes, setRuleCodes] = useState<RuleCode[]>([]);
+  const [ruleCode, setRuleCode] = useState("");
+  const [punishmentOptionId, setPunishmentOptionId] = useState("");
+  const [punishmentDuration, setPunishmentDuration] = useState("");
   const [msg, setMsg] = useState("");
 
   const loadList = useCallback(async () => {
@@ -89,8 +99,15 @@ export default function ComplaintsPage() {
     if (!response.ok) { setMsg((await response.json().catch(() => ({}))).error ?? "Could not load complaint."); return null; }
     const d: Detail = await response.json();
     setOpen(d); setTpl(null); setReply(""); setMsg("");
-    const t = await fetch(`/api/admin/templates?categoryId=${d.category.id}`);
+    setRuleCode(""); setPunishmentOptionId(""); setPunishmentDuration("");
+    const [t, p, r] = await Promise.all([
+      fetch(`/api/admin/templates?categoryId=${d.category.id}`),
+      fetch("/api/admin/punishments", { cache: "no-store" }),
+      fetch("/api/admin/rule-codes", { cache: "no-store" }),
+    ]);
     setTpls(t.ok ? ((await t.json()) as Tpl[]).filter(x => x.canUse) : []);
+    setPunishmentOptions(p.ok ? await p.json() : []);
+    setRuleCodes(r.ok ? await r.json() : []);
     return d;
   }
   async function refresh(id: string) {
@@ -109,12 +126,39 @@ export default function ComplaintsPage() {
     if (res.ok) { setTpl(t); setReply(d.text); setMsg(""); } else setMsg(d.error ?? "Could not fill that judgment");
   }
   async function send() {
-    if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { reply, templateId: tpl?.id, verdict: tpl?.verdict ?? open.verdict ?? undefined }))) { await refresh(open.id); setMsg(""); }
+    if (!open) return;
+    const effectiveVerdict = tpl?.verdict ?? open.verdict ?? undefined;
+    const approved = effectiveVerdict === "COMPLAINANT";
+    const selected = punishmentOptions.find(option => option.id === punishmentOptionId);
+    if (approved && (!ruleCode.trim() || !selected || !selected.durationOptions.includes(punishmentDuration))) {
+      setMsg("Enter the violated rule code and choose a punishment and its duration before issuing an approved judgment.");
+      return;
+    }
+    const body = {
+      reply,
+      templateId: tpl?.id,
+      verdict: effectiveVerdict,
+      ...(approved ? { ruleCode, punishmentOptionId, punishmentDuration } : {}),
+    };
+    if (await call(`/api/admin/complaints/${open.id}`, "PATCH", body)) { await refresh(open.id); setMsg(""); }
+  }
+
+  async function copyComplaintLink() {
+    if (!open) return;
+    const url = `${window.location.origin}/complaint/${open.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setMsg("Unique complaint link copied.");
+    } catch {
+      setMsg(url);
+    }
   }
   async function setStatus(status: string) { if (open && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status }))) await refresh(open.id); }
   async function reopen() { if (open?.isClosed && isPrimaryOwner && (await call(`/api/admin/complaints/${open.id}`, "PATCH", { status: "OPEN" }))) await refresh(open.id); }
   async function release() { if (open && isPrimaryOwner && (await call(`/api/admin/complaints/${open.id}/claim`, "DELETE"))) await refresh(open.id); }
 
+  const isApprovedJudgment = !!open && (tpl?.verdict ?? open.verdict) === "COMPLAINANT";
+  const selectedPunishment = punishmentOptions.find(option => option.id === punishmentOptionId);
   const info = open && [
     ["Complaint", `#${open.id.slice(-6).toUpperCase()}`],
     ["Complaint from", open.player.username],
@@ -152,6 +196,15 @@ export default function ComplaintsPage() {
           {!open || !info ? <p className="muted">Select a complaint to review it.</p> : (
             <>
               <div className="infocards">{info.map(([k, v]) => <div className="info" key={k}><small>{k}</small><strong>{v}</strong></div>)}</div>
+              <div className="panel" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ minWidth: 0 }}>
+                  <strong>Unique complaint link</strong>
+                  <p style={{ margin: "4px 0 0", overflowWrap: "anywhere" }}>
+                    <a href={`/complaint/${open.id}`} target="_blank" rel="noopener noreferrer">{typeof window === "undefined" ? `/complaint/${open.id}` : `${window.location.origin}/complaint/${open.id}`}</a>
+                  </p>
+                </div>
+                <button type="button" onClick={copyComplaintLink}>Copy link</button>
+              </div>
 
               <div className="claimbar">
                 <span className={`pill ${pill(open.status)}`}>{open.isClosed ? label(open.status) : "Open"}</span>
@@ -184,6 +237,9 @@ export default function ComplaintsPage() {
                   <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.latestJudgment.message}</p>
                   <small className="muted">{open.latestJudgment.admin.name} · {fmt(open.latestJudgment.createdAt)}</small>
                   {open.verdict && <p><strong>Verdict:</strong> {label(open.verdict)}</p>}
+                  {open.latestJudgment.ruleCode && <p><strong>Violated rule:</strong> {open.latestJudgment.ruleCode}</p>}
+                  {open.latestJudgment.punishmentType && <p><strong>Punishment:</strong> {open.latestJudgment.punishmentType}</p>}
+                  {open.latestJudgment.punishmentDuration && <p><strong>Duration:</strong> {open.latestJudgment.punishmentDuration}</p>}
                 </div>
               )}
 
@@ -200,8 +256,29 @@ export default function ComplaintsPage() {
                     <strong>Judgment</strong>
                     {tpl && <span className="muted">Filled from “{tpl.name}”</span>}
                     <textarea rows={6} value={reply} onChange={e => setReply(e.target.value)} placeholder="Pick a judgment above, or write the judgment here" aria-label="Judgment" />
+                    {isApprovedJudgment && (
+                      <div style={{ display: "grid", gap: 10, border: "1px solid #342b4b", borderRadius: 10, padding: 12 }}>
+                        <strong>Required punishment details · upheld complaint</strong>
+                        <label style={{ display: "grid", gap: 5 }}>Violated rule code
+                          <input list="complaint-rule-codes" value={ruleCode} onChange={e => setRuleCode(e.target.value.toUpperCase())} placeholder="Enter rule code, e.g. RULE-001" autoComplete="off" />
+                          <datalist id="complaint-rule-codes">{ruleCodes.map(rule => <option key={rule.code} value={rule.code}>{rule.title}</option>)}</datalist>
+                        </label>
+                        <label style={{ display: "grid", gap: 5 }}>Punishment
+                          <select value={punishmentOptionId} onChange={e => { setPunishmentOptionId(e.target.value); setPunishmentDuration(""); }}>
+                            <option value="">Choose punishment</option>
+                            {punishmentOptions.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
+                          </select>
+                        </label>
+                        <label style={{ display: "grid", gap: 5 }}>Duration
+                          <select value={punishmentDuration} onChange={e => setPunishmentDuration(e.target.value)} disabled={!selectedPunishment}>
+                            <option value="">Choose duration</option>
+                            {(selectedPunishment?.durationOptions ?? []).map(duration => <option key={duration} value={duration}>{duration}</option>)}
+                          </select>
+                        </label>
+                      </div>
+                    )}
                     <div className="claimbar">
-                      <button className="primary" disabled={!reply.trim()} onClick={send}>Issue judgment</button>
+                      <button className="primary" disabled={!reply.trim() || (isApprovedJudgment && (!ruleCode.trim() || !selectedPunishment || !selectedPunishment.durationOptions.includes(punishmentDuration)))} onClick={send}>Issue judgment</button>
                     </div>
                   </div>
                 </>
