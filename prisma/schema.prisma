@@ -94,7 +94,6 @@ model Complaint {
   category       Category        @relation(fields: [categoryId], references: [id])
   accusedName    String?
   accusedGameId  String?
-  demoGroup      String? // A: levels 3-4; B: levels 5-6; C: top tier only
   accusedAdminId String?
   accusedAdmin   Admin?          @relation("Accused", fields: [accusedAdminId], references: [id])
   claimedById    String?

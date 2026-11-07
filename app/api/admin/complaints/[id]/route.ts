@@ -19,7 +19,9 @@ const include = {
 };
 
 const eventText = (action: string, detail: string) =>
-  action === "COMPLAINT_STATUS"
+  action === "COMPLAINT_CREATED"
+    ? "created this complaint through the owner form"
+    : action === "COMPLAINT_STATUS"
     ? `changed status: ${detail}`
     : action === "COMPLAINT_VERDICT"
       ? `set the verdict: ${detail}`
@@ -37,7 +39,7 @@ export async function GET(_req: Request, { params }: Ctx) {
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const events = await db.auditLog.findMany({
-    where: { targetId: id, action: { in: ["COMPLAINT_STATUS", "COMPLAINT_CLAIM", "COMPLAINT_RELEASE", "COMPLAINT_VERDICT"] } },
+    where: { targetId: id, action: { in: ["COMPLAINT_CREATED", "COMPLAINT_STATUS", "COMPLAINT_CLAIM", "COMPLAINT_RELEASE", "COMPLAINT_VERDICT"] } },
     include: { actor: { select: { name: true } } },
     orderBy: { createdAt: "asc" },
   });

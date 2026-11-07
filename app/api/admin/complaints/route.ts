@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   const status = sp.get("status");
   const categoryId = sp.get("categoryId");
   const bucket = sp.get("bucket") === "HISTORY" ? "HISTORY" : "ACTIVE";
-  const limit = Math.min(15, Math.max(1, Number.parseInt(sp.get("limit") ?? "15", 10) || 15));
+  const limit = 15;
   const offset = Math.max(0, Number.parseInt(sp.get("offset") ?? "0", 10) || 0);
   const allowedStatus: ComplaintStatus[] = bucket === "HISTORY" ? ["RESOLVED", "DISMISSED"] : ["OPEN"];
   const effectiveStatus: ComplaintStatus | null = status && allowedStatus.includes(status as ComplaintStatus) ? status as ComplaintStatus : null;
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       where,
       orderBy: { createdAt: "desc" },
       skip: offset,
-      take: limit + 1,
+      take: limit,
       include: {
         player: true,
         category: true,
@@ -41,8 +41,8 @@ export async function GET(req: Request) {
     }),
     db.complaint.count({ where }),
   ]);
-  const hasMore = rows.length > limit;
-  const pageRows = rows.slice(0, limit);
+  const pageRows = rows;
+  const hasMore = offset + pageRows.length < total;
   const items = pageRows.map((r) => {
     const permissionFlags = flags(a.actor, r);
     const isClosed = r.status === "RESOLVED" || r.status === "DISMISSED";

@@ -183,20 +183,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Verify the Roles and Staff screens show FOUNDER after the migration and deployment.
 
-
-## International demo complaints — normal complaint workflow
-- [x] Replace the standalone demo queue design with real `Player` and `Complaint` records.
-- [x] Add a nullable demo group marker to Complaint and country metadata to Player; only tagged demo complaints receive the special A/B/C closure rule.
-- [x] Preserve normal complaint list/detail, claim, response, judgment, Active/History, and audit workflows.
-- [x] Restrict generation to the immutable primary Owner account, block duplicate generation, and hide the generation action once the set exists.
-- [x] Remove the standalone Demo Comps navigation entry.
-- [x] Applied production migration `normal_demo_complaints`: removed the old DemoComp table and added Player.country and Complaint.demoGroup.
-- [x] Removed the old 45 DemoComp records with the table; recreated 45 linked Player/Complaint records directly in production.
-- [x] Verified production counts: 45 linked synthetic players, 45 normal Complaint rows; A=25, B=15, C=5; all 45 OPEN.
-- [ ] Test rank closure rules with authenticated level 3/4/5/6, PRM, FOUNDER, and primary Owner accounts.
-- [ ] Confirm ordinary player complaints retain their existing category/target permission behavior.
-
-
+ 
 ## Production incident — Supabase connection exhaustion on /auth (6 November 2026)
 
 ### Confirmed root cause
@@ -222,16 +209,44 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 **Operational note:** the current Vercel secret is not readable through the available environment-variable metadata endpoint, so its password-bearing URI cannot safely be rewritten in place by this session. The code-side connection fan-out mitigation is committed; switching the production secret to transaction mode is still required for durable serverless scaling.
 
 
-## Complaint queue refinement — 6 November 2026
-- [x] Replace the generic "Reported player" label with distinct reported-player names for every generated training complaint.
-- [x] Add clearly labelled simulated text-evidence attachments to generated training complaints; these are not presented as genuine player-submitted proof, and the UI labels evidence as attached rather than claiming it came from the game.
-- [x] Paginate Active and History queues at 15 records per request with a Load more control.
-- [x] Keep Active complaints OPEN until resolved or dismissed; remove IN_REVIEW from the admin workflow and normalize existing IN_REVIEW records to OPEN.
-- [x] Require an explicit claim before staff can draft a judgment, reply, add a private note, or close a complaint; close controls are only exposed to the current claimer with close permission.
-- [x] Limit each admin to one OPEN claimed complaint at a time; preserve rank-based release/takeover rules.
-- [x] Remove the judgment-template helper sentence from the UI.
-- [x] Restrict the Add comp control and server endpoint to officialsafebase@gmail.com; all other staff receive no control and are rejected by the API.
+## Complaint queue and owner-created reports — 6 November 2026
+- [x] Keep Active complaints OPEN until resolved or dismissed.
+- [x] Require an explicit claim before staff can draft a judgment, reply, add a private note, or close a complaint.
+- [x] Limit each admin to one OPEN claim at a time; preserve rank-based release/takeover rules.
+- [x] Remove the judgment-template helper sentence.
+- [x] Enforce a fixed 15-record page size for Active and History and expose Load more only when more records exist.
+- [x] Display complaint IDs on queue cards instead of category names.
+- [x] Remove the bulk synthetic complaint generator and training-only permission tiers.
+- [x] Add an owner-only **Create comp** menu entry and server-enforced creation endpoint for `officialsafebase@gmail.com`.
+- [x] Add structured reporter/reported-player identity, editable generated description and optional evidence fields.
+- [x] Route owner-created cases into the normal OPEN queue and record their origin in the complaint audit timeline.
+- [x] Remove the retired training marker from the Prisma schema.
 - [x] Update README and this roadmap.
-- [x] Applied production migration `complaint_queue_refinements` to normalize active statuses, assign 45 distinct reported-player names, and attach simulated evidence to the existing 45 training complaints.
-- [x] Verified production: 45/45 demo complaints have distinct reported-player names, 45/45 are OPEN, and 45/45 have a simulated evidence attachment.
-- [ ] Confirm the latest Vercel production build reaches READY; test pagination, claim locking, rank overrides, evidence display, and owner-only Add comp visibility in an authenticated browser session.
+- [x] Deleted all 45 retired complaints, their 45 evidence records, related response/note/audit rows, and their now-unreferenced player records directly in production; verified zero remain.
+- [x] Applied migration `20261106140000_block_retired_bulk_complaints` to prevent the still-deployed legacy endpoint from recreating those records while the PR is reviewed.
+- [ ] Apply migration `20261106150000_remove_retired_training_complaints` after the updated app is deployed to drop the obsolete `demoGroup` column without breaking the currently deployed app.
+- [ ] Verify owner-only navigation and API access; create a case and confirm a different authorized admin can claim, investigate and close it.
+- [ ] Run the Vercel preview build and verify 15-item pagination in both Active and History.
+
+
+## Vercel deployment failure investigation — 6 November 2026
+
+### Findings from live Vercel build logs
+- [x] Inspected the latest failed Preview build on `feature/owner-created-complaints` (commit `336a0b5fd0c38025a72df18d4f334d3b61354465`).
+- [x] Confirmed dependencies installed and Prisma Client generated; the Next.js build compiled before failing during page-data collection.
+- [x] Confirmed the fatal error: `DATABASE_URL is required to connect to the Prestige Life RP database` while Next.js imported `/api/admin/admins/[id]/invite`.
+- [x] Confirmed Vercel currently has the five required app variables configured for **Production only**; no Preview-target variables are present.
+- [x] Inspected earlier Main builds and found a separate stale-code TypeScript error in the retired bulk generator (`Cannot find name i`); that endpoint is removed on the current feature branch.
+- [x] Distinguished non-fatal npm configuration/install-script warnings from the actual build-stopping error.
+
+### Code fix
+- [x] Changed `lib/db.ts` to initialize Prisma and the PostgreSQL pool only when a database operation is first accessed, not when Next.js imports an API route during build collection.
+- [x] Kept an explicit, actionable missing-`DATABASE_URL` error at runtime so a Preview without a database cannot silently pretend database-backed features work.
+- [x] Preserved one pool/client per warm instance and the one-connection pool cap.
+- [x] Updated README and this roadmap.
+
+### Remaining validation and environment setup
+- [ ] Confirm a new Preview build reaches READY after the lazy-initialization commit.
+- [ ] Configure a dedicated non-production Supabase database/branch and add its `DATABASE_URL` to Vercel Preview before testing database-backed Preview routes. Do not point Preview at production data.
+- [ ] Confirm Production variables remain unchanged and production deployment is not triggered by this Preview-only fix.
+- [ ] Re-run a clean build and inspect the resulting logs for any additional compile/type errors.
