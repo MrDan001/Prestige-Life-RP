@@ -143,3 +143,8 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 ## Roles administration
 - The owner Roles page supports creating custom roles and switching custom roles on/off; editing existing role details is not exposed in the interface.
 - The unused manually-created **PR Manager** custom role is retired by migration `20261107220000_remove_unused_pr_manager_role`. The migration removes only the non-system PR Manager row and aborts if any staff account is still assigned to it. All built-in roles and other custom roles are preserved.
+
+
+### Complaint judgment build type fix — 7 November 2026
+- The complaint PATCH lookup now selects the accused administrator's display name, matching the upheld-judgment message formatter and Prisma's inferred query type.
+- The complainant username remains selected explicitly for the same formatter.
