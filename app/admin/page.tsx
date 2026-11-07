@@ -175,12 +175,21 @@ export default function ComplaintsPage() {
                 )}
               </div>
 
-              <div className="panel"><strong>Complaint description</strong><p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.message}</p></div>
+              <div className="panel"><strong>Problem</strong><p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.message}</p></div>
+              {open.isPractice && <small className="muted">Practice case · simulated scenario</small>}
+              {open.latestJudgment && (
+                <div className="panel">
+                  <strong>Judgment</strong>
+                  <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.latestJudgment.message}</p>
+                  <small className="muted">{open.latestJudgment.admin.name} · {fmt(open.latestJudgment.createdAt)}</small>
+                  {open.verdict && <p><strong>Verdict:</strong> {label(open.verdict)}</p>}
+                </div>
+              )}
 
               {!open.isClosed && open.canReply ? (
                 <>
                   <div>
-                    <div className="judg-title">Issuing judgment</div>
+                    <div className="judg-title">Issue judgment</div>
                     
                     <div className="judg-grid">
                       {tpls.map(t => <button key={t.id} className={`jbtn ${tpl?.id === t.id ? "picked" : tone(t)}`} aria-pressed={tpl?.id === t.id} onClick={() => pick(t)}>{t.name}</button>)}
