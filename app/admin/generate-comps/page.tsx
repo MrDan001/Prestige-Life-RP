@@ -50,7 +50,7 @@ export default function GenerateCompsPage() {
           <div className="info">
             <small>Ranks 3–5</small>
             <strong>15 complaints</strong>
-            <p className="muted">Category requirements allow rank 3, 4 and 5 admins to claim and close these cases.</p>
+            <p className="muted">Category reply thresholds allow rank 3, 4 and 5 admins to claim these cases. Closing still follows each category’s normal close threshold.</p>
           </div>
           <div className="info">
             <small>Rank 6 and top tier</small>
