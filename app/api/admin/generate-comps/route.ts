@@ -114,7 +114,7 @@ export async function POST(request: Request) {
   try {
     const created = await db.$transaction(async (tx) => {
       // Cast PostgreSQL's void return to text so Prisma never has to deserialize a void column.
-      await tx.$queryRaw\`SELECT 1 AS locked FROM (SELECT pg_advisory_xact_lock(72110520261107)) AS advisory_lock\`;
+      await tx.$queryRaw`SELECT 1 AS locked FROM (SELECT pg_advisory_xact_lock(72110520261107)) AS advisory_lock`;
 
       const categoryIds = [...new Set(rows.map(row => row.categoryId))];
       const categories = await tx.category.findMany({
@@ -126,10 +126,10 @@ export async function POST(request: Request) {
         const category = categoryById.get(row.categoryId);
         if (!category) throw new Error("One of the selected categories is no longer active. Refresh the page and try again.");
         if (row.rankGroup === "LEVEL_3_TO_5" && category.minReplyLevel > 3) {
-          throw new Error(\`\${category.name} does not allow rank 3–5 administrators to claim complaints. Choose a category with a minimum reply level of 3 or lower.\`);
+          throw new Error(`${category.name} does not allow rank 3–5 administrators to claim complaints. Choose a category with a minimum reply level of 3 or lower.`);
         }
         if (row.rankGroup === "LEVEL_6_PLUS" && category.minReplyLevel !== 6) {
-          throw new Error(\`\${category.name} is not configured for rank 6 and above. Choose a category with a minimum reply level of 6.\`);
+          throw new Error(`${category.name} is not configured for rank 6 and above. Choose a category with a minimum reply level of 6.`);
         }
       }
 
@@ -141,16 +141,16 @@ export async function POST(request: Request) {
           const i = sequence++;
           const scenario = scenarioFor(category.name, i);
           const [reporterName, accusedName] = names[i % names.length];
-          const reporterGameId = \`SIM-R-\${batchId}-\${String(i + 1).padStart(3, "0")}\`;
-          const accusedGameId = \`SIM-A-\${batchId}-\${String(i + 1).padStart(3, "0")}\`;
+          const reporterGameId = `SIM-R-${batchId}-${String(i + 1).padStart(3, "0")}`;
+          const accusedGameId = `SIM-A-${batchId}-${String(i + 1).padStart(3, "0")}`;
           const player = await tx.player.create({
             data: { gameId: reporterGameId, username: reporterName },
           });
           const message = [
-            \`INCIDENT: \${scenario.title}\`,
-            \`CATEGORY: \${category.name}\`,
-            \`REPORTING PLAYER: \${reporterName} (\${reporterGameId})\`,
-            \`REPORTED PLAYER: \${accusedName} (\${accusedGameId})\`,
+            `INCIDENT: ${scenario.title}`,
+            `CATEGORY: ${category.name}`,
+            `REPORTING PLAYER: ${reporterName} (${reporterGameId})`,
+            `REPORTED PLAYER: ${accusedName} (${accusedGameId})`,
             "",
             "SUMMARY", scenario.summary, "",
             "TIMELINE", scenario.timeline, "",
@@ -172,8 +172,8 @@ export async function POST(request: Request) {
               status: "OPEN",
               evidence: {
                 create: [
-                  { kind: "TEXT", text: \`SIMULATED EXHIBIT A\n\${scenario.exhibitA}\n\nScenario batch: \${batchId}\`, caption: "Simulated evidence — generated scenario, not verified player-submitted material." },
-                  { kind: "TEXT", text: \`SIMULATED EXHIBIT B\n\${scenario.exhibitB}\n\nScenario batch: \${batchId}\`, caption: "Simulated supporting evidence — generated scenario, not a live system record." },
+                  { kind: "TEXT", text: `SIMULATED EXHIBIT A\n${scenario.exhibitA}\n\nScenario batch: ${batchId}`, caption: "Simulated evidence — generated scenario, not verified player-submitted material." },
+                  { kind: "TEXT", text: `SIMULATED EXHIBIT B\n${scenario.exhibitB}\n\nScenario batch: ${batchId}`, caption: "Simulated supporting evidence — generated scenario, not a live system record." },
                 ],
               },
             },
@@ -183,7 +183,7 @@ export async function POST(request: Request) {
               actorId: auth.actor.id,
               action: "COMPLAINT_CREATED",
               targetId: complaint.id,
-              detail: \`Generated simulation batch \${batchId}; category: \${category.name}; eligible claim ranks: \${row.rankGroup === "LEVEL_6_PLUS" ? "level 6 and top tier" : "levels 3–5"}; no admin pre-assigned.\`,
+              detail: `Generated simulation batch ${batchId}; category: ${category.name}; eligible claim ranks: ${row.rankGroup === "LEVEL_6_PLUS" ? "level 6 and top tier" : "levels 3–5"}; no admin pre-assigned.`,
             },
           });
           results.push({ id: complaint.id, rankGroup: row.rankGroup, categoryName: category.name });
