@@ -7,8 +7,8 @@ type Form = {
   statSlots: string; statUptime: string; statCitizens: string;
 };
 type Me = { canManageSite: boolean; canManageRules: boolean };
-type Rule = { id: string; title: string; content: string; sortOrder: number };
-type RuleDraft = { title: string; content: string };
+type Rule = { id: string; code: string; title: string; content: string; sortOrder: number };
+type RuleDraft = { code: string; title: string; content: string };
 
 const box: React.CSSProperties = { border: "1px solid #2a2540", borderRadius: 8, padding: 14 };
 const muted = "#9a95b5";
@@ -20,6 +20,7 @@ export default function SiteSettingsPage() {
   const [f, setF] = useState<Form | null>(null);
   const [rules, setRules] = useState<Rule[] | null>(null);
   const [edits, setEdits] = useState<Record<string, RuleDraft>>({});
+  const [newCode, setNewCode] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
   const [msg, setMsg] = useState("");
@@ -92,6 +93,7 @@ export default function SiteSettingsPage() {
     setEdits(current => ({
       ...current,
       [rule.id]: {
+        code: current[rule.id]?.code ?? rule.code,
         title: current[rule.id]?.title ?? rule.title,
         content: current[rule.id]?.content ?? rule.content,
         [key]: value,
@@ -104,11 +106,12 @@ export default function SiteSettingsPage() {
     const response = await fetch("/api/admin/rules", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle, content: newContent }),
+      body: JSON.stringify({ code: newCode, title: newTitle, content: newContent }),
     });
     const data = await response.json().catch(() => ({}));
     setMsg(response.ok ? "Rule added and published." : data.error ?? "Could not add rule.");
     if (response.ok) {
+      setNewCode("");
       setNewTitle("");
       setNewContent("");
       await loadRules();
@@ -197,12 +200,15 @@ export default function SiteSettingsPage() {
       {me.canManageRules && rules && <section style={{ ...box, display: "grid", gap: 14 }}>
         <div>
           <h2 style={{ fontSize: "1.15rem" }}>Rules Manager</h2>
-          <p style={{ color: muted, marginTop: 5 }}>Add, edit, remove and reorder the rules shown on the public Rules page. Only Chief Admin (Level 6) and higher can manage rules.</p>
+          <p style={{ color: muted, marginTop: 5 }}>Add, edit, remove and reorder the rules shown on the public Rules page. Assign each rule a unique code; admins enter this code when recording an upheld judgment.</p>
           <p style={{ color: muted, marginTop: 5 }}>Public page: <a href="/rules" target="_blank" rel="noreferrer">/rules ↗</a></p>
         </div>
 
         <form onSubmit={addRule} style={{ display: "grid", gap: 8, padding: 14, border: "1px solid #2a2540", borderRadius: 8 }}>
           <h3 style={{ fontSize: "1rem" }}>Add a rule</h3>
+          <label style={field}>Rule code
+            <input value={newCode} onChange={event => setNewCode(event.target.value.toUpperCase())} maxLength={32} required placeholder="For example: RULE-001" />
+          </label>
           <label style={field}>Rule title
             <input value={newTitle} onChange={event => setNewTitle(event.target.value)} maxLength={120} required placeholder="For example: Respect other players" />
           </label>
@@ -214,8 +220,8 @@ export default function SiteSettingsPage() {
 
         {rules.length === 0 ? <p style={{ color: muted }}>No rules have been added yet. Add the first rule above to publish it.</p> :
           rules.map((rule, index) => {
-            const draft = edits[rule.id] ?? { title: rule.title, content: rule.content };
-            const changed = draft.title !== rule.title || draft.content !== rule.content;
+            const draft = edits[rule.id] ?? { code: rule.code, title: rule.title, content: rule.content };
+            const changed = draft.code !== rule.code || draft.title !== rule.title || draft.content !== rule.content;
             return <article key={rule.id} style={{ display: "grid", gap: 9, padding: 14, border: "1px solid #2a2540", borderRadius: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <strong>Rule {index + 1}</strong>
@@ -224,6 +230,9 @@ export default function SiteSettingsPage() {
                   <button type="button" disabled={index === rules.length - 1} onClick={() => moveRule(index, 1)} aria-label={"Move rule " + (index + 1) + " down"}>Move down ↓</button>
                 </div>
               </div>
+              <label style={field}>Rule code
+                <input value={draft.code} onChange={event => setRuleDraft(rule, "code", event.target.value.toUpperCase())} maxLength={32} />
+              </label>
               <label style={field}>Rule title
                 <input value={draft.title} onChange={event => setRuleDraft(rule, "title", event.target.value)} maxLength={120} />
               </label>

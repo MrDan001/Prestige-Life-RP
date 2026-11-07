@@ -373,3 +373,16 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Preserve the global country mix and shuffled batch selection.
 - [x] Update README and this roadmap.
 - [ ] Verify a later owner-approved generated batch displays both name styles and contains no numeric characters.
+
+
+## Complaint reference links and judgment punishments — 7 November 2026
+- [x] Give every complaint a stable unique URL at `/complaint/<complaint-id>`; expose it in the admin detail panel and in the game complaint creation/polling API.
+- [x] Add a public case-reference page showing case status, verdict and latest judgment without exposing the private complaint narrative or evidence.
+- [x] Add a unique code to every community rule; backfill existing rules with stable `RULE-###` codes and let rule managers edit codes going forward.
+- [x] Require an upheld judgment (`COMPLAINANT`) to include a manually entered valid rule code, a configured punishment choice and a duration valid for that choice.
+- [x] Store rule code, punishment label and duration on each judgment as immutable historical text snapshots.
+- [x] Add owner-only punishment catalogue management for `officialsafebase@gmail.com`, including adding/editing/switching off punishment types and duration choices.
+- [x] Seed Ban (3/7/30/60/90 days), Jailed (30/60/120/180 minutes), and Mute (30/60/120/180 minutes); owner can adjust the catalogue later.
+- [x] Update README and this roadmap.
+- [ ] Apply the additive migration in a non-production environment and verify Prisma migration/client generation.
+- [ ] Run the build and test owner-only catalogue access, rule-code uniqueness/validation, approved-judgment required fields, non-approved judgments without punishment, public link behavior, and history snapshots after catalogue edits.
