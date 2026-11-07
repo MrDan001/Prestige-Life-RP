@@ -46,7 +46,10 @@ function levelNeededForTarget(t: Accused): number | "TOP" {
 
 export type Action = "reply" | "close";
 
-/** Everyone with site access can SEE every complaint; this decides who can ACT. */
+/** Everyone with site access can SEE every complaint; this decides who can ACT.
+ * Reply thresholds are minimum ranks, not exclusive bands: higher-ranked admins inherit
+ * reply access to lower-rank complaints, while lower-ranked admins cannot move upward.
+ */
 export function canAct(actor: Staff, c: ComplaintForCheck, action: Action) {
   if (c.accusedAdmin?.id === actor.id) return false; // never handle a complaint about yourself
   if (isTop(actor)) return true;
@@ -54,6 +57,7 @@ export function canAct(actor: Staff, c: ComplaintForCheck, action: Action) {
   if (target === "TOP") return false;
   const { minReplyLevel, minCloseLevel } = c.category;
   const categoryMin = action === "close" ? Math.max(minReplyLevel, minCloseLevel) : minReplyLevel;
+  // Keep this as >=: rank 6 must be able to reply to rank 3–5 cases when other safeguards allow it.
   return actor.level >= Math.max(categoryMin, target);
 }
 
