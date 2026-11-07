@@ -88,6 +88,7 @@ model Player {
 
 model Complaint {
   id             String          @id @default(cuid())
+  publicId       String          @unique @default(dbgenerated("public.generate_complaint_public_id()"))
   playerId       String
   player         Player          @relation(fields: [playerId], references: [id])
   categoryId     String

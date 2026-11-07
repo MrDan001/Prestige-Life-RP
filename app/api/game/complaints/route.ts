@@ -47,8 +47,8 @@ export async function POST(req: Request) {
   });
   if (d.evidence?.length)
     await db.evidence.createMany({ data: d.evidence.map((e) => ({ complaintId: complaint.id, kind: e.kind, url: e.url, text: e.text, caption: e.caption })) });
-  const publicUrl = new URL(`/complaint/${complaint.id}`, new URL(req.url).origin).toString();
-  return NextResponse.json({ id: complaint.id, status: complaint.status, url: publicUrl }, { status: 201 });
+  const publicUrl = new URL(`/complaint/${complaint.publicId}`, new URL(req.url).origin).toString();
+  return NextResponse.json({ id: complaint.id, publicId: complaint.publicId, status: complaint.status, url: publicUrl }, { status: 201 });
 }
 
 /** Game server checks a player's own complaints: GET /api/game/complaints?gameId=123 */
@@ -63,6 +63,7 @@ export async function GET(req: Request) {
     take: 20,
     select: {
       id: true,
+      publicId: true,
       status: true,
       verdict: true,
       createdAt: true,
@@ -76,6 +77,6 @@ export async function GET(req: Request) {
   const origin = new URL(req.url).origin;
   return NextResponse.json(complaints.map(complaint => ({
     ...complaint,
-    url: `${origin}/complaint/${complaint.id}`,
+    url: `${origin}/complaint/${complaint.publicId}`,
   })));
 }

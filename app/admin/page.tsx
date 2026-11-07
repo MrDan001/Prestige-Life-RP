@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Ev = { id: string; kind: "IMAGE" | "VIDEO" | "LINK" | "TEXT"; url: string | null; text: string | null; caption: string | null };
 type Row = {
-  id: string; message: string; status: string; createdAt: string;
+  id: string; publicId: string; message: string; status: string; createdAt: string;
   player: { username: string }; category: { id: string; name: string };
   claimedBy: { name: string } | null; claimedById: string | null;
   accusedName: string | null; accusedAdmin: { name: string } | null;
@@ -69,7 +69,7 @@ export default function ComplaintsPage() {
 
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return s ? rows.filter(r => [r.player.username, r.accusedAdmin?.name, r.accusedName, r.id.slice(-6)].some(x => x?.toLowerCase().includes(s))) : rows;
+    return s ? rows.filter(r => [r.player.username, r.accusedAdmin?.name, r.accusedName, r.publicId].some(x => x?.toLowerCase().includes(s))) : rows;
   }, [rows, q]);
 
 
@@ -145,7 +145,7 @@ export default function ComplaintsPage() {
 
   async function copyComplaintLink() {
     if (!open) return;
-    const url = `${window.location.origin}/complaint/${open.id}`;
+    const url = `${window.location.origin}/complaint/${open.publicId}`;
     try {
       await navigator.clipboard.writeText(url);
       setMsg("Unique complaint link copied.");
@@ -160,7 +160,7 @@ export default function ComplaintsPage() {
   const isApprovedJudgment = !!open && (tpl?.verdict ?? open.verdict) === "COMPLAINANT";
   const selectedPunishment = punishmentOptions.find(option => option.id === punishmentOptionId);
   const info = open && [
-    ["Complaint", `#${open.id.slice(-6).toUpperCase()}`],
+    ["Complaint", `#${open.publicId}`],
     ["Complaint from", open.player.username],
     ["Complaint about", open.accusedAdmin?.name ?? open.accusedName ?? "Unknown"],
     ["Time created", fmt(open.createdAt)],
@@ -200,7 +200,7 @@ export default function ComplaintsPage() {
                 <div style={{ minWidth: 0 }}>
                   <strong>Unique complaint link</strong>
                   <p style={{ margin: "4px 0 0", overflowWrap: "anywhere" }}>
-                    <a href={`/complaint/${open.id}`} target="_blank" rel="noopener noreferrer">{typeof window === "undefined" ? `/complaint/${open.id}` : `${window.location.origin}/complaint/${open.id}`}</a>
+                    <a href={`/complaint/${open.publicId}`} target="_blank" rel="noopener noreferrer">{typeof window === "undefined" ? `/complaint/${open.publicId}` : `${window.location.origin}/complaint/${open.publicId}`}</a>
                   </p>
                 </div>
                 <button type="button" onClick={copyComplaintLink}>Copy link</button>
