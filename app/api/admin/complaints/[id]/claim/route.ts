@@ -3,59 +3,27 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
-import { canAct, canOverrideClaim, claimLocked } from "@/lib/permissions";
-
+import { isPrimaryOwnerAccount } from "@/lib/owner-privacy";
 type Ctx = { params: Promise<{ id: string }> };
 
-const include = {
-  category: true,
-  accusedAdmin: { select: { id: true, kind: true, level: true } },
-  claimedBy: { select: { id: true, name: true } },
-};
-
-/** Claim a complaint so two admins do not answer the same one. Level 6+ and top tier can take over. */
-export async function POST(_req: Request, { params }: Ctx) {
+/** Claims are retired; judgments can be issued directly by eligible staff. */
+export async function POST() {
   const a = await requireAdmin();
   if (a.error) return a.error;
-  const { id } = await params;
-
-  const c = await db.complaint.findUnique({ where: { id }, include });
-  if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "Closed complaints are view-only. A top-tier administrator must reopen the complaint first." }, { status: 409 });
-  if (!canAct(a.actor, c, "reply")) return NextResponse.json({ error: "You cannot act on this complaint" }, { status: 403 });
-  if (c.claimedById === a.actor.id) return NextResponse.json({ ok: true });
-  const existingClaim = await db.complaint.count({ where: { claimedById: a.actor.id, status: "OPEN", id: { not: id } } });
-  if (existingClaim > 0) return NextResponse.json({ error: "You already have an open complaint assigned to you. Complete or release it before claiming another." }, { status: 409 });
-  if (claimLocked(a.actor, c.claimedById))
-    return NextResponse.json({ error: `Already claimed by ${c.claimedBy?.name ?? "another admin"}` }, { status: 409 });
-
-  const claimed = await db.complaint.updateMany({
-    where: { id, status: "OPEN" },
-    data: { claimedById: a.actor.id, claimedAt: new Date(), updatedAt: new Date() },
-  });
-  if (claimed.count !== 1) return NextResponse.json({ error: "This complaint is closed. Reopen it before claiming it." }, { status: 409 });
-  await audit(a.actor.id, "COMPLAINT_CLAIM", id, c.claimedBy ? `took over from ${c.claimedBy.name}` : "claimed this complaint");
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ error: "Claims are no longer required. Issue a judgment directly." }, { status: 410 });
 }
 
-/** Release a claim: the claimer, or level 6+ / top tier. */
+/** Only the primary owner may clear a legacy claim. */
 export async function DELETE(_req: Request, { params }: Ctx) {
   const a = await requireAdmin();
   if (a.error) return a.error;
+  if (!isPrimaryOwnerAccount(a.admin.id))
+    return NextResponse.json({ error: "Only the primary owner can release a complaint." }, { status: 403 });
   const { id } = await params;
-
-  const c = await db.complaint.findUnique({ where: { id }, select: { claimedById: true, status: true } });
+  const c = await db.complaint.findUnique({ where: { id }, select: { claimedById: true } });
   if (!c) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (c.status === "RESOLVED" || c.status === "DISMISSED") return NextResponse.json({ error: "Closed complaints are view-only. A top-tier administrator must reopen the complaint first." }, { status: 409 });
-  if (!c.claimedById) return NextResponse.json({ error: "Not claimed" }, { status: 400 });
-  if (c.claimedById !== a.actor.id && !canOverrideClaim(a.actor))
-    return NextResponse.json({ error: "Only the claimer or a level 6 can release this" }, { status: 403 });
-
-  const released = await db.complaint.updateMany({
-    where: { id, status: "OPEN", claimedById: c.claimedById },
-    data: { claimedById: null, claimedAt: null, updatedAt: new Date() },
-  });
-  if (released.count !== 1) return NextResponse.json({ error: "This complaint was closed or changed. Refresh and try again." }, { status: 409 });
-  await audit(a.actor.id, "COMPLAINT_RELEASE", id, "released this complaint");
+  if (!c.claimedById) return NextResponse.json({ error: "No active claim" }, { status: 400 });
+  await db.complaint.update({ where: { id }, data: { claimedById: null, claimedAt: null, updatedAt: new Date() } });
+  await audit(a.actor.id, "COMPLAINT_RELEASE", id, "cleared a legacy complaint claim");
   return NextResponse.json({ ok: true });
 }
