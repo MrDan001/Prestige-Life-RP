@@ -255,7 +255,7 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Add an owner-only **Generate 20 comps** item to the admin navigation and complaints header.
 - [x] Generate exactly 15 OPEN cases with minimum reply rank 3 (claimable by ranks 3 and above, including rank 6 and top tier) and 5 OPEN cases with minimum reply rank 6 (claimable by rank 6 and top tier), using existing category permission thresholds.
 - [x] Leave every generated complaint unassigned in the normal Active queue so eligible administrators claim them themselves.
-- [x] Include structured reporter/reported-player identities, incident summary, timeline, impact, requested review, and two evidence exhibits per case.
+- [x] Include structured reporter/reported-player identities, a concise problem summary, a first-person reporter complaint, and two evidence exhibits per case.
 - [x] Mark all generated names, IDs, scenarios, and evidence as simulated so they cannot be mistaken for real player allegations or verified exhibits.
 - [x] Create all 20 complaints, players, evidence records, and audit entries atomically; reject the batch before writing if eligible categories are unavailable.
 - [x] Keep the existing production schema unchanged; no migration or cleanup operation is part of this feature.
@@ -289,3 +289,11 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] With non-production test accounts, verify rank 3 can answer minimum-rank-3 complaints; ranks 4, 5 and 6 can also answer them; rank 3 cannot answer minimum-rank-6 complaints; and rank 6 can answer minimum-rank-6 complaints.
 - [ ] Verify claim takeover/release rules, accused-staff safeguards, judgment-template level checks and category close thresholds remain intact.
 - [ ] Do not generate complaints against the Production database for testing.
+
+
+## Generated complaint presentation and claim-state clarity — 7 November 2026
+- [x] Limit generated complaint descriptions to two sections: **Problem** and **Reporter's complaint**.
+- [x] Remove generated timeline, impact/context, requested-review boilerplate, duplicated category/player identifiers and the provenance paragraph from the description; preserve simulation markers in staff audit history and evidence captions.
+- [x] Keep eligible unclaimed complaints visually claimable instead of dimming them or labelling them view-only before the administrator has claimed them.
+- [x] Show view-only copy only when the administrator is not eligible to claim/reply; retain the separate explanation for another administrator's active claim.
+- [ ] Verify the Preview build, claim/reply controls for rank 3–6 and top-tier admins, and the shortened generated descriptions before merge.
