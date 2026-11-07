@@ -8,7 +8,7 @@ import { audit } from "@/lib/audit";
 import { ensureRuleStorage } from "@/lib/rules";
 
 const ruleSchema = z.object({
-  code: z.string().trim().min(2).max(32).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()),
+  code: z.string().trim().min(2).max(32).regex(/^[A-Za-z0-9][A-Za-z0-9.-]*$/).transform(value => value.toUpperCase()),
   title: z.string().trim().min(1).max(120),
   content: z.string().trim().min(1).max(5000),
 });

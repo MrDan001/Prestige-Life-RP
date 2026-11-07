@@ -44,7 +44,7 @@ const patch = z.object({
   reply: z.string().min(1).max(2000).optional(),
   verdict: z.enum(["COMPLAINANT", "ACCUSED", "INSUFFICIENT"]).optional(),
   templateId: z.string().min(1).optional(),
-  ruleCode: z.string().trim().min(2).max(32).optional(),
+  ruleCode: z.string().trim().min(2).max(32).regex(/^[A-Za-z0-9][A-Za-z0-9.-]*$/).optional(),
   punishmentOptionId: z.string().min(1).optional(),
   punishmentDuration: z.string().trim().min(1).max(40).optional(),
 });
@@ -108,18 +108,25 @@ export async function PATCH(req: Request, { params }: Ctx) {
     if (!ruleCode || !punishmentOptionId || !punishmentDuration) {
       return NextResponse.json({ error: "An upheld complaint needs a violated rule code, punishment and duration before judgment can be issued." }, { status: 400 });
     }
-    const matchedRule = await db.rule.findFirst({
-      where: { code: { equals: ruleCode, mode: "insensitive" } },
-      select: { code: true },
-    });
-    if (!matchedRule) return NextResponse.json({ error: "Enter a valid community rule code." }, { status: 400 });
+    const normalizedRuleCode = ruleCode.trim().toUpperCase();
+    // The Rules Manager catalogue may be empty while the community's rulebook is maintained externally.
+    // In that case accept a well-formed manually entered code (including dotted codes such as 3.1GR).
+    const configuredRuleCount = await db.rule.count();
+    const matchedRule = configuredRuleCount > 0
+      ? await db.rule.findFirst({
+          where: { code: { equals: normalizedRuleCode, mode: "insensitive" } },
+          select: { code: true },
+        })
+      : null;
+    if (configuredRuleCount > 0 && !matchedRule)
+      return NextResponse.json({ error: "That rule code is not in the community rules catalogue." }, { status: 400 });
 
     const option = await db.punishmentOption.findUnique({ where: { id: punishmentOptionId } });
     if (!option || !option.active) return NextResponse.json({ error: "Choose an active punishment option." }, { status: 400 });
     if (!option.durationOptions.includes(punishmentDuration)) {
       return NextResponse.json({ error: "Choose a valid duration for the selected punishment." }, { status: 400 });
     }
-    savedRuleCode = matchedRule.code;
+    savedRuleCode = matchedRule?.code ?? normalizedRuleCode;
     savedPunishmentType = option.name;
     savedPunishmentDuration = punishmentDuration;
   } else if (reply && (ruleCode || punishmentOptionId || punishmentDuration)) {
