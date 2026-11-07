@@ -29,7 +29,6 @@ export default function ComplaintsPage() {
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [chip, setChip] = useState("all");
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<Detail | null>(null);
@@ -39,14 +38,14 @@ export default function ComplaintsPage() {
   const [msg, setMsg] = useState("");
 
   const loadList = useCallback(async () => {
-    const p = new URLSearchParams({ bucket, limit: "15", offset: "0" });
+    const p = new URLSearchParams({ limit: "15", offset: "0" });
     const res = await fetch("/api/admin/complaints?" + p);
     if (res.status === 401) { window.location.href = "/auth"; return; }
     const data = await res.json();
     setRows(data.items ?? []);
     setNextOffset(data.nextOffset ?? 0);
     setHasMore(!!data.hasMore);
-  }, [bucket, chip]);
+  }, []);
 
   useEffect(() => { fetch("/api/admin/me").then(async r => {
     if (r.ok) {
@@ -67,8 +66,8 @@ export default function ComplaintsPage() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const p = new URLSearchParams({ bucket, limit: "15", offset: String(nextOffset) });
-        const res = await fetch("/api/admin/complaints?" + p);
+      const p = new URLSearchParams({ limit: "15", offset: String(nextOffset) });
+      const res = await fetch("/api/admin/complaints?" + p);
       if (!res.ok) return;
       const data = await res.json();
       setRows(current => [...current, ...(data.items ?? [])]);
@@ -89,7 +88,6 @@ export default function ComplaintsPage() {
     if (!response.ok) { setMsg((await response.json().catch(() => ({}))).error ?? "Could not load complaint."); return null; }
     const d: Detail = await response.json();
     setOpen(d); setTpl(null); setReply(""); setMsg("");
-    setBucket("ACTIVE");
     const t = await fetch(`/api/admin/templates?categoryId=${d.category.id}`);
     setTpls(t.ok ? ((await t.json()) as Tpl[]).filter(x => x.canUse) : []);
     return d;
@@ -97,10 +95,7 @@ export default function ComplaintsPage() {
   async function refresh(id: string) {
     const d = await select(id);
     if (!d) return;
-    const nextBucket = "ACTIVE";
-    setBucket(nextBucket);
-    setChip("all");
-    const response = await fetch(`/api/admin/complaints?bucket=${nextBucket}&limit=15&offset=0`);
+    const response = await fetch("/api/admin/complaints?limit=15&offset=0");
     if (response.ok) { const data = await response.json(); setRows(data.items ?? []); setNextOffset(data.nextOffset ?? 0); setHasMore(!!data.hasMore); }
   }
 
