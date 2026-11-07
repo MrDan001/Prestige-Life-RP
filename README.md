@@ -92,7 +92,8 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 
 
 ## Complaint judgment workflow restructure — 7 November 2026
-- The complaints workspace uses one unified queue for open and closed complaints; there is no separate History tab or visible event timeline.
+- The complaints workspace separates open/in-review cases into **Active** and resolved/dismissed cases into **History**.
+- Complaint details show the creation timestamp, settlement/resolution timestamp, and the administrator who attended or resolved the case. Resolution metadata comes from the status audit record; legacy cases without a recorded closure event display “Not recorded.”
 - Eligible staff can issue a judgment directly without claiming a complaint. Server-side category, target-rank and template-level checks remain enforced.
 - Complaint detail shows the problem, evidence and latest judgment/verdict only; chronological replies, notes, claims and audit events are not displayed.
 - Release, Resolve and Dismiss controls are available only to the primary owner account (`officialsafebase@gmail.com`), with matching server-side authorization. Legacy claim creation is disabled; the primary owner can clear existing claims.

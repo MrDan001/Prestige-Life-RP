@@ -13,6 +13,7 @@ type Row = {
 type Detail = Row & {
   player: { username: string; gameId: string }; verdict: string | null;
   evidence: Ev[]; latestJudgment: { message: string; createdAt: string; admin: { name: string } } | null;
+  closedAt: string | null; closedBy: { name: string } | null;
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
 
@@ -29,6 +30,7 @@ export default function ComplaintsPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [q, setQ] = useState("");
+  const [queue, setQueue] = useState<"active" | "history">("active");
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState<Detail | null>(null);
   const [tpls, setTpls] = useState<Tpl[]>([]);
@@ -37,14 +39,14 @@ export default function ComplaintsPage() {
   const [msg, setMsg] = useState("");
 
   const loadList = useCallback(async () => {
-    const p = new URLSearchParams({ limit: "15", offset: "0" });
+    const p = new URLSearchParams({ limit: "15", offset: "0", queue });
     const res = await fetch("/api/admin/complaints?" + p);
     if (res.status === 401) { window.location.href = "/auth"; return; }
     const data = await res.json();
     setRows(data.items ?? []);
     setNextOffset(data.nextOffset ?? 0);
     setHasMore(!!data.hasMore);
-  }, []);
+  }, [queue]);
 
   useEffect(() => { fetch("/api/admin/me").then(async r => {
     if (r.ok) {
@@ -65,7 +67,7 @@ export default function ComplaintsPage() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const p = new URLSearchParams({ limit: "15", offset: String(nextOffset) });
+      const p = new URLSearchParams({ limit: "15", offset: String(nextOffset), queue });
       const res = await fetch("/api/admin/complaints?" + p);
       if (!res.ok) return;
       const data = await res.json();
@@ -94,7 +96,9 @@ export default function ComplaintsPage() {
   async function refresh(id: string) {
     const d = await select(id);
     if (!d) return;
-    const response = await fetch("/api/admin/complaints?limit=15&offset=0");
+    const destination = isClosed(d.status) ? "history" : "active";
+    if (destination !== queue) setQueue(destination);
+    const response = await fetch(`/api/admin/complaints?limit=15&offset=0&queue=${isClosed(d.status) ? "history" : "active"}`);
     if (response.ok) { const data = await response.json(); setRows(data.items ?? []); setNextOffset(data.nextOffset ?? 0); setHasMore(!!data.hasMore); }
   }
 
@@ -115,6 +119,9 @@ export default function ComplaintsPage() {
     ["Complaint", `#${open.id.slice(-6).toUpperCase()}`],
     ["Complaint from", open.player.username],
     ["Complaint about", open.accusedAdmin?.name ?? open.accusedName ?? "Unknown"],
+    ["Time created", fmt(open.createdAt)],
+    ["Time settled / resolved", open.closedAt ? fmt(open.closedAt) : open.isClosed ? "Not recorded" : "Not settled"],
+    ["Admin resolved / attended", open.latestJudgment?.admin?.name ?? open.closedBy?.name ?? open.claimedBy?.name ?? "Not recorded"],
   ];
 
   return (
@@ -122,11 +129,12 @@ export default function ComplaintsPage() {
       <header className="topbar">
         <h1>Complaints</h1>
         {canCreateComp && <a className="primary" href="/admin/generate-comps">Generate comps</a>}
+        <div className="queue-tabs" role="tablist" aria-label="Complaint queues"><button type="button" role="tab" aria-selected={queue === "active"} className={`queue-tab${queue === "active" ? " on" : ""}`} onClick={() => { setQueue("active"); setOpen(null); }}>Active</button><button type="button" role="tab" aria-selected={queue === "history"} className={`queue-tab${queue === "history" ? " on" : ""}`} onClick={() => { setQueue("history"); setOpen(null); }}>History</button></div>
         <input className="search" type="search" placeholder="Search player or case number…" aria-label="Search complaints" value={q} onChange={e => setQ(e.target.value)} />
       </header>
 
       <div className="split">
-        <section className="list" aria-label="Complaint list">
+        <section className="list" aria-label={`${queue} complaints`}>
           {shown.length === 0 && <p className="muted">No complaints found.</p>}
           {shown.map(r => (
             <button key={r.id} className={`card${open?.id === r.id ? " sel" : ""}`} onClick={() => select(r.id)}>

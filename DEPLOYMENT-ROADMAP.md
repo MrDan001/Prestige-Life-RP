@@ -321,3 +321,15 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Run a clean Vercel Preview build and inspect build logs.
 - [ ] Verify on desktop and a narrow phone viewport that only the complaints list scrolls, while the header, sidebar and detail panel remain stationary.
 - [ ] Confirm list pagination, complaint selection, evidence viewing and judgment actions still work.
+
+
+## Restore complaint History and lifecycle metadata — 7 November 2026
+- [x] Restore separate **Active** and **History** tabs; keep OPEN and IN_REVIEW cases in Active and RESOLVED/DISMISSED cases in History.
+- [x] Apply queue filtering and pagination on the server so closed cases cannot leak into Active and open cases cannot appear in History.
+- [x] Restore the complaint creation date/time in the detail information blocks.
+- [x] Show the recorded status-transition timestamp as the settled/resolved time, with a latest-response fallback for legacy closed cases that lack a status audit record.
+- [x] Show the administrator who attended/resolved the case using the latest judgment author, closure actor, or legacy claim owner fallback.
+- [x] Move a complaint between tabs after a status change or reopening, and preserve the PR #21 list-only scrolling layout.
+- [x] Update README and this roadmap.
+- [ ] Run the Vercel Preview build and inspect TypeScript/build logs.
+- [ ] Verify Active/History filters, pagination, close/reopen movement, and metadata on both recent and legacy closed cases before production promotion.
