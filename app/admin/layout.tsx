@@ -48,6 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const items = [
     { href: "/admin", label: "Complaints", show: true },
     { href: "/admin/create-comp", label: "Create comp", show: !!me?.canCreateComp },
+    { href: "/admin/generate-comps", label: "Generate 20 comps", show: !!me?.canCreateComp },
     { href: "/admin/staff", label: "Staff", show: !!me?.canManageStaff },
     { href: "/admin/roles", label: "Roles", show: me?.kind === "OWNER" },
     { href: "/admin/categories", label: "Categories", show: !!me?.canManageCategories },
