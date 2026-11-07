@@ -121,6 +121,9 @@ model Response {
   syncedToGame Boolean   @default(false)
   templateId   String?
   template     ResponseTemplate? @relation(fields: [templateId], references: [id])
+  ruleCode     String?
+  punishmentType String?
+  punishmentDuration String?
   createdAt    DateTime  @default(now())
 
   @@index([syncedToGame])
@@ -214,6 +217,7 @@ model SiteSetting {
 // Public community rules, ordered by the staff in Homepage settings.
 model Rule {
   id        String   @id @default(cuid())
+  code      String   @unique @db.VarChar(32)
   title     String   @db.VarChar(120)
   content   String
   sortOrder Int      @default(0)
@@ -221,6 +225,18 @@ model Rule {
   updatedAt DateTime @updatedAt
 
   @@index([sortOrder, createdAt])
+}
+
+model PunishmentOption {
+  id              String   @id @default(cuid())
+  name            String   @unique @db.VarChar(60)
+  durationOptions String[] @default([])
+  sortOrder       Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([active, sortOrder])
 }
 
 // A role is a title with rules about which levels it can sit on. Rights still come from the level

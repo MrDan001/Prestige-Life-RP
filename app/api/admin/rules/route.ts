@@ -8,6 +8,7 @@ import { audit } from "@/lib/audit";
 import { ensureRuleStorage } from "@/lib/rules";
 
 const ruleSchema = z.object({
+  code: z.string().trim().min(2).max(32).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()),
   title: z.string().trim().min(1).max(120),
   content: z.string().trim().min(1).max(5000),
 });
@@ -37,8 +38,11 @@ export async function POST(req: Request) {
   await ensureRuleStorage();
   const parsed = ruleSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ error: "Enter a title and rule details (up to 5,000 characters)." }, { status: 400 });
+    return NextResponse.json({ error: "Enter a unique rule code, title and rule details (up to 5,000 characters)." }, { status: 400 });
   }
+
+  const duplicate = await db.rule.findFirst({ where: { code: parsed.data.code }, select: { id: true } });
+  if (duplicate) return NextResponse.json({ error: "That rule code is already in use." }, { status: 409 });
 
   const last = await db.rule.aggregate({ _max: { sortOrder: true } });
   const rule = await db.rule.create({
