@@ -386,3 +386,18 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Apply the additive migration in a non-production environment and verify Prisma migration/client generation.
 - [ ] Run the build and test owner-only catalogue access, rule-code uniqueness/validation, approved-judgment required fields, non-approved judgments without punishment, public link behavior, and history snapshots after catalogue edits.
+
+
+## Punishment choices endpoint and short complaint URLs — 7 November 2026
+
+### Root cause
+- [x] The judgment UI requested `/api/admin/punishments`, but the API route files were missing from the merged implementation. This caused the punishment-choice request to fail even though the catalogue table and seeded rows existed.
+
+### Fix in PR
+- [x] Add authenticated `GET /api/admin/punishments`; only active options are returned to ordinary admins, while the owner may request all options.
+- [x] Add owner-only `POST /api/admin/punishments` and `PATCH /api/admin/punishments/<id>` with validation and audit records.
+- [x] Add a unique six-character uppercase alphanumeric `Complaint.publicId` generated in PostgreSQL and backfill existing complaints without changing their internal CUIDs.
+- [x] Change admin share/copy links, public case lookup, and game complaint create/poll APIs to use `/complaint/<publicId>` (example: `/complaint/7XKRWC`).
+- [x] Update README and this roadmap.
+- [ ] Apply `20261107210000_short_complaint_public_ids` to production after merge.
+- [ ] Confirm Vercel preview build succeeds, then merge and verify live punishment choices and public short links.
