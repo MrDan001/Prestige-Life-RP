@@ -107,3 +107,12 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - On the Complaints page, the admin shell, sidebar and header stay fixed within the viewport.
 - Only the left-hand complaints list scrolls vertically. Selecting a complaint does not move the page or the detail panel; the complaint detail and judgment controls remain in the fixed right-hand workspace.
 - This is scoped to the Complaints page and preserves the existing desktop admin layout.
+
+
+## Complaint case links and judgment punishments
+- Every complaint has a permanent public reference URL at `/complaint/<complaint-id>`. Admins can copy it from the complaint detail panel; the game complaint creation API also returns the URL.
+- The public case page shows status, verdict and the latest judgment, including its violated rule code, punishment and duration. It intentionally does not expose the private report narrative or attached evidence.
+- Every community rule has a unique rule code. Chief Admin and higher can assign/edit codes in the Rules Manager; admins enter the code manually when recording an upheld complaint.
+- An upheld (`COMPLAINANT`) judgment requires a valid rule code, active punishment choice and a duration belonging to that choice. The server validates the selection and stores a text snapshot on the judgment.
+- Only the primary owner account (`officialsafebase@gmail.com`) can add, rename, edit or switch off punishment options and duration choices from **Admin → Punishments**. Existing judgment records retain the exact punishment snapshot even when the catalogue changes.
+- Initial choices: Ban (3, 7, 30, 60 or 90 days), Jailed (30, 60, 120 or 180 minutes), and Mute (30, 60, 120 or 180 minutes). The owner can change these options later.

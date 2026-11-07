@@ -47,7 +47,8 @@ export async function POST(req: Request) {
   });
   if (d.evidence?.length)
     await db.evidence.createMany({ data: d.evidence.map((e) => ({ complaintId: complaint.id, kind: e.kind, url: e.url, text: e.text, caption: e.caption })) });
-  return NextResponse.json({ id: complaint.id, status: complaint.status }, { status: 201 });
+  const publicUrl = new URL(`/complaint/${complaint.id}`, new URL(req.url).origin).toString();
+  return NextResponse.json({ id: complaint.id, status: complaint.status, url: publicUrl }, { status: 201 });
 }
 
 /** Game server checks a player's own complaints: GET /api/game/complaints?gameId=123 */
@@ -66,8 +67,15 @@ export async function GET(req: Request) {
       verdict: true,
       createdAt: true,
       category: { select: { name: true } },
-      responses: { select: { message: true, createdAt: true }, orderBy: { createdAt: "asc" } },
+      responses: {
+        select: { message: true, createdAt: true, ruleCode: true, punishmentType: true, punishmentDuration: true },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
-  return NextResponse.json(complaints);
+  const origin = new URL(req.url).origin;
+  return NextResponse.json(complaints.map(complaint => ({
+    ...complaint,
+    url: `${origin}/complaint/${complaint.id}`,
+  })));
 }

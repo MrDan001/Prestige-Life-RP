@@ -14,6 +14,7 @@ const denied = () => NextResponse.json(
 );
 
 const patchSchema = z.object({
+  code: z.string().trim().min(2).max(32).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()).optional(),
   title: z.string().trim().min(1).max(120).optional(),
   content: z.string().trim().min(1).max(5000).optional(),
 }).refine(data => Object.keys(data).length > 0, "Provide a title or rule details.");
@@ -32,6 +33,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const before = await db.rule.findUnique({ where: { id } });
   if (!before) return NextResponse.json({ error: "Rule not found." }, { status: 404 });
 
+  if (parsed.data.code) {
+    const duplicate = await db.rule.findFirst({ where: { code: parsed.data.code, NOT: { id } }, select: { id: true } });
+    if (duplicate) return NextResponse.json({ error: "That rule code is already in use." }, { status: 409 });
+  }
   const rule = await db.rule.update({ where: { id }, data: parsed.data });
   await audit(access.actor.id, "RULE_UPDATE", id, Object.keys(parsed.data).join(", "));
   revalidatePath("/rules");

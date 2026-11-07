@@ -6,13 +6,13 @@ import { db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export default async function RulesPage() {
-  let rules: { id: string; title: string; content: string }[] = [];
+  let rules: { id: string; code: string; title: string; content: string }[] = [];
   let unavailable = false;
 
   try {
     rules = await db.rule.findMany({
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-      select: { id: true, title: true, content: true },
+      select: { id: true, code: true, title: true, content: true },
     });
   } catch {
     unavailable = true;
@@ -42,6 +42,7 @@ export default async function RulesPage() {
               <li className="rules-card" key={rule.id}>
                 <span className="rules-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                 <div className="rules-copy">
+                  <small style={{ display: "inline-block", marginBottom: 7, color: "#d6a8ff", fontWeight: 700, letterSpacing: ".08em" }}>{rule.code}</small>
                   <h2>{rule.title}</h2>
                   <p>{rule.content}</p>
                 </div>
