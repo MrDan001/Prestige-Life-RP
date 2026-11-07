@@ -99,3 +99,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The primary owner account is displayed as **PR.BOT**. Its immutable account ID, email, OWNER kind and authorization are unchanged.
 - Practice cases retain a visible **Practice case** marker and simulated evidence wording so fictional training material cannot be mistaken for genuine player-submitted reports. The word “generated” is removed from visible case and evidence copy.
 - The post-send “Sent. The player will see it in the game.” confirmation has been removed.
+
+
+### Complaint queue scrolling
+- On the Complaints page, the admin shell, sidebar and header stay fixed within the viewport.
+- Only the left-hand complaints list scrolls vertically. Selecting a complaint does not move the page or the detail panel; the complaint detail and judgment controls remain in the fixed right-hand workspace.
+- This is scoped to the Complaints page and preserves the existing desktop admin layout.

@@ -310,3 +310,14 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Remove the post-send confirmation sentence.
 - [x] Replace visible “generated” wording with **Practice case** / practice evidence wording, retaining clear simulation markers.
 - [ ] Run the Preview build and verify direct unclaimed judgments, rank restrictions, owner-only lifecycle actions, the unified queue and latest-judgment display.
+
+
+## Complaints queue scroll containment — 7 November 2026
+- [x] Keep the admin shell, sidebar and complaints header fixed to the viewport.
+- [x] Make only the left-hand complaints list vertically scrollable, including its Load more control.
+- [x] Keep the selected complaint detail and judgment controls stationary in the right-hand panel.
+- [x] Scope overflow containment to the Complaints page without changing scrolling behavior on other admin pages.
+- [x] Update README and this roadmap.
+- [ ] Run a clean Vercel Preview build and inspect build logs.
+- [ ] Verify on desktop and a narrow phone viewport that only the complaints list scrolls, while the header, sidebar and detail panel remain stationary.
+- [ ] Confirm list pagination, complaint selection, evidence viewing and judgment actions still work.
