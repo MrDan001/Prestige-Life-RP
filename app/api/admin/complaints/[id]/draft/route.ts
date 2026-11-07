@@ -44,7 +44,7 @@ export async function POST(req: Request, { params }: Ctx) {
     accused,
     category: c.category.name,
     admin: a.admin.name,
-    complaint_id: `#${c.id.slice(-6).toUpperCase()}`,
+    complaint_id: `#${c.publicId}`,
     date: new Date().toISOString().slice(0, 10),
     ...(effective ? verdictVars(effective, complainant, accused) : {}),
   };
