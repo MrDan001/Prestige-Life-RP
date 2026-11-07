@@ -160,7 +160,7 @@ export async function POST(request: Request) {
             "",
             "PROVENANCE",
             "This is a generated simulation case. The names, player IDs, incident and exhibits are fictional and are not a real player-submitted allegation.",
-          ].join("\\n");
+          ].join("\n");
 
           const complaint = await tx.complaint.create({
             data: {
@@ -172,8 +172,8 @@ export async function POST(request: Request) {
               status: "OPEN",
               evidence: {
                 create: [
-                  { kind: "TEXT", text: \`SIMULATED EXHIBIT A\\n\${scenario.exhibitA}\\n\\nScenario batch: \${batchId}\`, caption: "Simulated evidence — generated scenario, not verified player-submitted material." },
-                  { kind: "TEXT", text: \`SIMULATED EXHIBIT B\\n\${scenario.exhibitB}\\n\\nScenario batch: \${batchId}\`, caption: "Simulated supporting evidence — generated scenario, not a live system record." },
+                  { kind: "TEXT", text: \`SIMULATED EXHIBIT A\n\${scenario.exhibitA}\n\nScenario batch: \${batchId}\`, caption: "Simulated evidence — generated scenario, not verified player-submitted material." },
+                  { kind: "TEXT", text: \`SIMULATED EXHIBIT B\n\${scenario.exhibitB}\n\nScenario batch: \${batchId}\`, caption: "Simulated supporting evidence — generated scenario, not a live system record." },
                 ],
               },
             },
