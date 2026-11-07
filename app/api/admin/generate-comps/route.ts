@@ -164,8 +164,8 @@ export async function POST(request: Request) {
               status: "OPEN",
               evidence: {
                 create: [
-                  { kind: "TEXT", text: `SIMULATED EXHIBIT A\n${scenario.exhibitA}\n\nScenario batch: ${batchId}`, caption: "Simulated evidence — generated scenario, not verified player-submitted material." },
-                  { kind: "TEXT", text: `SIMULATED EXHIBIT B\n${scenario.exhibitB}\n\nScenario batch: ${batchId}`, caption: "Simulated supporting evidence — generated scenario, not a live system record." },
+                  { kind: "TEXT", text: `SIMULATED EXHIBIT A\n${scenario.exhibitA}\n\nScenario batch: ${batchId}`, caption: "Practice evidence — simulated scenario, not verified player-submitted material." },
+                  { kind: "TEXT", text: `SIMULATED EXHIBIT B\n${scenario.exhibitB}\n\nScenario batch: ${batchId}`, caption: "Practice supporting evidence — simulated scenario, not a live system record." },
                 ],
               },
             },
