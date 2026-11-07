@@ -16,7 +16,6 @@ type Detail = Row & {
 };
 type Tpl = { id: string; name: string; verdict: string | null; closesAs: "RESOLVED" | "DISMISSED" | null; canUse: boolean };
 
-const ACTIVE_CHIPS: [string, string][] = [["all", "All"]];
 const isClosed = (status: string) => status === "RESOLVED" || status === "DISMISSED";
 const pill = (s: string) => (s === "OPEN" ? "open" : "done");
 const label = (s: string) => s.replace("_", " ").toLowerCase().replace(/^./, c => c.toUpperCase());
