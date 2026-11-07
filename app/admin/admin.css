@@ -144,3 +144,15 @@ html:has(.shell), body:has(.shell) { overflow-x: auto; }
 .demo-message-card p { margin-top:10px; white-space:pre-wrap; line-height:1.8; }
 .demo-closebar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-top:4px; }
 .demo-closed-note { padding:12px 14px; border-radius:10px; background:#171d29; color:#cbd5e1; }
+
+
+/* Complaints workspace: keep the page shell fixed and scroll only the queue. */
+html:has(.complaints-page), body:has(.complaints-page) { height: 100%; overflow: hidden; }
+body:has(.complaints-page) { min-height: 0; }
+.shell:has(.complaints-page) { height: 100dvh; min-height: 0; overflow: hidden; }
+.shell:has(.complaints-page) > .content { height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.complaints-page { height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.complaints-page > .topbar { flex: 0 0 auto; }
+.complaints-page > .split { flex: 1 1 auto; min-height: 0; height: 0; overflow: hidden; }
+.complaints-page .list { min-height: 0; height: 100%; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.complaints-page .detail { min-height: 0; height: 100%; overflow: hidden; overscroll-behavior: contain; }
