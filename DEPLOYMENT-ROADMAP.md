@@ -297,3 +297,16 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Keep eligible unclaimed complaints visually claimable instead of dimming them or labelling them view-only before the administrator has claimed them.
 - [x] Show view-only copy only when the administrator is not eligible to claim/reply; retain the separate explanation for another administrator's active claim.
 - [ ] Verify the Preview build, claim/reply controls for rank 3–6 and top-tier admins, and the shortened generated descriptions before merge.
+
+
+## Complaint judgment workflow restructure — 7 November 2026
+- [x] Replace Active/History tabs with one unified queue containing open and closed complaints.
+- [x] Remove the visible History tab, chronological complaint timeline and private-note panel.
+- [x] Allow eligible admins to issue judgments directly without claiming or taking over a complaint.
+- [x] Display only the latest judgment/verdict alongside the complaint and evidence.
+- [x] Restrict Release, Resolve and Dismiss controls and matching server endpoints to the primary owner account.
+- [x] Disable new claim creation; permit the primary owner to clear legacy claims.
+- [x] Display the primary owner as **PR.BOT** without changing the account's immutable identity or OWNER permissions.
+- [x] Remove the post-send confirmation sentence.
+- [x] Replace visible “generated” wording with **Practice case** / practice evidence wording, retaining clear simulation markers.
+- [ ] Run the Preview build and verify direct unclaimed judgments, rank restrictions, owner-only lifecycle actions, the unified queue and latest-judgment display.
