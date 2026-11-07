@@ -114,7 +114,7 @@ export async function POST(request: Request) {
   try {
     const created = await db.$transaction(async (tx) => {
       // Cast PostgreSQL's void return to text so Prisma never has to deserialize a void column.
-      await tx.$queryRaw\`SELECT pg_advisory_xact_lock(72110520261107)::text AS lock_acquired\`;
+      await tx.$queryRaw\`SELECT 1 AS locked FROM (SELECT pg_advisory_xact_lock(72110520261107)) AS advisory_lock\`;
 
       const categoryIds = [...new Set(rows.map(row => row.categoryId))];
       const categories = await tx.category.findMany({
