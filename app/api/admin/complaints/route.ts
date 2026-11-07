@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { flags } from "@/lib/permissions";
+import { canAct } from "@/lib/permissions";
 import { isPrimaryOwnerAccount } from "@/lib/owner-privacy";
 
 export async function GET(req: Request) {
@@ -32,12 +32,11 @@ export async function GET(req: Request) {
   const practice = new Set(practiceIds.map(x => x.targetId));
   const owner = isPrimaryOwnerAccount(a.admin.id);
   const items = rows.map(r => {
-    const permissionFlags = flags(a.actor, r);
     const isClosed = r.status === "RESOLVED" || r.status === "DISMISSED";
     return {
-      ...r, ...permissionFlags, isClosed,
+      ...r, isClosed,
       isPractice: practice.has(r.id),
-      canReply: !isClosed && permissionFlags.canReply,
+      canReply: !isClosed && canAct(a.actor, r, "reply"),
       canClose: !isClosed && owner,
       canManageStatus: owner,
     };
