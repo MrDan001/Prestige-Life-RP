@@ -28,7 +28,7 @@ const label = (s: string) => s.replace("_", " ").toLowerCase().replace(/^./, c =
 const tone = (t: Tpl) => (t.closesAs === "DISMISSED" ? "reject" : t.verdict === "COMPLAINANT" ? "approve" : "neutral");
 const fmt = (d: string) => new Date(d).toLocaleString();
 const buildJudgmentMessage = (base: string, ruleCode: string, punishment: string, duration: string) =>
-  [base.trim(), "", "Punishment details:", `Violated rule: ${ruleCode.trim().toUpperCase()}`, `Punishment: ${punishment}`, `Duration: ${duration}`].join("\\n");
+  [base.trim(), "", "Punishment details:", `Violated rule: ${ruleCode.trim().toUpperCase()}`, `Punishment: ${punishment}`, `Duration: ${duration}`].join("\n");
 
 export default function ComplaintsPage() {
   const [isPrimaryOwner, setIsPrimaryOwner] = useState(false);
@@ -136,8 +136,11 @@ export default function ComplaintsPage() {
       setMsg("Enter the violated rule code and choose a punishment and its duration before issuing an approved judgment.");
       return;
     }
+    const judgmentText = approved && selected
+      ? buildJudgmentMessage(reply, ruleCode, selected.name, punishmentDuration)
+      : reply;
     const body = {
-      reply,
+      reply: judgmentText,
       templateId: tpl?.id,
       verdict: effectiveVerdict,
       ...(approved ? { ruleCode, punishmentOptionId, punishmentDuration } : {}),
