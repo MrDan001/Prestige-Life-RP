@@ -12,7 +12,6 @@ const LEVELS = [1, 2, 3, 4, 5, 6];
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [editing, setEditing] = useState<Role | null>(null);
   const [name, setName] = useState("");
   const [min, setMin] = useState("3");
   const [max, setMax] = useState("4");
@@ -32,17 +31,16 @@ export default function RolesPage() {
     });
   }, [load]);
 
-  function reset() { setEditing(null); setName(""); setMin("3"); setMax("4"); setRights([]); }
-  function edit(r: Role) { setEditing(r); setName(r.name); setMin(String(r.minLevel)); setMax(String(r.maxLevel)); setRights(r.extraRights); setMsg(""); }
+  function reset() { setName(""); setMin("3"); setMax("4"); setRights([]); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch(editing ? `/api/admin/roles/${editing.id}` : "/api/admin/roles", {
-      method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
+    const res = await fetch("/api/admin/roles", {
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, minLevel: Number(min), maxLevel: Number(max), extraRights: rights }),
     });
     const d = await res.json().catch(() => ({}));
-    setMsg(res.ok ? "Saved." : d.error ?? "Could not save");
+    setMsg(res.ok ? "Role added." : d.error ?? "Could not add role");
     if (res.ok) { reset(); load(); }
   }
   async function toggle(r: Role) {
@@ -60,7 +58,7 @@ export default function RolesPage() {
       </header>
 
       <section style={box}>
-        <h2 style={{ fontSize: "1.1rem", marginBottom: 10 }}>{editing ? `Edit: ${editing.name}` : "New custom role"}</h2>
+        <h2 style={{ fontSize: "1.1rem", marginBottom: 10 }}>New custom role</h2>
         <form onSubmit={save} style={{ display: "grid", gap: 10 }}>
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Role name, e.g. Appeals lead" required />
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -71,10 +69,7 @@ export default function RolesPage() {
             <small style={{ color: muted }}>Extra rights:</small>
             {ROLE_RIGHTS.map(r => <label key={r}><input type="checkbox" checked={rights.includes(r)} onChange={e => setRights(e.target.checked ? [...rights, r] : rights.filter(x => x !== r))} /> {RIGHT_LABEL[r]}</label>)}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="primary">{editing ? "Save changes" : "Add role"}</button>
-            {editing && <button type="button" onClick={reset}>Cancel</button>}
-          </div>
+          <div><button className="primary">Add role</button></div>
         </form>
         {msg && <p role="status" style={{ marginTop: 8 }}>{msg}</p>}
       </section>
@@ -88,7 +83,7 @@ export default function RolesPage() {
               {r.extraRights.length ? ` · extra: ${r.extraRights.map(x => RIGHT_LABEL[x]).join(", ")}` : ""} · {r._count.admins} {r._count.admins === 1 ? "person" : "people"}
               {r.system ? " · built-in" : ""}{r.active ? "" : " · switched off"}
             </small>
-            {!r.system && <div style={{ marginTop: 6 }}><button onClick={() => edit(r)}>Edit</button> <button onClick={() => toggle(r)}>{r.active ? "Switch off" : "Switch on"}</button></div>}
+            {!r.system && <div style={{ marginTop: 6 }}><button onClick={() => toggle(r)}>{r.active ? "Switch off" : "Switch on"}</button></div>}
           </div>
         ))}
       </section>
