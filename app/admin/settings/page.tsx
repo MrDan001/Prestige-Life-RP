@@ -119,7 +119,7 @@ export default function SiteSettingsPage() {
   }
 
   async function saveRule(rule: Rule) {
-    const draft = edits[rule.id] ?? { title: rule.title, content: rule.content };
+    const draft = edits[rule.id] ?? { code: rule.code, title: rule.title, content: rule.content };
     const response = await fetch("/api/admin/rules/" + rule.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
