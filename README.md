@@ -116,3 +116,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - An upheld (`COMPLAINANT`) judgment requires a valid rule code, active punishment choice and a duration belonging to that choice. The server validates the selection and stores a text snapshot on the judgment.
 - Only the primary owner account (`officialsafebase@gmail.com`) can add, rename, edit or switch off punishment options and duration choices from **Admin → Punishments**. Existing judgment records retain the exact punishment snapshot even when the catalogue changes.
 - Initial choices: Ban (3, 7, 30, 60 or 90 days), Jailed (30, 60, 120 or 180 minutes), and Mute (30, 60, 120 or 180 minutes). The owner can change these options later.
+
+
+## Production complaint schema incident — 7 November 2026
+- The complaint-link and punishment migration `complaint_links_and_punishments` is applied to the production Supabase database.
+- It adds the rule-code and punishment snapshot columns required by the complaint detail API, creates the owner-managed punishment catalogue, and seeds Ban, Jailed and Mute options.
+- If a complaint detail page reports a database column error after a release, check the applied Supabase migration history before changing complaint records; the missing migration caused the production detail endpoint to fail.
