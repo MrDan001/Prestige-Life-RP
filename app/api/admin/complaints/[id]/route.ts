@@ -26,7 +26,7 @@ export async function GET(_req: Request, { params }: Ctx) {
   const isClosed = c.status === "RESOLVED" || c.status === "DISMISSED";
   const closedAudit = isClosed ? await db.auditLog.findFirst({
       where: { targetId: id, action: "COMPLAINT_STATUS", detail: { endsWith: "-> " + c.status } },
-      orderBy: { createdAt: "desc" }, include: { actor: { select: { name: true } } },
+      orderBy: { createdAt: "desc" }, select: { createdAt: true },
     }) : null;
   return NextResponse.json({
     ...c,
