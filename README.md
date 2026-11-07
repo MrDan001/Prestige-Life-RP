@@ -134,3 +134,7 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The live preview and server-side saved message use the same shared formatter, so the message delivered to the game matches the preview.
 - The redundant free-text editor is hidden for upheld judgments because the message is generated from the complaint and required punishment fields; custom judgment text remains available for other verdicts.
 - Judgment API validation now reports the actual field problem instead of the generic “Send a status, judgment or verdict” response, and accepts messages up to 5,000 characters to cover configured templates plus formatting.
+
+
+## Vercel build correction — 7 November 2026
+- The admin complaint judgment PATCH query now loads the related reporter/player record before building the canonical upheld-judgment message. This keeps the API query aligned with the GET query and prevents a TypeScript build failure from accessing an unloaded Prisma relation.
