@@ -250,3 +250,15 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [ ] Configure a dedicated non-production Supabase database/branch and add its `DATABASE_URL` to Vercel Preview before testing database-backed Preview routes. Do not point Preview at production data.
 - [ ] Confirm Production variables remain unchanged and production deployment is not triggered by this Preview-only fix.
 - [ ] Re-run a clean build and inspect the resulting logs for any additional compile/type errors.
+
+## Owner-generated rank-tier complaint batches — 7 November 2026
+- [x] Add an owner-only **Generate 20 comps** item to the admin navigation and complaints header.
+- [x] Generate exactly 15 OPEN cases claimable by ranks 3–5 and 5 OPEN cases claimable by rank 6 and top-tier staff, using existing category permission thresholds.
+- [x] Leave every generated complaint unassigned in the normal Active queue so eligible administrators claim them themselves.
+- [x] Include structured reporter/reported-player identities, incident summary, timeline, impact, requested review, and two evidence exhibits per case.
+- [x] Mark all generated names, IDs, scenarios, and evidence as simulated so they cannot be mistaken for real player allegations or verified exhibits.
+- [x] Create all 20 complaints, players, evidence records, and audit entries atomically; reject the batch before writing if eligible categories are unavailable.
+- [x] Keep the existing production schema unchanged; no migration or cleanup operation is part of this feature.
+- [ ] Run a Vercel Preview build and inspect the build logs.
+- [ ] Verify Owner-only UI/API access, exactly 20 records per successful run, two evidence records per complaint, no pre-assignment, rank 3/4/5 claim access, rank 5 denial on rank-6 cases, and rank 6/top-tier access.
+- [ ] Verify a missing category threshold causes a clean failure with zero partial records.
