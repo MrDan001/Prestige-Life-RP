@@ -419,3 +419,17 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Align judgment-message validation with configured template sizes and the added punishment section.
 - [x] Update README and this roadmap.
 - [ ] Run a clean production build and verify the preview, issued judgment record, public case page and game-delivery response with a test upheld complaint before production promotion.
+
+
+## PR #28 production build follow-up — 7 November 2026
+
+### Verified Vercel failure
+- [x] Confirmed Vercel picked up the exact PR #28 merge commit `5033276757028a5327337aed389a252471124e85` for a production-target build; the earlier daily deployment API rate-limit block is no longer the blocker.
+- [x] Inspected the failed build logs: Next.js compiled, then TypeScript failed at `app/api/admin/complaints/[id]/route.ts:154` because the PATCH query did not select `player`, while the canonical upheld-judgment formatter read `c.player.username`.
+- [x] Distinguished the non-fatal `jose` Edge Runtime warnings from the fatal Prisma query result type error.
+
+### Corrective change
+- [x] Explicitly select `player.username` in the PATCH complaint query so the reporter name is present in the inferred Prisma result type.
+- [x] Update README and this roadmap with the root cause and correction.
+- [ ] Build the corrected branch, merge the fix, and verify the exact new main commit reaches READY on the Production target with the production domain aliases attached.
+- [ ] Smoke-test the admin complaint detail and upheld-judgment flow without issuing a real disciplinary action against a player.
