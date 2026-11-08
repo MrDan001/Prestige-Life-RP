@@ -81,11 +81,11 @@ export default function CreateCompPage() {
         <a href="/admin" className="chip">Back to complaints</a>
       </header>
       <form className="panel" onSubmit={submit} style={{ display: "grid", gap: 14, maxWidth: 900 }}>
-        <p className="muted">This complaint will enter the same Active queue as other reports. It is recorded as created by the owner, not as a direct player submission.</p>
+        <p className="muted">This complaint will enter the same Active queue as other reports. Player names must use Firstname_lastname with at least two letters in each part.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <label>Reporting player name<input required maxLength={64} value={reporterName} onChange={e => setReporterName(e.target.value)} /></label>
+          <label>Reporting player name<input required minLength={5} maxLength={64} pattern="[A-Za-z]{2,}_[A-Za-z]{2,}" title="Use Firstname_lastname with at least two letters in each part." placeholder="Db_yk" value={reporterName} onChange={e => setReporterName(e.target.value)} /><small className="muted">Format: Firstname_lastname (minimum 2 letters per name).</small></label>
           <label>Reporting player game ID<input required maxLength={64} value={reporterGameId} onChange={e => setReporterGameId(e.target.value)} /></label>
-          <label>Reported player name<input required maxLength={64} value={accusedName} onChange={e => setAccusedName(e.target.value)} /></label>
+          <label>Reported player name<input required minLength={5} maxLength={64} pattern="[A-Za-z]{2,}_[A-Za-z]{2,}" title="Use Firstname_lastname with at least two letters in each part." placeholder="Db_yk" value={accusedName} onChange={e => setAccusedName(e.target.value)} /><small className="muted">Format: Firstname_lastname (minimum 2 letters per name).</small></label>
           <label>Reported player game ID (optional)<input maxLength={64} value={accusedGameId} onChange={e => setAccusedGameId(e.target.value)} /></label>
         </div>
         <label>Complaint category<select required value={categoryId} onChange={e => setCategoryId(e.target.value)}><option value="">Choose category</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>

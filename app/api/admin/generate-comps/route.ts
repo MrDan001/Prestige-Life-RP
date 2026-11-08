@@ -14,7 +14,7 @@ type GeneratedIdentityPair = {
   accused: { username: string; country: string };
 };
 
-// Mix realistic full names with game-style handles. Generated names use letters only.
+// Source names are normalized to the required Firstname_lastname format before records are created.
 // Every matchup intentionally crosses country boundaries.
 const globalIdentityPairs: ReadonlyArray<GeneratedIdentityPair> = [
   { reporter: { username: "NgoziB", country: "Nigeria" }, accused: { username: "KelzHH", country: "Ghana" } },
@@ -83,6 +83,30 @@ const globalIdentityPairs: ReadonlyArray<GeneratedIdentityPair> = [
   { reporter: { username: "ChikaBG", country: "Nigeria" }, accused: { username: "RafaelEA", country: "Brazil" } },
   { reporter: { username: "BisiHC", country: "Nigeria" }, accused: { username: "NourBD", country: "Jordan" } },
 ];
+
+function formatGeneratedPlayerName(raw: string): string {
+  const surnameByInitial: Record<string, string> = {
+    A: "Anderson", B: "Bello", C: "Carter", D: "Davis", E: "Evans",
+    F: "Foster", G: "Garcia", H: "Harris", I: "Ibrahim", J: "Jackson",
+    K: "King", L: "Lewis", M: "Morgan", N: "Nelson", O: "Okafor",
+    P: "Parker", Q: "Quinn", R: "Roberts", S: "Smith", T: "Taylor",
+    U: "Usman", V: "Vega", W: "Walker", X: "Xavier", Y: "Young", Z: "Zane",
+  };
+  const cleaned = raw.trim()
+    .replace(/\\s+/g, "_")
+    .replace(/([a-z])([A-Z])/g, "$1_$2")
+    .replace(/[^A-Za-z_]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+  const parts = cleaned.split("_").filter(Boolean);
+  const first = (parts[0] ?? "Player").replace(/[^A-Za-z]/g, "");
+  const rawLast = parts.slice(1).join("").replace(/[^A-Za-z]/g, "");
+  const last = rawLast.length >= 2
+    ? rawLast
+    : surnameByInitial[(rawLast || "P").charAt(0).toUpperCase()] ?? "Player";
+  const safeFirst = first.length >= 2 ? first : "Player";
+  return safeFirst + "_" + last;
+}
 
 function shuffleGlobalIdentityPairs(): GeneratedIdentityPair[] {
   const shuffled = [...globalIdentityPairs];
@@ -219,8 +243,8 @@ export async function POST(request: Request) {
           }
           const scenario = scenarioFor(category.name, i);
           const identityPair = shuffledIdentityPairs[i % shuffledIdentityPairs.length];
-          const reporterName = identityPair.reporter.username;
-          const accusedName = identityPair.accused.username;
+          const reporterName = formatGeneratedPlayerName(identityPair.reporter.username);
+          const accusedName = formatGeneratedPlayerName(identityPair.accused.username);
           const reporterGameId = `PL-${randomUUID().slice(0, 12).toUpperCase()}`;
           const accusedGameId = `PL-${randomUUID().slice(0, 12).toUpperCase()}`;
           const player = await tx.player.create({

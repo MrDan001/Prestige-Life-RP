@@ -3,12 +3,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { playerNameSchema } from "@/lib/player-name-schema";
 
 const OWNER_EMAIL = "officialsafebase@gmail.com";
 const schema = z.object({
-  reporterName: z.string().trim().min(2).max(64),
+  reporterName: playerNameSchema,
   reporterGameId: z.string().trim().min(1).max(64),
-  accusedName: z.string().trim().min(2).max(64),
+  accusedName: playerNameSchema,
   accusedGameId: z.string().trim().max(64).optional().or(z.literal("")),
   categoryId: z.string().min(1),
   message: z.string().trim().min(20).max(4000),
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
   const complaint = await db.$transaction(async tx => {
     const player = await tx.player.upsert({
       where: { gameId: d.reporterGameId },
-      update: {},
+      update: { username: d.reporterName },
       create: { gameId: d.reporterGameId, username: d.reporterName },
     });
     const created = await tx.complaint.create({
