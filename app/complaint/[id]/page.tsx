@@ -63,9 +63,6 @@ export default async function PublicComplaintPage({ params }: Props) {
             <div style={{ borderTop: "1px solid #342b4b", paddingTop: 18, display: "grid", gap: 12 }}>
               <h2 style={{ fontSize: 20, margin: 0 }}>Judgment</h2>
               <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.65, margin: 0 }}>{judgment.message}</p>
-              {judgment.ruleCode && <p style={{ margin: 0 }}><strong>Violated rule:</strong> {judgment.ruleCode}</p>}
-              {judgment.punishmentType && <p style={{ margin: 0 }}><strong>Punishment:</strong> {judgment.punishmentType}</p>}
-              {judgment.punishmentDuration && <p style={{ margin: 0 }}><strong>Duration:</strong> {judgment.punishmentDuration}</p>}
               <small style={{ color: "#aaa4bf" }}>Issued by {judgment.admin.name} · {judgment.createdAt.toLocaleString()}</small>
             </div>
           ) : (
