@@ -260,3 +260,89 @@ html:has(.shell), body:has(.shell) {
 .shell:has(.complaints-page) > .side {
   touch-action: pan-x pan-y pinch-zoom;
 }
+
+
+/* Touch-device complaints navigation: use one native document-level pan surface.
+   Browser pinch zoom changes the visual viewport; the document must remain scrollable
+   in both axes so a single finger can move that zoomed viewport over the full workspace.
+   Nested panel scrollers and overflow clipping intercept that gesture, so on touch-first
+   devices the three desktop columns flow as one wide/tall page. Desktop pointer devices
+   retain the existing independently scrolling panels above. */
+@media (pointer: coarse) {
+  html:has(.complaints-page),
+  body:has(.complaints-page) {
+    height: auto;
+    min-height: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  body:has(.complaints-page) {
+    min-height: 100dvh;
+  }
+
+  .shell:has(.complaints-page) {
+    width: max-content;
+    min-width: 1200px;
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .shell:has(.complaints-page) > .side {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+
+  .shell:has(.complaints-page) > .content {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .complaints-page {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .complaints-page > .split,
+  .complaints-page .split {
+    flex: 1 0 auto;
+    height: auto;
+    min-height: calc(100dvh - 77px);
+    overflow: visible;
+    align-items: stretch;
+  }
+
+  .complaints-page .list,
+  .complaints-page .detail {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+    -webkit-overflow-scrolling: auto;
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  .complaints-page .list {
+    flex: 0 0 340px;
+  }
+
+  .complaints-page .detail {
+    flex: 1 0 0;
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  }
+
+  .complaints-page .ev pre {
+    max-height: none;
+    overflow: visible;
+  }
+}
