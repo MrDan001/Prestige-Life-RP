@@ -7,6 +7,13 @@ import { audit } from "@/lib/audit";
 import { ROLE_RIGHTS, canAssignRole } from "@/lib/permissions";
 import { PRIMARY_OWNER_ADMIN_ID } from "@/lib/owner-privacy";
 
+const normalizePrManagerLabel = (value: string) => {
+  const legacy = value.trim().toLowerCase();
+  return ["prm", "prm (project management)", "prm - project management"].includes(legacy)
+    ? "PR Manager"
+    : value;
+};
+
 /** Roles, for the Staff screen and the Roles screen. assignable = whether you may give that role. */
 export async function GET() {
   const a = await requireAdmin("MANAGE_STAFF");
@@ -32,7 +39,7 @@ export async function GET() {
     const yOrder = topTierOrder.get(y.name.trim().toLowerCase()) ?? 99;
     return xOrder - yOrder || x.name.localeCompare(y.name);
   });
-  return NextResponse.json(roles.map((r) => ({ ...r, assignable: r.active && canAssignRole(a.actor, r) })));
+  return NextResponse.json(roles.map((r) => ({ ...r, name: normalizePrManagerLabel(r.name), assignable: r.active && canAssignRole(a.actor, r) })));
 }
 
 const schema = z

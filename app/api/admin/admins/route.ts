@@ -9,6 +9,13 @@ import { backfillAccused } from "@/lib/linking";
 import { canAssignLevel, canAssignRole, canManageTarget } from "@/lib/permissions";
 import { PRIMARY_OWNER_ADMIN_ID } from "@/lib/owner-privacy";
 
+const normalizePrManagerLabel = (value: string) => {
+  const legacy = value.trim().toLowerCase();
+  return ["prm", "prm (project management)", "prm - project management"].includes(legacy)
+    ? "PR Manager"
+    : value;
+};
+
 const INVITE_HOURS = 48;
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
@@ -53,6 +60,8 @@ export async function GET() {
     const { invitations: _invitations, ...staff } = r;
     return {
       ...staff,
+      title: normalizePrManagerLabel(staff.title),
+      role: staff.role ? { ...staff.role, name: normalizePrManagerLabel(staff.role.name) } : null,
       canManage: canManageTarget(a.actor, r),
       presence,
       lastActivityAt: lastActivityAt?.toISOString() ?? null,
@@ -104,7 +113,7 @@ export async function POST(req: Request) {
     const created = await tx.admin.create({
       data: {
         email, name: d.name, passwordHash: null, kind, level, roleId: role.id, gameId: d.gameId,
-        title: d.title ?? role.name,
+        title: normalizePrManagerLabel(d.title ?? role.name),
       },
       select: { id: true, email: true, name: true, title: true, kind: true, level: true },
     });

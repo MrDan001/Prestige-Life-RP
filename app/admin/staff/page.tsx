@@ -13,6 +13,13 @@ type Role = { id: string; name: string; kind: string; minLevel: number; maxLevel
 type Filter = "ALL" | "ADMINS" | "TOP_TIER" | "ACTIVE" | "PENDING" | "SUSPENDED" | "INACTIVE";
 type InviteInfo = { id: string; url: string; expiresAt: string };
 
+const normalizePrManagerLabel = (value: string) => {
+  const legacy = value.trim().toLowerCase();
+  return ["prm", "prm (project management)", "prm - project management"].includes(legacy)
+    ? "PR Manager"
+    : value;
+};
+
 const RIGHTS_LABEL: Record<string, string> = {
   MANAGE_CATEGORIES: "Edit categories", MANAGE_STAFF: "Manage staff",
   GRANT_STAFF_PERMISSIONS: "Grant staff permissions",
@@ -49,7 +56,7 @@ function StaffRow({ s, me, levels, roles, onPatch, onInvite, onRecover, onRevoke
         <span className="staff-avatar" aria-hidden="true">{initials || "?"}</span>
         <span className="staff-summary-copy">
           <span className="staff-name-line"><strong>{s.name}</strong><span className={`staff-presence ${presenceClass}`}><i className={`staff-dot ${presenceClass}`} />{presenceLabel}</span></span>
-          <span className="staff-subtitle">{s.title || s.kind} · {s.kind === "ADMIN" ? `Level ${s.level}` : "Top tier"}{s.suspended ? " · Suspended" : ""}</span>
+          <span className="staff-subtitle">{normalizePrManagerLabel(s.title || (s.kind === "TECH" ? "PR Manager" : s.kind))} · {s.kind === "ADMIN" ? `Level ${s.level}` : "Top tier"}{s.suspended ? " · Suspended" : ""}</span>
         </span>
         <svg className="staff-chevron" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m4 7 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
       </summary>

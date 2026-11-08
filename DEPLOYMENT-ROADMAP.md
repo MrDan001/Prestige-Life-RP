@@ -502,3 +502,14 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Preserve the primary owner's identity privacy, account ID, permissions and authentication.
 - [x] Update README and this deployment roadmap.
 - [ ] Verify production migration, Staff titles, role picker labels, and a single visible FOUNDER assignment count after deployment.
+
+
+## Admin shell scroll model and PR Manager display safeguard — 8 November 2026
+- [x] Keep the complete left navigation stationary for every admin route; the right-hand page workspace scrolls independently.
+- [x] Constrain the shell to the viewport so document-level scrolling cannot move the menu with the page.
+- [x] Keep the sidebar independently scrollable only when its full menu exceeds the available viewport height.
+- [x] Normalize legacy PRM title variants to **PR Manager** in staff API responses, role API responses, staff-card rendering, and newly created staff titles.
+- [x] Preserve the TECH kind, staff permissions, role assignments, and concealed primary-owner account.
+- [x] Update README and this deployment roadmap.
+- [ ] Verify all admin routes on desktop and narrow screens; confirm the menu remains stationary while right-side content scrolls.
+- [ ] Verify Staff cards and role selectors show **PR Manager** even if the production database migration has not yet run.

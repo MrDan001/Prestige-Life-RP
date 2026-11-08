@@ -179,3 +179,10 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The built-in TECH role is named **PR Manager** consistently in the role picker, staff cards, role list and seed data; legacy staff display titles containing the exact old label **PRM** are normalized by the accompanying migration.
 - The primary owner account remains private and is excluded from role-assignment headcounts. The single visible **FOUNDER** count therefore reflects only visible staff assigned to that role, not the concealed primary owner.
 - The primary owner identity, account ID, email, permissions and authentication are unchanged.
+
+
+## Admin navigation and staff-label consistency — 8 November 2026
+- Admin navigation now remains stationary at the left edge on every admin route. The complete menu stays available while the active page content scrolls independently in the right-hand workspace.
+- The sidebar has its own overflow protection on short screens, so long menus remain reachable without moving the page content.
+- Legacy **PRM** and **PRM (Project Management)** staff titles and role names are normalized to **PR Manager** in the staff API, role API, and staff-card display. This presentation safeguard works even before the earlier database label migration is applied.
+- The underlying TECH staff kind, permissions, role assignments, and primary-owner privacy safeguards are unchanged.
