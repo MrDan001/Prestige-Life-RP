@@ -513,3 +513,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this deployment roadmap.
 - [ ] Verify all admin routes on desktop and narrow screens; confirm the menu remains stationary while right-side content scrolls.
 - [ ] Verify Staff cards and role selectors show **PR Manager** even if the production database migration has not yet run.
+
+
+## Mobile desktop-viewport rendering for the complaints workspace — 8 November 2026
+- [x] Move admin navigation and authentication shell behaviour into a dedicated client component.
+- [x] Declare the admin desktop viewport (1200 CSS pixels) in the server layout so mobile browsers receive it before first paint.
+- [x] Remove forced initial scale of 1, allowing mobile browsers to fit the full desktop workspace to the physical screen without switching to a mobile layout.
+- [x] Keep the viewport declaration scoped to /admin; public pages retain their responsive viewport.
+- [ ] Verify on Android and iOS that the complete desktop complaints queue, case detail panel, and stationary sidebar are visible on first load.
+- [ ] Confirm pinch zoom remains available and no horizontal content is clipped.
