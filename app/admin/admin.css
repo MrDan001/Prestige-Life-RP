@@ -238,7 +238,7 @@ html:has(.shell), body:has(.shell) {
   min-height: 0;
   max-height: 100%;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y pinch-zoom;
 }
 .complaints-page .detail {
   flex: 1 1 0;

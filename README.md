@@ -57,7 +57,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 
 ## Admin workspace behavior
 - Sign out is available only from **My Profile**; it is no longer shown in the shared admin navigation/account panel.
-- The admin workspace requests a 1200px desktop viewport and retains its desktop sidebar, complaint split view, staff controls, and multi-column layouts on narrow devices. On the complaints workspace, the sidebar, queue and detail panels support one-finger panning on both axes and native two-finger pinch zoom.
+- The admin workspace requests a 1200px desktop viewport and retains its desktop sidebar, complaint split view, staff controls, and multi-column layouts on narrow devices. The complaints sidebar, queue and detail panes explicitly allow horizontal/vertical touch panning and native pinch zoom; keep later pane-specific touch-action rules aligned so they do not override this gesture policy.
 - Only **OPEN** complaints appear in the **Active** queue. **RESOLVED** and **DISMISSED** complaints appear in the separate **History** queue.
 - Closed complaints are read-only: staff cannot reply, draft a judgment, add a note, claim, release, or change their status while closed. The owner, PRM/TECH, and Developer top tier can explicitly reopen a closed complaint; it returns to Active, and a new response requires a separate action after reopening.
 
