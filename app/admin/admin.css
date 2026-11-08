@@ -178,3 +178,37 @@ body:has(.complaints-page) { min-height: 0; }
   overflow-x: hidden;
   scrollbar-gutter: stable;
 }
+
+
+/* Shared admin shell: keep the complete navigation stationary while the active
+   page occupies the remaining viewport and scrolls independently. */
+html:has(.shell), body:has(.shell) {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.shell {
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow: hidden;
+  align-items: stretch;
+}
+.shell > .side {
+  position: relative;
+  top: auto;
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 0 0 220px;
+}
+.shell > .content {
+  height: 100dvh;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
