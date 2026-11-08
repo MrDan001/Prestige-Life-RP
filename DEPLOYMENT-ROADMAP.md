@@ -428,3 +428,39 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Updated README and this roadmap; correction is isolated in PR #29.
 - [ ] Verify PR #29 preview build, merge the correction, and confirm the production deployment is READY on the merged commit.
 - [ ] Smoke-test the public site and the admin judgment flow without issuing a real player punishment.
+
+
+## Roles page cleanup — 7 November 2026
+- [x] Removed the Edit action and edit mode from the owner Roles page; custom role creation and switch on/off remain available.
+- [x] Added an owner-only, narrowly scoped API deletion guard for the unused non-system role named **PR Manager**; it refuses deletion if any staff account is assigned.
+- [x] Added migration `20261107220000_remove_unused_pr_manager_role`, which deletes only that manually-created role and aborts if it has assigned staff. Built-in roles and all other roles are untouched.
+- [x] Updated README and this roadmap.
+- [ ] Apply the migration to the production database, then verify the Roles page lists every existing role except PR Manager and has no Edit button.
+
+
+## Built-in PR Manager display name — 7 November 2026
+- [x] Rename the built-in TECH role label from **PRM** to **PR Manager** without changing its underlying TECH permission kind or staff assignments.
+- [x] Keep the manually-created unused PR Manager role cleanup separate; its migration runs before this built-in-role rename.
+- [x] Update README and this deployment roadmap.
+- [x] Applied the manual-role removal migration and built-in-role rename to the Production database in order.
+- [x] Verified Production now has exactly one **PR Manager** role: built-in `TECH`, active, with both existing assignments preserved; the unused custom role is gone and all other roles/assignments remain unchanged.
+- [ ] Merge PR #32 and confirm the single Vercel Production deployment reaches READY; verify the Roles page has no Edit action.
+
+
+## Vercel failed build correction — 7 November 2026
+- [x] Inspected the latest failed Preview build for the Roles cleanup branch and the failed Production build.
+- [x] Identified the current TypeScript failure: the complaint judgment formatter reads `accusedAdmin.name`, but the PATCH query selected only ID, kind and level.
+- [x] Added the accused administrator name to the PATCH query selection; retained the complainant username selection.
+- [x] Updated README and this deployment roadmap.
+- [ ] Confirm a fresh branch Preview build reaches READY.
+- [ ] After merge, confirm a fresh Production build reaches READY and verify the production domain serves the merged commit.
+- [ ] Apply the two role migrations in timestamp order and verify the final role list; deployment alone does not apply these database migrations.
+
+
+## Single-deployment release preparation — 7 November 2026
+- [x] Consolidate the Roles page edit-button removal, safe custom-role deletion guard, built-in PRM → PR Manager display rename, and complaint judgment TypeScript build correction into PR #32.
+- [x] Apply the two narrowly scoped role data migrations to the Production database in order; verify all remaining roles and staff assignments.
+- [x] Confirm the current failed build's missing accused-admin name selection is corrected on the PR branch.
+- [x] Update README and this deployment roadmap.
+- [ ] Wait for Vercel's free daily deployment API quota to reset; the previous create-deployment request was rejected with HTTP 402 and a 24-hour retry window.
+- [ ] Merge PR #32, allow its single automatic Production deployment, and verify the production domain and Roles page.

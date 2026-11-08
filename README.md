@@ -23,7 +23,7 @@ Prestige Life RP is a mobile-first roleplay community website and game companion
 - If a staff member loses all passkeys, the owner can use **Reset passkeys & issue recovery invitation** in Staff management. This signs them out everywhere, removes their old passkeys, and issues a fresh one-use invitation so they can register a replacement.
 - Invitation links are shown once in the Staff interface to the creator and authorized staff managers; they are not automatically emailed. Share them privately. Authorized managers can issue/replace or revoke invitations only for staff they are allowed to manage.
 - Passkeys are stored as public-key credentials; private key material remains with the staff member's device or passkey provider.
-- The former Tech role is displayed as **PRM (Project Management)**. Its underlying `TECH` permission kind is intentionally unchanged, so access rights and behavior stay the same.
+- The former Tech role is displayed as **PR Manager (Project Management)**. Its underlying `TECH` permission kind is intentionally unchanged, so access rights and behavior stay the same.
 - **Manage Staff** and **Grant Staff Permissions** are separate, direct per-person permissions and are not inherited from reusable roles. The Owner always retains both. Other staff need Manage Staff to recruit/manage junior staff, and need Grant Staff Permissions as well to grant or revoke permissions. Delegated permission changes are server-enforced, audited, limited to manageable subordinates, and cannot change the actor's own rights or outrank the actor. General workspace rights inherited from a custom role are marked **via role** in the Staff screen and remain controlled in the Owner-only Roles screen. Only the Owner can appoint top-tier roles or permanently delete staff. The owner can permanently delete a staff account from its Staff card. Deletion removes that account's invitations, sessions, passkeys, complaint responses, internal notes, and audit entries; complaint records themselves remain and staff references are cleared by the database. Owner accounts and the currently signed-in owner cannot be deleted.
 - The owner must accept the separately issued one-use owner invitation to enter the new passwordless flow.
 - When a replacement custom domain is ready, add and verify it in Vercel before changing player-facing links or redirects.
@@ -138,3 +138,20 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 
 ## Upheld judgment build note
 - The admin complaint PATCH handler explicitly selects the complainant username when loading a complaint for judgment, which is required to construct the standardized upheld-judgment message. The matching deployment/build verification is tracked in [DEPLOYMENT-ROADMAP.md](./DEPLOYMENT-ROADMAP.md).
+
+
+## Roles administration
+- The owner Roles page supports creating custom roles and switching custom roles on/off; editing existing role details is not exposed in the interface.
+- The unused manually-created **PR Manager** custom role is retired by migration `20261107220000_remove_unused_pr_manager_role`. The migration removes only the non-system PR Manager row and aborts if any staff account is still assigned to it. All built-in roles and other custom roles are preserved.
+
+
+### Complaint judgment build type fix — 7 November 2026
+- The complaint PATCH lookup now selects the accused administrator's display name, matching the upheld-judgment message formatter and Prisma's inferred query type.
+- The complainant username remains selected explicitly for the same formatter.
+
+
+## Production roles database state — 7 November 2026
+- The unused, manually-created custom **PR Manager** role was removed from the production database after confirming it had zero staff assignments.
+- The built-in **PRM** role was renamed to **PR Manager** in production; its underlying `TECH` kind and both existing staff assignments were preserved.
+- All other production roles and their assignments were verified unchanged.
+- PR #32 contains the matching Roles page cleanup and the complaint judgment TypeScript build correction. The remaining release step is one successful Vercel Production deployment from the merged PR.
