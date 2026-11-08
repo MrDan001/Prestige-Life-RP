@@ -155,3 +155,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The built-in **PRM** role was renamed to **PR Manager** in production; its underlying `TECH` kind and both existing staff assignments were preserved.
 - All other production roles and their assignments were verified unchanged.
 - PR #32 contains the matching Roles page cleanup and the complaint judgment TypeScript build correction. The remaining release step is one successful Vercel Production deployment from the merged PR.
+
+
+## Judgment display cleanup — 8 November 2026
+- The saved judgment message is the single place where the verdict, violated rule code, punishment and duration are displayed.
+- Removed the separate repeated verdict/rule/punishment/duration rows beneath the judgment message in both the admin complaint detail and public complaint page.
+- Structured punishment fields remain stored and available to the game/API; only duplicate UI output is removed.
