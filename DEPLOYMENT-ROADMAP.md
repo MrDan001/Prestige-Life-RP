@@ -482,3 +482,14 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this deployment roadmap.
 - [ ] Build and inspect the Preview deployment; verify the button remains visible/clickable on narrow and desktop layouts and test a closed complaint in History for duplicate rows.
 - [ ] Verify the Production deployment includes PR #33 and this follow-up before declaring the duplicate display fixed on the live site.
+
+
+## Independent complaints workspace panel scrolling — 8 November 2026
+- [x] Keep the admin complaints workspace fixed to the viewport with no page-wide scrolling.
+- [x] Make the left navigation menu independently vertically scrollable.
+- [x] Keep the middle Active/History complaint list independently vertically scrollable, including its Load more control.
+- [x] Make the right complaint detail independently vertically scrollable so long evidence, descriptions and judgment forms remain accessible.
+- [x] Contain scroll chaining at each panel boundary; scrolling one section does not move the other sections.
+- [x] Keep the complaints header stationary above the two content panels.
+- [x] Update README and this deployment roadmap.
+- [ ] Verify the Preview build and test independent scrolling with mouse wheel, trackpad and touch on desktop and narrow-device layouts.
