@@ -167,3 +167,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The **Issue judgment** action remains visible, enabled and sticky at the bottom of the judgment form while punishment details are entered.
 - Clicking the action runs the existing validation and shows a clear message for any missing or invalid rule code, punishment or duration; the action is not disabled or hidden by incomplete form state.
 - Judgment details are presented only inside the judgment message; no separate structured verdict/rule/punishment/duration rows are rendered in complaint history.
+
+
+## Admin complaints workspace scrolling — 8 November 2026
+- The admin navigation sidebar, complaint list, and selected complaint detail each have their own vertical scroll area.
+- The complaints workspace and page header remain fixed; scrolling one panel does not scroll either of the other panels.
+- Scroll chaining is contained at each panel boundary so wheel, trackpad, and touch scrolling stay within the active panel.
