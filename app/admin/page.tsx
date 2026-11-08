@@ -310,10 +310,8 @@ export default function ComplaintsPage() {
                         </label>
                       </div>
                     )}
-                    <div className="claimbar">
-                      <button className="primary" disabled={isApprovedJudgment
-                        ? (!ruleCode.trim() || !selectedPunishment || !selectedPunishment.durationOptions.includes(punishmentDuration))
-                        : !reply.trim()} onClick={send}>Issue judgment</button>
+                    <div className="claimbar" style={{ position: "sticky", bottom: 0, zIndex: 5, padding: "12px 0", background: "#100d19", borderTop: "1px solid #342b4b" }}>
+                      <button type="button" className="primary" onClick={send}>Issue judgment</button>
                     </div>
                   </div>
                 </>
