@@ -575,3 +575,15 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this roadmap.
 - [ ] Verify on the actual Android device: pinch in, drag the workspace left/right/up/down starting from each of the three columns, then pinch out; confirm no column clips the workspace.
 - [ ] Verify desktop mouse/trackpad behavior remains independently scrollable and the Vercel Production deployment is READY on the merged commit.
+
+
+## Website-wide mobile pan and pinch behavior — 8 November 2026
+- [x] Extend the verified complaints-page document-level pan model to every admin route, including Staff, Roles, Categories, Punishments, Judgments, Settings, Audit, Profile, Create comp and Generate comps.
+- [x] Keep the admin 1200px desktop workspace instead of introducing a different mobile layout; on touch devices, the full document is the shared horizontal-and-vertical pan surface.
+- [x] Remove shell/sidebar/content overflow clipping and nested scroll ownership on touch devices so a zoomed workspace can be dragged with one finger from any admin page.
+- [x] Explicitly preserve native two-finger pinch zoom and two-axis page panning at the document root across the public website.
+- [x] Keep public pages' existing responsive layouts and keep desktop-pointer admin scrolling unchanged.
+- [x] Update README and this roadmap.
+- [ ] Verify on Android: test pinch in/out and one-finger horizontal/vertical movement on every admin route, including long forms and lists; confirm the sidebar and page content move as one workspace.
+- [ ] Verify public Home, Rules, public Complaint, Auth and Invitation pages retain their intended layouts and native pinch zoom.
+- [ ] Verify desktop mouse/trackpad behavior and confirm the Vercel Production deployment is READY on the merged commit.
