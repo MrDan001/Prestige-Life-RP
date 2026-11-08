@@ -555,3 +555,11 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Keep the independent panel scroll containers and desktop-width complaints layout intact.
 - [x] Update README and this deployment roadmap.
 - [ ] Verify on Android and iOS that a zoomed-in workspace can be moved in every direction with one finger and still pinch-zooms with two fingers.
+
+
+## Follow-up: restore one-finger panning after a later CSS override — 8 November 2026
+- [x] Re-inspect the final cascade after the reported mobile test showed one-finger panning still failed.
+- [x] Identify the cause: a later complaints-pane rule still set `touch-action: pan-y` on the queue and detail panes, overriding PR #42's two-axis gesture declaration.
+- [x] Change that final pane rule to `pan-x pan-y pinch-zoom`, keeping independent vertical scrolling and native pinch zoom enabled.
+- [x] Clarify the README gesture-policy maintenance note and update this roadmap.
+- [ ] Verify one-finger horizontal/vertical movement and two-finger pinch on the actual Android device after the production deployment is READY.
