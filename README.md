@@ -161,3 +161,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The saved judgment message is the single place where the verdict, violated rule code, punishment and duration are displayed.
 - Removed the separate repeated verdict/rule/punishment/duration rows beneath the judgment message in both the admin complaint detail and public complaint page.
 - Structured punishment fields remain stored and available to the game/API; only duplicate UI output is removed.
+
+
+## Judgment action availability — 8 November 2026
+- The **Issue judgment** action remains visible, enabled and sticky at the bottom of the judgment form while punishment details are entered.
+- Clicking the action runs the existing validation and shows a clear message for any missing or invalid rule code, punishment or duration; the action is not disabled or hidden by incomplete form state.
+- Judgment details are presented only inside the judgment message; no separate structured verdict/rule/punishment/duration rows are rendered in complaint history.
