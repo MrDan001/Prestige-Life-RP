@@ -261,10 +261,6 @@ export default function ComplaintsPage() {
                   <strong>Judgment</strong>
                   <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{open.latestJudgment.message}</p>
                   <small className="muted">{open.latestJudgment.admin.name} · {fmt(open.latestJudgment.createdAt)}</small>
-                  {open.verdict && <p><strong>Verdict:</strong> {label(open.verdict)}</p>}
-                  {open.latestJudgment.ruleCode && <p><strong>Violated rule:</strong> {open.latestJudgment.ruleCode}</p>}
-                  {open.latestJudgment.punishmentType && <p><strong>Punishment:</strong> {open.latestJudgment.punishmentType}</p>}
-                  {open.latestJudgment.punishmentDuration && <p><strong>Duration:</strong> {open.latestJudgment.punishmentDuration}</p>}
                 </div>
               )}
 
