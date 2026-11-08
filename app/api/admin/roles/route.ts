@@ -5,16 +5,17 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import { ROLE_RIGHTS, canAssignRole } from "@/lib/permissions";
+import { PRIMARY_OWNER_ADMIN_ID } from "@/lib/owner-privacy";
 
 /** Roles, for the Staff screen and the Roles screen. assignable = whether you may give that role. */
 export async function GET() {
   const a = await requireAdmin("MANAGE_STAFF");
   if (a.error) return a.error;
-  const roles = await db.role.findMany({ include: { _count: { select: { admins: true } } } });
+  const roles = await db.role.findMany({ include: { _count: { select: { admins: { where: { id: { not: PRIMARY_OWNER_ADMIN_ID } } } } } } });
   // Keep the staff role picker in authority order. Within the level-6 admin tier,
   // Deputy Chief Admin precedes Chief Admin. Among top-tier roles, Founder is last.
   const adminTieOrder = new Map([["deputy chief admin", 0], ["chief admin", 1]]);
-  const topTierOrder = new Map([["developer", 0], ["prm", 1], ["founder", 2]]);
+  const topTierOrder = new Map([["developer", 0], ["pr manager", 1], ["prm", 1], ["founder", 2]]);
   roles.sort((x, y) => {
     const tierOrder = Number(x.kind !== "ADMIN") - Number(y.kind !== "ADMIN");
     if (tierOrder !== 0) return tierOrder;
