@@ -253,10 +253,10 @@ html:has(.shell), body:has(.shell) {
 }
 
 
-/* Allow native pinch zoom in every complaints workspace panel.
-   pan-y alone reserves the gesture for vertical scrolling and suppresses pinch zoom. */
+/* Allow native two-axis panning and pinch zoom in every complaints workspace panel.
+   Both axes are required so a zoomed desktop-width workspace can be moved with one finger. */
 .complaints-page .list,
 .complaints-page .detail,
 .shell:has(.complaints-page) > .side {
-  touch-action: pan-y pinch-zoom;
+  touch-action: pan-x pan-y pinch-zoom;
 }
