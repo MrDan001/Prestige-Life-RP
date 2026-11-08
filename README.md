@@ -186,3 +186,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The sidebar has its own overflow protection on short screens, so long menus remain reachable without moving the page content.
 - Legacy **PRM** and **PRM (Project Management)** staff titles and role names are normalized to **PR Manager** in the staff API, role API, and staff-card display. This presentation safeguard works even before the earlier database label migration is applied.
 - The underlying TECH staff kind, permissions, role assignments, and primary-owner privacy safeguards are unchanged.
+
+
+## Mobile rendering of the desktop admin workspace — 8 November 2026
+- The admin route now declares its 1200px desktop viewport through Next.js server-side viewport metadata, so the browser receives the correct layout width in the initial HTML rather than waiting for a client-side effect.
+- Removed the forced `initial-scale=1` setting. Mobile browsers can now scale the complete desktop workspace to the phone display width while retaining the desktop navigation, complaint queue, and detail-panel layout.
+- The normal public website viewport remains unchanged because the viewport metadata is scoped to the admin route segment.
