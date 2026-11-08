@@ -251,3 +251,12 @@ html:has(.shell), body:has(.shell) {
 .complaints-page .list {
   overflow-y: scroll;
 }
+
+
+/* Allow native pinch zoom in every complaints workspace panel.
+   pan-y alone reserves the gesture for vertical scrolling and suppresses pinch zoom. */
+.complaints-page .list,
+.complaints-page .detail,
+.shell:has(.complaints-page) > .side {
+  touch-action: pan-y pinch-zoom;
+}

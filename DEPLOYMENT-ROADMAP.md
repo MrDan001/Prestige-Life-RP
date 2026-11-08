@@ -530,3 +530,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Give the split workspace a definite flex height instead of depending on percentage heights inside nested flex containers.
 - [x] Preserve desktop-width layout and independent sidebar/list/detail scrolling.
 - [ ] Verify a long complaint can be read from top to bottom on Android and iOS; confirm judgment controls at the bottom are reachable.
+
+
+
+## Consistent pinch zoom across complaint workspace panels — 8 November 2026
+- [x] Identify the gesture mismatch: `touch-action: pan-y` on the list and detail panes allowed vertical panning but excluded pinch zoom.
+- [x] Allow `pan-y pinch-zoom` on the sidebar, complaint list and complaint detail panel.
+- [x] Preserve independent vertical scrolling and the existing desktop-width three-panel layout.
+- [x] Update README and this roadmap.
+- [ ] Verify on Android and iOS that all three panels support pinch zoom and that vertical scrolling still works independently.

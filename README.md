@@ -198,3 +198,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - Made the complaints detail pane an explicit, momentum-scrollable touch region on mobile browsers while preserving the desktop-width three-panel admin workspace.
 - Removed the ambiguous percentage-height dependency from the split pane and assigned its flex height from the available viewport.
 - Kept the complaint queue and sidebar as independent scroll regions.
+
+
+## Consistent pinch zoom across the complaints workspace — 8 November 2026
+- The complaint list and detail panel now allow native pinch-to-zoom while retaining vertical touch scrolling.
+- The sidebar, queue and detail sections use the same vertical-pan-plus-pinch gesture policy; the prior `touch-action: pan-y` rule had disabled pinch zoom in the two content panels.
+- No complaint data, judgment behavior, permissions or desktop panel sizing is changed.
