@@ -473,3 +473,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Preserve structured judgment data and API/game delivery behavior; this is a display-only change.
 - [x] Update README and this deployment roadmap.
 - [ ] Verify the build and inspect both admin and public complaint views after deployment.
+
+
+## Judgment action visibility and closed-history duplicate cleanup — 8 November 2026
+- [x] Keep **Issue judgment** permanently visible, enabled and sticky at the bottom of the judgment form, including after all punishment fields have been entered.
+- [x] Route every click through the existing submit validation so incomplete or invalid punishment fields produce a clear validation message rather than a disabled/unclickable button.
+- [x] Confirm the admin complaint detail and public complaint reference render the judgment message without separate repeated verdict, rule code, punishment or duration rows; preserve structured fields for API/game use.
+- [x] Update README and this deployment roadmap.
+- [ ] Build and inspect the Preview deployment; verify the button remains visible/clickable on narrow and desktop layouts and test a closed complaint in History for duplicate rows.
+- [ ] Verify the Production deployment includes PR #33 and this follow-up before declaring the duplicate display fixed on the live site.
