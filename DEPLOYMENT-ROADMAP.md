@@ -464,3 +464,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Update README and this deployment roadmap.
 - [ ] Wait for Vercel's free daily deployment API quota to reset; the previous create-deployment request was rejected with HTTP 402 and a 24-hour retry window.
 - [ ] Merge PR #32, allow its single automatic Production deployment, and verify the production domain and Roles page.
+
+
+## Duplicate judgment details removed — 8 November 2026
+- [x] Keep the complete verdict, violated rule, punishment and duration inside the judgment message.
+- [x] Remove the repeated structured-field rows below that message in the admin complaint detail.
+- [x] Remove the same repeated rows from the public complaint page so both views show the judgment details only once.
+- [x] Preserve structured judgment data and API/game delivery behavior; this is a display-only change.
+- [x] Update README and this deployment roadmap.
+- [ ] Verify the build and inspect both admin and public complaint views after deployment.
