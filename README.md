@@ -173,3 +173,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The admin navigation sidebar, complaint list, and selected complaint detail each have their own vertical scroll area.
 - The complaints workspace and page header remain fixed; scrolling one panel does not scroll either of the other panels.
 - Scroll chaining is contained at each panel boundary so wheel, trackpad, and touch scrolling stay within the active panel.
+
+
+## Staff role labels and private Founder account count — 8 November 2026
+- The built-in TECH role is named **PR Manager** consistently in the role picker, staff cards, role list and seed data; legacy staff display titles containing the exact old label **PRM** are normalized by the accompanying migration.
+- The primary owner account remains private and is excluded from role-assignment headcounts. The single visible **FOUNDER** count therefore reflects only visible staff assigned to that role, not the concealed primary owner.
+- The primary owner identity, account ID, email, permissions and authentication are unchanged.
