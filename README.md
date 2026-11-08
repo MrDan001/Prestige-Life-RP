@@ -192,3 +192,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The admin route now declares its 1200px desktop viewport through Next.js server-side viewport metadata, so the browser receives the correct layout width in the initial HTML rather than waiting for a client-side effect.
 - Removed the forced `initial-scale=1` setting. Mobile browsers can now scale the complete desktop workspace to the phone display width while retaining the desktop navigation, complaint queue, and detail-panel layout.
 - The normal public website viewport remains unchanged because the viewport metadata is scoped to the admin route segment.
+
+
+## Complaint detail touch scrolling correction — 8 November 2026
+- Made the complaints detail pane an explicit, momentum-scrollable touch region on mobile browsers while preserving the desktop-width three-panel admin workspace.
+- Removed the ambiguous percentage-height dependency from the split pane and assigned its flex height from the available viewport.
+- Kept the complaint queue and sidebar as independent scroll regions.
