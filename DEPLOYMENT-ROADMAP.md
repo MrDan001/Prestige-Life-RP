@@ -563,3 +563,15 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Change that final pane rule to `pan-x pan-y pinch-zoom`, keeping independent vertical scrolling and native pinch zoom enabled.
 - [x] Clarify the README gesture-policy maintenance note and update this roadmap.
 - [ ] Verify one-finger horizontal/vertical movement and two-finger pinch on the actual Android device after the production deployment is READY.
+
+
+## Structural mobile pan correction for the complaints workspace — 8 November 2026
+- [x] Reinspect the complete complaints DOM, admin shell, viewport metadata and final CSS cascade rather than changing another isolated gesture declaration.
+- [x] Identify the structural blocker: the admin document, shell and complaints content were locked with overflow hidden, while the sidebar, queue and detail each owned nested scroll regions. Those nested scrollers consumed one-finger gestures and the clipped ancestors prevented the document viewport from panning as a single workspace.
+- [x] On touch-first devices, retain the 1200px desktop layout but make the document the single two-axis scroll surface; remove nested scrolling and overflow clipping from the three complaints columns.
+- [x] Keep browser-native two-finger pinch zoom enabled so one-finger drags after zoom move the visual viewport over the complete workspace.
+- [x] Preserve independently scrolling sidebar, queue and detail panels on desktop pointer devices.
+- [x] Scope the change to the complaints route and touch-first input; do not alter other admin pages or public pages.
+- [x] Update README and this roadmap.
+- [ ] Verify on the actual Android device: pinch in, drag the workspace left/right/up/down starting from each of the three columns, then pinch out; confirm no column clips the workspace.
+- [ ] Verify desktop mouse/trackpad behavior remains independently scrollable and the Vercel Production deployment is READY on the merged commit.

@@ -210,3 +210,11 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - Every player identity stored or accepted by the complaint system uses exactly `Firstname_lastname`: letters only, one underscore, and at least two letters in each part (for example, `Db_yk`).
 - The game complaint API and owner-created complaint API reject names that do not match this format. The owner-only Generate comps endpoint normalizes every generated identity before saving it.
 - Migration `20261108090000_enforce_player_name_format` normalizes existing player and accused-player names, then adds database checks so invalid names cannot be written through another application path.
+
+
+## Native mobile pan and pinch behavior for the complaints workspace — 8 November 2026
+- On touch-first devices, the complaints page keeps the 1200px desktop layout but uses the document itself as the single horizontal-and-vertical pan surface.
+- Browser-native pinch zoom remains enabled. After zooming, one-finger drags move the page's visual viewport across the sidebar, complaint queue and case detail together.
+- Removed nested touch-device scrolling and overflow clipping from those three workspace columns because nested scrollers were consuming one-finger gestures instead of allowing the zoomed page to pan as one surface.
+- Desktop pointer devices retain their existing independently scrollable sidebar, queue and detail panes.
+- This behavior is scoped to the complaints page and touch-first input; other admin routes and public pages keep their existing scroll models.
