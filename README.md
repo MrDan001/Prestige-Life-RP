@@ -204,3 +204,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - The complaint list and detail panel now allow native pinch-to-zoom while retaining vertical touch scrolling.
 - The sidebar, queue and detail sections use the same vertical-pan-plus-pinch gesture policy; the prior `touch-action: pan-y` rule had disabled pinch zoom in the two content panels.
 - No complaint data, judgment behavior, permissions or desktop panel sizing is changed.
+
+
+## Player name format
+- Every player identity stored or accepted by the complaint system uses exactly `Firstname_lastname`: letters only, one underscore, and at least two letters in each part (for example, `Db_yk`).
+- The game complaint API and owner-created complaint API reject names that do not match this format. The owner-only Generate comps endpoint normalizes every generated identity before saving it.
+- Migration `20261108090000_enforce_player_name_format` normalizes existing player and accused-player names, then adds database checks so invalid names cannot be written through another application path.

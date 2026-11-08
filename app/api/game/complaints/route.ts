@@ -4,11 +4,12 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { isGameServer, unauthorized } from "@/lib/auth";
 import { evidenceItem } from "@/lib/evidence";
+import { playerNameSchema } from "@/lib/player-name-schema";
 
 const schema = z.object({
   gameId: z.string().min(1).max(64),
-  username: z.string().min(1).max(64),
-  accusedName: z.string().max(64).optional(),
+  username: playerNameSchema,
+  accusedName: playerNameSchema.optional(),
   accusedGameId: z.string().max(64).optional(), // lets the website know if the accused is staff
   category: z.string().min(1).max(40), // must match an active category name
   message: z.string().min(5).max(2000),
