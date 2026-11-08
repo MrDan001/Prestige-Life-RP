@@ -212,3 +212,42 @@ html:has(.shell), body:has(.shell) {
   overflow-y: auto;
   overscroll-behavior-y: contain;
 }
+
+
+/* Mobile touch-scroll correction for the complaints detail pane.
+   Keep the desktop-width workspace, but make the case detail itself a real,
+   momentum-scrollable region instead of relying on an ancestor to scroll. */
+.shell:has(.complaints-page) > .content {
+  min-width: 980px;
+  min-height: 0;
+  overflow: hidden;
+}
+.complaints-page,
+.complaints-page > .split {
+  min-height: 0;
+}
+.complaints-page .split {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
+.complaints-page .list,
+.complaints-page .detail {
+  min-height: 0;
+  max-height: 100%;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+.complaints-page .detail {
+  flex: 1 1 0;
+  height: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+}
+.complaints-page .list {
+  overflow-y: scroll;
+}
