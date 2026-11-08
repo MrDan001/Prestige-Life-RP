@@ -493,3 +493,12 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Keep the complaints header stationary above the two content panels.
 - [x] Update README and this deployment roadmap.
 - [ ] Verify the Preview build and test independent scrolling with mouse wheel, trackpad and touch on desktop and narrow-device layouts.
+
+
+## PR Manager label consistency and private Founder headcount — 8 November 2026
+- [x] Use **PR Manager** instead of **PRM** in built-in role seed data and role ordering; preserve the underlying TECH kind and existing staff assignments.
+- [x] Add an idempotent migration to rename any remaining legacy PRM role record and normalize legacy staff display titles to **PR Manager**, merging duplicate role rows safely if needed.
+- [x] Exclude the immutable primary-owner account from role assignment headcounts so the concealed owner does not inflate the visible FOUNDER count.
+- [x] Preserve the primary owner's identity privacy, account ID, permissions and authentication.
+- [x] Update README and this deployment roadmap.
+- [ ] Verify production migration, Staff titles, role picker labels, and a single visible FOUNDER assignment count after deployment.
