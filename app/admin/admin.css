@@ -346,3 +346,48 @@ html:has(.shell), body:has(.shell) {
     overflow: visible;
   }
 }
+
+
+/* Shared touch-device navigation for every admin route.
+   Preserve the fixed desktop workspace width, but let the document be the one
+   two-axis pan surface so browser pinch zoom and one-finger viewport dragging
+   work consistently on every admin page, not only the complaints desk. */
+@media (pointer: coarse) {
+  html:has(.shell),
+  body:has(.shell) {
+    height: auto;
+    min-height: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  body:has(.shell) {
+    min-height: 100dvh;
+  }
+
+  .shell {
+    width: max-content;
+    min-width: 1200px;
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .shell > .side {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+
+  .shell > .content {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+}

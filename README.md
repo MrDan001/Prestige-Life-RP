@@ -212,9 +212,9 @@ The built-in top-tier role is displayed as **FOUNDER**. It retains the existing 
 - Migration `20261108090000_enforce_player_name_format` normalizes existing player and accused-player names, then adds database checks so invalid names cannot be written through another application path.
 
 
-## Native mobile pan and pinch behavior for the complaints workspace — 8 November 2026
-- On touch-first devices, the complaints page keeps the 1200px desktop layout but uses the document itself as the single horizontal-and-vertical pan surface.
-- Browser-native pinch zoom remains enabled. After zooming, one-finger drags move the page's visual viewport across the sidebar, complaint queue and case detail together.
-- Removed nested touch-device scrolling and overflow clipping from those three workspace columns because nested scrollers were consuming one-finger gestures instead of allowing the zoomed page to pan as one surface.
-- Desktop pointer devices retain their existing independently scrollable sidebar, queue and detail panes.
-- This behavior is scoped to the complaints page and touch-first input; other admin routes and public pages keep their existing scroll models.
+## Consistent mobile pan and pinch behavior across the website — 8 November 2026
+- Every admin route keeps the 1200px desktop workspace on touch devices and uses the document as one horizontal-and-vertical pan surface.
+- Browser-native two-finger pinch zoom remains enabled. After zooming, one-finger drags move the visual viewport across the complete admin workspace, including navigation and page content.
+- Admin touch layouts remove shell-level overflow clipping and nested sidebar/content scroll ownership so every route behaves consistently; the complaints page retains its three-column desktop arrangement.
+- Public pages retain their existing responsive layouts and native browser zoom/pan behavior; global root gesture permissions explicitly allow two-axis panning and pinch zoom.
+- Desktop pointer devices retain the existing admin panel scroll behavior.
