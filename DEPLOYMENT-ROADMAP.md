@@ -522,3 +522,11 @@ The inspected build logs showed missing bcryptjs in one intermediate commit, Pri
 - [x] Keep the viewport declaration scoped to /admin; public pages retain their responsive viewport.
 - [ ] Verify on Android and iOS that the complete desktop complaints queue, case detail panel, and stationary sidebar are visible on first load.
 - [ ] Confirm pinch zoom remains available and no horizontal content is clipped.
+
+
+## Complaint detail pane does not scroll fully on mobile — 8 November 2026
+- [x] Make the complaint detail pane explicitly scrollable with `overflow-y: scroll`.
+- [x] Enable native momentum scrolling and vertical touch gestures for the detail and queue panes.
+- [x] Give the split workspace a definite flex height instead of depending on percentage heights inside nested flex containers.
+- [x] Preserve desktop-width layout and independent sidebar/list/detail scrolling.
+- [ ] Verify a long complaint can be read from top to bottom on Android and iOS; confirm judgment controls at the bottom are reachable.
